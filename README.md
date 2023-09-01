@@ -2,6 +2,9 @@
 
 ## Setup
 
+1. [Install Poetry](https://python-poetry.org/docs/#system-requirements)
+2.
+
 ```sh
 python -m venv .env
 source .env/bin/activate # OR  env/Scripts/Activate.ps1  Powershell
