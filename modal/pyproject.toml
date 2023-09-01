@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "openrouter-runner-modal"
+version = "0.1.0"
+description = "OpenRouter runner on Modal backend"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+modal = "^0.51.3294"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
