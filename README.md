@@ -11,3 +11,10 @@ poetry install
 poetry shell
 modal token new
 ```
+
+3. To run Scripts:
+
+```sh
+pnpm i
+pnpm x scripts/${script-name}
+```

@@ -4,20 +4,20 @@ from modal import Image, Secret, Stub, method, gpu, web_endpoint
 
 MODEL_DIR = "/model"
 
-# MODEL = "Gryphe/MythoMax-L2-13b"
-# TEMPLATE = """{system}
+MODEL = "Gryphe/MythoMax-L2-13b"
+TEMPLATE = """{system}
 
-# ### Instruction:
-# {user}
+### Instruction:
+{user}
 
-# ### Response:
-# """
+### Response:
+"""
 
-MODEL = "meta-llama/Llama-2-13b-chat-hf"
-TEMPLATE = """<s>[INST] <<SYS>>
-{system}
-<</SYS>>
-{user} [/INST] """
+# MODEL = "meta-llama/Llama-2-13b-chat-hf"
+# TEMPLATE = """<s>[INST] <<SYS>>
+# {system}
+# <</SYS>>
+# {user} [/INST] """
 
 def download_model_to_folder():
     from huggingface_hub import snapshot_download
@@ -108,6 +108,7 @@ class Model:
             tokens = len(request_output.outputs[0].token_ids)
 
         throughput = tokens / (time.time() - t0)
+        print(f"Tokens count: {tokens} tokens")
         print(f"Request completed: {throughput:.4f} tokens/s")
         # print(request_output.outputs[0].text)
 

@@ -1,0 +1,17 @@
+{
+  "name": "@openrouter/runner",
+  "version": "0.0.1",
+  "description": "Scripts for OpenRouter",
+  "author": "OpenRouter",
+  "scripts": {
+    "x": "tsx"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "4.1.0",
+    "@types/node": "18.14.4",
+    "dotenv": "16.3.1",
+    "tsx": "3.12.7",
+    "prettier": "3.0.0",
+    "typescript": "5.1.6"
+  }
+}
