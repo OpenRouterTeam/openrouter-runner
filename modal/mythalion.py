@@ -124,7 +124,7 @@ class Model:
 
 
 @stub.function(
-    secret=Secret.from_name("mythalion"),
+    secret=Secret.from_name("ext-api-key"),
     timeout=60 * 10,
     allow_concurrent_inputs=12,
     keep_warm=1,
@@ -135,7 +135,7 @@ def completion(
     request: Request,
     token: HTTPAuthorizationCredentials = Depends(auth_scheme),
 ):
-    if token.credentials != os.environ["AUTH_TOKEN"]:
+    if token.credentials != os.environ["MYTHALION_API_KEY"]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect bearer token",
