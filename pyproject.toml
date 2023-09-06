@@ -13,3 +13,11 @@ modal = "^0.51.3294"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 80
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+no_strict_optional = true

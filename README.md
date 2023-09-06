@@ -3,13 +3,19 @@
 ## First-time Setup
 
 1. [Install Poetry](https://python-poetry.org/docs/#system-requirements)
-2. For Modal runner:
+2. Setup Poetry:
 
 ```sh
-cd modal
 poetry install
 poetry shell
 modal token new
+```
+
+For intellisense, it's recommended to run open vscode via the poetry shell:
+
+```sh
+poetry shell
+code .
 ```
 
 3. To run Scripts:
@@ -26,7 +32,7 @@ pnpm x scripts/${script-name}
 ```sh
 cd modal
 poetry shell  # SKIP if already in shell
-modal deploy ${filename}
+modal deploy modal/${filename}
 
 # After deployment is done:
 pnpm x scripts/test-modal.ts

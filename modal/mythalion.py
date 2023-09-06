@@ -55,7 +55,9 @@ def download_model_to_folder():
 
 image = (
     Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
-    .pip_install("torch==2.0.1", index_url="https://download.pytorch.org/whl/cu118")
+    .pip_install(
+        "torch==2.0.1", index_url="https://download.pytorch.org/whl/cu118"
+    )
     # Pinned to 08/15/2023
     .pip_install(
         "vllm @ git+https://github.com/vllm-project/vllm.git@805de738f618f8b47ab0d450423d23db1e636fa2",
@@ -96,8 +98,6 @@ class Model:
 
     @method()
     async def generate(self, payload: Payload):
-        from vllm.utils import random_uuid
-
         import time
 
         results_generator = self.engine.generate(
