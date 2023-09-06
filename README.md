@@ -18,3 +18,16 @@ modal token new
 pnpm i
 pnpm x scripts/${script-name}
 ```
+
+## Deploying + Testing
+
+### Modal
+
+```sh
+cd modal
+poetry shell  # SKIP if already in shell
+modal deploy ${filename}
+
+# After deployment is done:
+pnpm x scripts/test-modal.ts
+```
