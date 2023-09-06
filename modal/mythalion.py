@@ -1,23 +1,29 @@
 import os
 
 from modal import Image, Secret, Stub, method, gpu, web_endpoint
+from vllm.sampling_params import SamplingParams
+from pydantic import BaseModel
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 MODEL_DIR = "/model"
 
-MODEL = "Gryphe/MythoMax-L2-13b"
-TEMPLATE = """{system}
+MODEL = "PygmalionAI/mythalion-13b"
 
-### Instruction:
-{user}
 
-### Response:
-"""
+class Payload(BaseModel):
+    id: str
+    prompt: str
+    params: SamplingParams
 
-# MODEL = "meta-llama/Llama-2-13b-chat-hf"
-# TEMPLATE = """<s>[INST] <<SYS>>
-# {system}
-# <</SYS>>
-# {user} [/INST] """
+
+auth_scheme = HTTPBearer()
+
+
+async def get_token_header(access_token: str = Depends(api_key_header)):
+    if access_token != os.environ["MYTHALION_API_KEY"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API Key"
+        )
 
 
 def download_model_to_folder():
@@ -48,14 +54,14 @@ image = (
     )
 )
 
-stub = Stub("mythomax", image=image)
+stub = Stub("mythalion", image=image)
 
 
 @stub.cls(
     gpu=gpu.A100(),
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=12,
-    container_idle_timeout=300,
+    container_idle_timeout=600,
 )
 class Model:
     def __enter__(self):
@@ -73,24 +79,12 @@ class Model:
         self.template = TEMPLATE
 
     @method()
-    async def generate(self, question: str):
-        from vllm import SamplingParams
-
-        from vllm.sampling_params import SamplingParams
+    async def generate(self, payload: Payload):
         from vllm.utils import random_uuid
 
         import time
 
-        sampling_params = SamplingParams(
-            presence_penalty=0.8,
-            temperature=0.2,
-            top_p=0.95,
-            top_k=50,
-            max_tokens=1024,
-        )
-        request_id = random_uuid()
-        prompt = self.template.format(system="", user=question)
-        results_generator = self.engine.generate(prompt, sampling_params, request_id)
+        results_generator = self.engine.generate(payload.id, payload.params, payload.id)
         # print(prompt)
 
         t0 = time.time()
@@ -107,20 +101,39 @@ class Model:
         throughput = tokens / (time.time() - t0)
         print(f"Tokens count: {tokens} tokens")
         print(f"Request completed: {throughput:.4f} tokens/s")
+
+        yield "[DONE]"
         # print(request_output.outputs[0].text)
 
 
-@stub.function(timeout=60 * 10, allow_concurrent_inputs=12)
-@web_endpoint()
-def get(question: str):
+@stub.function(
+    secret=Secret.from_name("mythalion"),
+    timeout=60 * 10,
+    allow_concurrent_inputs=12,
+    keep_warm=1,
+)
+@web_endpoint(method="POST")
+def completion(
+    payload: Payload,
+    request: Request,
+    token: HTTPAuthorizationCredentials = Depends(auth_scheme),
+):
+    import os
+
+    if token.credentials != os.environ["AUTH_TOKEN"]:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect bearer token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     from itertools import chain
 
     from fastapi.responses import StreamingResponse
 
     return StreamingResponse(
         chain(
-            ("Loading model. This usually takes around 30s ...\n\n"),
-            Model().generate.remote_gen(question),
+            Model().generate.remote_gen(payload),
         ),
         media_type="text/event-stream",
     )
