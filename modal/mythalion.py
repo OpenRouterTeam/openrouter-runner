@@ -88,12 +88,11 @@ class Model:
         engine_args = AsyncEngineArgs(
             model=MODEL_DIR,
             tensor_parallel_size=1,
-            # Only uses 90% of GPU memory by default
+            # using 95% of GPU memory by default
             gpu_memory_utilization=0.95,
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
-        self.template = TEMPLATE
 
     @method()
     async def generate(self, payload: Payload):
@@ -101,8 +100,9 @@ class Model:
 
         import time
 
-        results_generator = self.engine.generate(payload.id, payload.params, payload.id)
-        # print(prompt)
+        results_generator = self.engine.generate(
+            payload.prompt, payload.params, payload.id
+        )
 
         t0 = time.time()
         index, tokens = 0, 0
