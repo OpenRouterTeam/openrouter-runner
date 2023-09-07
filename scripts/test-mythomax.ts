@@ -81,7 +81,9 @@ async function main() {
   const encodedPrompts = prompts.map(encodeURIComponent);
 
   const fetchPromises = await Promise.all(
-    encodedPrompts.map((p) => fetch(`${process.env.MODAL_URL}/?question=${p}`))
+    encodedPrompts.map((p) =>
+      fetch(`${process.env.MYTHOMAX_URL}/?question=${p}`)
+    )
   );
 
   await Promise.all(fetchPromises.map((p) => p.text()));
