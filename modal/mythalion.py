@@ -37,7 +37,12 @@ class Params(BaseModel):
 class Payload(BaseModel):
     id: str
     prompt: str
+    stream: bool = False
     params: Params
+
+
+class CompletionResponse(BaseModel):
+    text: str
 
 
 auth_scheme = HTTPBearer()
@@ -108,11 +113,18 @@ class Model:
         t0 = time.time()
         index, tokens = 0, 0
         async for request_output in results_generator:
-            if "\ufffd" == request_output.outputs[0].text[-1]:
+            if (
+                request_output.outputs[0].text
+                and "\ufffd" == request_output.outputs[0].text[-1]
+            ):
                 continue
-            yield request_output.outputs[0].text[index:]
+            token = request_output.outputs[0].text[index:]
+            if payload.stream:
+                choice = CompletionResponse(text=token).json(ensure_ascii=False)
+                yield f"data: {choice}\n\n"
+            else:
+                yield token
             index = len(request_output.outputs[0].text)
-
             # Token accounting
             tokens = len(request_output.outputs[0].token_ids)
 
