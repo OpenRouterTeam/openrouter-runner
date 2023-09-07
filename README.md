@@ -11,7 +11,7 @@ poetry shell
 modal token new
 ```
 
-For intellisense, it's recommended to run open vscode via the poetry shell:
+For intellisense, it's recommended to run vscode via the poetry shell:
 
 ```sh
 poetry shell

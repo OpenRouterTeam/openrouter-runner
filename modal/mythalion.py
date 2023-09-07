@@ -1,3 +1,13 @@
+# PREREQUISITES:
+# 1. Create a modal secret group
+#   HUGGINGFACE_TOKEN = <your huggingface token>
+#   with name "huggingface"
+# 2. Create a modal secret group
+#   MYTHALION_API_KEY = <generate a random key>
+#   with name "ext-api-key"
+# 3. modal deploy
+
+
 import os
 
 from typing import List, Optional, Union
