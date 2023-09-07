@@ -150,6 +150,7 @@ class Model:
     secret=Secret.from_name("ext-api-key"),
     timeout=60 * 60,
     allow_concurrent_inputs=12,
+    keep_warm=1,
 )
 @web_endpoint(method="POST")
 def completion(
