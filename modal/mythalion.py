@@ -108,6 +108,7 @@ class Model:
             tensor_parallel_size=1,
             # using 95% of GPU memory by default
             gpu_memory_utilization=0.95,
+            disable_log_requests=True,
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
