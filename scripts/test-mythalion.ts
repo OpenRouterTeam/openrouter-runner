@@ -9,7 +9,7 @@ async function main() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.MYTHALION_SECRET}`
+      Authorization: `Bearer ${process.env.MYTHALION_API_KEY}`
     },
     body: JSON.stringify({
       id: Math.random().toString(36).substring(7),
