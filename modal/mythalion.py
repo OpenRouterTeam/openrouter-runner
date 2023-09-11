@@ -20,7 +20,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 MODEL_DIR = "/model"
 
-NUM_GPU = 2
+NUM_GPU = 1
 MODEL = "PygmalionAI/mythalion-13b"
 
 API_KEY_ID = "MYTHALION_API_KEY"
@@ -95,7 +95,7 @@ stub = Stub("mythalion", image=image)
 
 
 @stub.cls(
-    gpu=gpu.A10G(count=NUM_GPU),
+    gpu=gpu.A100(count=NUM_GPU, memory=20),
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=12,
     container_idle_timeout=600,

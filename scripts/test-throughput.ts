@@ -1,7 +1,5 @@
-import { config } from 'dotenv';
+import { getWords } from 'scripts/get-words';
 import { completion } from 'scripts/shared';
-
-config({ path: '.env.local' });
 
 const prompts = [
   `Ullamco mollit deserunt mollit ea est cillum nulla et est. Magna incididunt laborum amet consequat sint amet. Cillum aliqua id nulla nisi in. Sunt commodo aliqua quis deserunt. Adipisicing eu officia laboris commodo. Ullamco sunt irure eu aute laborum ut commodo ullamco incididunt duis officia cupidatat et voluptate.
@@ -79,7 +77,17 @@ const prompts = [
 ];
 
 async function main() {
-  await Promise.all(prompts.map(completion));
+  const veryRandomPrompt = await getWords(2000, {
+    startLine: Math.floor(Math.random() * 500)
+  });
+
+  await Promise.all(
+    [...prompts, veryRandomPrompt].map((p) =>
+      completion(p, {
+        max_tokens: 1000
+      })
+    )
+  );
 }
 
 main().catch((error) => {
