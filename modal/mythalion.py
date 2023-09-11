@@ -92,7 +92,7 @@ stub = Stub("mythalion", image=image)
 
 
 @stub.cls(
-    gpu=gpu.A100(),
+    gpu=gpu.A100(memory=20),
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=12,
     container_idle_timeout=600,
