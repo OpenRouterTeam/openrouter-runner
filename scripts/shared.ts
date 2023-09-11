@@ -1,6 +1,8 @@
 import { config } from 'dotenv';
 
-config({ path: '.env.local' });
+const envFile = `.env.${process.argv[2] ?? 'dev'}`;
+
+config({ path: envFile });
 
 const url = process.env.MYTHALION_URL;
 const key = process.env.MYTHALION_API_KEY;

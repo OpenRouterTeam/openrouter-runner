@@ -22,6 +22,8 @@ MODEL_DIR = "/model"
 
 NUM_GPU = 2
 MODEL = "PygmalionAI/mythalion-13b"
+
+API_KEY_ID = "MYTHALION_API_KEY"
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
 # MODEL = "Gryphe/MythoMax-L2-13b"
 
@@ -110,6 +112,7 @@ class Model:
             # using 95% of GPU memory by default
             gpu_memory_utilization=0.95,
             disable_log_requests=True,
+            max_num_batched_tokens=4096,
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
@@ -159,7 +162,7 @@ def completion(
     payload: Payload,
     token: HTTPAuthorizationCredentials = Depends(auth_scheme),
 ):
-    if token.credentials != os.environ["MYTHALION_API_KEY"]:
+    if token.credentials != os.environ[API_KEY_ID]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect bearer token",

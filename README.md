@@ -18,7 +18,7 @@ poetry shell
 code .
 ```
 
-3. To run Scripts:
+3. To run a script:
 
 ```sh
 pnpm i
@@ -32,8 +32,12 @@ pnpm x scripts/${script-name}
 ```sh
 cd modal
 poetry shell  # SKIP if already in shell
-modal deploy modal/${filename}
+
+modal deploy modal/${filename} # For production
+
+modal deploy modal/${filename} --env dev # For dev environment
 
 # After deployment is done:
-pnpm x scripts/test-modal.ts
+pnpm x scripts/test-${testname}.ts # For dev environment
+pnpm x scripts/test-${testname}.ts prod # For prod environment
 ```
