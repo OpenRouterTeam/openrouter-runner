@@ -1,4 +1,5 @@
 import { config } from 'dotenv';
+import { completion } from 'scripts/shared';
 
 config({ path: '.env.local' });
 
@@ -78,15 +79,7 @@ const prompts = [
 ];
 
 async function main() {
-  const encodedPrompts = prompts.map(encodeURIComponent);
-
-  const fetchPromises = await Promise.all(
-    encodedPrompts.map((p) =>
-      fetch(`${process.env.MYTHOMAX_URL}/?question=${p}`)
-    )
-  );
-
-  await Promise.all(fetchPromises.map((p) => p.text()));
+  await Promise.all(prompts.map(completion));
 }
 
 main().catch((error) => {

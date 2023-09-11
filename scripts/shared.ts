@@ -2,14 +2,19 @@ import { config } from 'dotenv';
 
 config({ path: '.env.local' });
 
-async function main() {
-  const prompt = 'What was Project A119 and what were its objectives?';
+const url = process.env.MYTHALION_URL;
+const key = process.env.MYTHALION_API_KEY;
 
-  const p = await fetch(`${process.env.MYTHALION_URL}`, {
+export async function completion(prompt: string) {
+  if (!url || !key) {
+    throw new Error('Missing url or key');
+  }
+
+  const p = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.MYTHALION_API_KEY}`
+      Authorization: `Bearer ${key}`
     },
     body: JSON.stringify({
       id: Math.random().toString(36).substring(7),
@@ -22,8 +27,3 @@ async function main() {
 
   console.log(output);
 }
-
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
