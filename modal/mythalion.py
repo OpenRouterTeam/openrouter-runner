@@ -20,6 +20,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 MODEL_DIR = "/model"
 
+NUM_GPU = 2
 MODEL = "PygmalionAI/mythalion-13b"
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
 # MODEL = "Gryphe/MythoMax-L2-13b"
@@ -92,7 +93,7 @@ stub = Stub("mythalion", image=image)
 
 
 @stub.cls(
-    gpu=gpu.A100(memory=20),
+    gpu=gpu.A10G(count=NUM_GPU),
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=12,
     container_idle_timeout=600,
@@ -105,7 +106,7 @@ class Model:
 
         engine_args = AsyncEngineArgs(
             model=MODEL_DIR,
-            tensor_parallel_size=1,
+            tensor_parallel_size=NUM_GPU,
             # using 95% of GPU memory by default
             gpu_memory_utilization=0.95,
             disable_log_requests=True,
