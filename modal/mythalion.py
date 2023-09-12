@@ -16,6 +16,7 @@ from fastapi import Depends, HTTPException, status
 from modal import Image, Secret, Stub, method, gpu, web_endpoint
 from pydantic import BaseModel
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse, StreamingResponse
 
 NAME = "mythalion"
 MODEL_DIR = "/model"
@@ -58,9 +59,20 @@ class CompletionResponse(BaseModel):
     text: str
 
 
-class ErrorResponse(BaseModel):
-    error: str
+class ErrorPayload(BaseModel):
     type: str
+    message: str
+
+
+class ErrorResponse(BaseModel):
+    error: ErrorPayload
+
+
+def create_error_response(status_code: int, message: str) -> JSONResponse:
+    return JSONResponse(
+        ErrorPayload(message=message, type="invalid_request_error").dict(),
+        status_code=status_code,
+    )
 
 
 auth_scheme = HTTPBearer()
@@ -137,30 +149,31 @@ class Model:
             trust_remote_code=engine_args.trust_remote_code,
         )
 
-    async def validate_input(
-        self, payload: Payload, params
-    ) -> Tuple[List[int], bool]:
-        input_ids = self.tokenizer(payload.prompt).input_ids
-        token_num = len(input_ids)
-        is_too_high = token_num + params.max_tokens > self.max_model_len
-        return input_ids, is_too_high
+    @method()
+    async def tokenize_prompt(self, payload: Payload) -> List[int]:
+        return self.tokenizer(payload.prompt).input_ids
 
     @method()
-    async def generate(self, payload: Payload, params):
+    async def validate_input(self, params, input_ids) -> Optional[JSONResponse]:
+        token_num = len(input_ids)
+        is_too_high = token_num + params.max_tokens > self.max_model_len
+
+        if is_too_high:
+            return create_error_response(
+                status.HTTP_400_BAD_REQUEST,
+                f"This model's maximum context length is {self.max_model_len} tokens. "
+                f"However, you requested {params.max_tokens + token_num} tokens "
+                f"({token_num} in the messages, "
+                f"{params.max_tokens} in the completion). "
+                f"Please reduce the length of the messages or completion.",
+            )
+        else:
+            return None
+
+    @method()
+    async def generate(self, payload: Payload, params, input_ids):
         try:
             import time
-
-            input_ids, is_too_high = await self.validate_input(payload, params)
-
-            if is_too_high:
-                token_num = len(input_ids)
-                raise ValueError(
-                    f"This model's maximum context length is {self.max_model_len} tokens. "
-                    f"However, you requested {params.max_tokens + token_num} tokens "
-                    f"({token_num} in the messages, "
-                    f"{params.max_tokens} in the completion). "
-                    f"Please reduce the length of the messages or completion.",
-                )
 
             results_generator = self.engine.generate(
                 payload.prompt, params, payload.id, input_ids
@@ -197,14 +210,16 @@ class Model:
             # yield "[DONE]"
             # print(request_output.outputs[0].text)
         except Exception as err:
-            error_payload = ErrorResponse(
-                error=f"{err}", type=f"{type(err).__name__}"
+            error_response = ErrorResponse(
+                error=ErrorPayload(
+                    message=f"{err}", type=f"{type(err).__name__}"
+                )
             ).json(ensure_ascii=False)
 
             if payload.stream:
-                yield f"data: {error_payload}\n\n"
+                yield f"data: {error_response}\n\n"
             else:
-                yield error_payload
+                yield error_response
 
 
 @stub.function(
@@ -225,30 +240,39 @@ def completion(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    from fastapi.responses import StreamingResponse
     from vllm.sampling_params import SamplingParams
 
-    sampling_params = SamplingParams(
-        # early_stopping=payload.params.early_stopping,
-        # length_penalty=payload.params.length_penalty,
-        best_of=payload.params.best_of,
-        frequency_penalty=payload.params.frequency_penalty,
-        ignore_eos=payload.params.ignore_eos,
-        logprobs=payload.params.logprobs,
-        max_tokens=payload.params.max_tokens,
-        n=payload.params.n,
-        presence_penalty=payload.params.presence_penalty,
-        stop=payload.params.stop,
-        temperature=payload.params.temperature,
-        top_k=payload.params.top_k,
-        top_p=payload.params.top_p,
-        use_beam_search=payload.params.use_beam_search,
-    )
+    try:
+        sampling_params = SamplingParams(
+            # early_stopping=payload.params.early_stopping,
+            # length_penalty=payload.params.length_penalty,
+            best_of=payload.params.best_of,
+            frequency_penalty=payload.params.frequency_penalty,
+            ignore_eos=payload.params.ignore_eos,
+            logprobs=payload.params.logprobs,
+            max_tokens=payload.params.max_tokens,
+            n=payload.params.n,
+            presence_penalty=payload.params.presence_penalty,
+            stop=payload.params.stop,
+            temperature=payload.params.temperature,
+            top_k=payload.params.top_k,
+            top_p=payload.params.top_p,
+            use_beam_search=payload.params.use_beam_search,
+        )
+        print(sampling_params)
+    except ValueError as e:
+        return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
-    print(sampling_params)
+    model = Model()
+
+    input_ids = model.tokenize_prompt.remote(payload)
+    input_err = model.validate_input.remote(sampling_params, input_ids)
+
+    if input_err is not None:
+        return input_err
 
     return StreamingResponse(
-        Model().generate.remote_gen(payload, sampling_params),
+        model.generate.remote_gen(payload, sampling_params, input_ids),
         media_type="text/event-stream",
     )
 
