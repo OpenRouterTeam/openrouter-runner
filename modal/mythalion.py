@@ -16,7 +16,7 @@ from fastapi import Depends, HTTPException, status
 from modal import Image, Secret, Stub, method, gpu, web_endpoint
 from pydantic import BaseModel
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
 
 NAME = "mythalion"
 MODEL_DIR = "/model"
@@ -69,8 +69,8 @@ class ErrorResponse(BaseModel):
 
 
 def create_error_response(status_code: int, message: str) -> JSONResponse:
-    return JSONResponse(
-        ErrorPayload(message=message, type="invalid_request_error").dict(),
+    return PlainTextResponse(
+        content=message,
         status_code=status_code,
     )
 
