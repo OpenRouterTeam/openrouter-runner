@@ -25,7 +25,6 @@ export async function completion(prompt: string, params = {}) {
     })
   });
 
-  const output = await p.text();
-
+  const output = await p.json();
   console.log(output);
 }

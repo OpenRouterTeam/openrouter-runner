@@ -10,14 +10,14 @@
 
 import os
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 from fastapi import Depends, HTTPException, status
 from modal import Image, Secret, Stub, method, gpu, web_endpoint
 from pydantic import BaseModel
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-
+NAME = "mythalion"
 MODEL_DIR = "/model"
 
 NUM_GPU = 1
@@ -58,11 +58,20 @@ class CompletionResponse(BaseModel):
     text: str
 
 
+class ErrorResponse(BaseModel):
+    error: str
+    type: str
+
+
 auth_scheme = HTTPBearer()
 
 
 def download_model_to_folder():
     from huggingface_hub import snapshot_download
+    from pathlib import Path
+
+    # make MODEL_DIR if not existed
+    Path(MODEL_DIR).mkdir(parents=True, exist_ok=True)
 
     snapshot_download(
         MODEL,
@@ -74,11 +83,11 @@ def download_model_to_folder():
 image = (
     Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
     .pip_install(
-        "torch==2.0.1", index_url="https://download.pytorch.org/whl/cu118"
-    )
-    # Pinned to Sep/07/2023
-    .pip_install(
-        "vllm @ git+https://github.com/vllm-project/vllm.git@805de738f618f8b47ab0d450423d23db1e636fa2",
+        "vllm == 0.1.7",
+        # Pinned to Sep/11/2023
+        # "vllm @ git+https://github.com/vllm-project/vllm.git@b9cecc26359794af863b3484a3464108b7d5ee5f",
+        # Pinned to 08/15/2023
+        # "vllm @ git+https://github.com/vllm-project/vllm.git@805de738f618f8b47ab0d450423d23db1e636fa2",
         "typing-extensions==4.5.0",  # >=4.6 causes typing issues
     )
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
@@ -91,7 +100,7 @@ image = (
     )
 )
 
-stub = Stub("mythalion", image=image)
+stub = Stub(NAME, image=image)
 
 
 @stub.cls(
@@ -102,9 +111,10 @@ stub = Stub("mythalion", image=image)
     keep_warm=1,
 )
 class Model:
-    def __enter__(self):
+    async def __aenter__(self):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
+        from vllm.transformers_utils.tokenizer import get_tokenizer
 
         engine_args = AsyncEngineArgs(
             model=MODEL_DIR,
@@ -117,38 +127,84 @@ class Model:
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
 
-    @method()
-    async def generate(self, payload: Payload, params):
-        import time
+        self.engine_model_config = await self.engine.get_model_config()
+        self.max_model_len = self.engine_model_config.get_max_model_len()
 
-        results_generator = self.engine.generate(
-            payload.prompt, params, payload.id
+        # A separate tokenizer to map token IDs to strings.
+        self.tokenizer = get_tokenizer(
+            engine_args.tokenizer,
+            tokenizer_mode=engine_args.tokenizer_mode,
+            trust_remote_code=engine_args.trust_remote_code,
         )
 
-        t0 = time.time()
-        index, tokens = 0, 0
-        async for request_output in results_generator:
-            if (
-                request_output.outputs[0].text
-                and "\ufffd" == request_output.outputs[0].text[-1]
-            ):
-                continue
-            token = request_output.outputs[0].text[index:]
+    async def validate_input(
+        self, payload: Payload, params
+    ) -> Tuple[List[int], bool]:
+        input_ids = self.tokenizer(payload.prompt).input_ids
+        token_num = len(input_ids)
+        is_too_high = token_num + params.max_tokens > self.max_model_len
+        return input_ids, is_too_high
+
+    @method()
+    async def generate(self, payload: Payload, params):
+        try:
+            import time
+
+            input_ids, is_too_high = await self.validate_input(payload, params)
+
+            if is_too_high:
+                token_num = len(input_ids)
+                raise ValueError(
+                    f"This model's maximum context length is {self.max_model_len} tokens. "
+                    f"However, you requested {params.max_tokens + token_num} tokens "
+                    f"({token_num} in the messages, "
+                    f"{params.max_tokens} in the completion). "
+                    f"Please reduce the length of the messages or completion.",
+                )
+
+            results_generator = self.engine.generate(
+                payload.prompt, params, payload.id, input_ids
+            )
+
+            t0 = time.time()
+            index, tokens = 0, 0
+            output = ""
+            async for request_output in results_generator:
+                if (
+                    request_output.outputs[0].text
+                    and "\ufffd" == request_output.outputs[0].text[-1]
+                ):
+                    continue
+                token = request_output.outputs[0].text[index:]
+                if payload.stream:
+                    choice = CompletionResponse(text=token).json(
+                        ensure_ascii=False
+                    )
+                    yield f"data: {choice}\n\n"
+                else:
+                    output += token
+                index = len(request_output.outputs[0].text)
+                # Token accounting
+                tokens = len(request_output.outputs[0].token_ids)
+
+            if not payload.stream:
+                yield CompletionResponse(text=output).json(ensure_ascii=False)
+
+            throughput = tokens / (time.time() - t0)
+            print(f"Tokens count: {tokens} tokens")
+            print(f"Request completed: {throughput:.4f} tokens/s")
+
+            # yield "[DONE]"
+            # print(request_output.outputs[0].text)
+        except Exception as err:
+            error_payload = ErrorResponse(
+                error=f"{err}", type=f"{type(err).__name__}"
+            ).json(ensure_ascii=False)
+
             if payload.stream:
-                choice = CompletionResponse(text=token).json(ensure_ascii=False)
-                yield f"data: {choice}\n\n"
+                yield f"data: {error_payload}\n\n"
             else:
-                yield token
-            index = len(request_output.outputs[0].text)
-            # Token accounting
-            tokens = len(request_output.outputs[0].token_ids)
-
-        throughput = tokens / (time.time() - t0)
-        print(f"Tokens count: {tokens} tokens")
-        print(f"Request completed: {throughput:.4f} tokens/s")
-
-        # yield "[DONE]"
-        # print(request_output.outputs[0].text)
+                yield error_payload
 
 
 @stub.function(
