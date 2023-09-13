@@ -7,7 +7,12 @@ config({ path: envFile });
 const url = process.env.MYTHALION_URL;
 const key = process.env.MYTHALION_API_KEY;
 
-export async function completion(prompt: string, params = {}) {
+export async function completion(
+  prompt: string,
+  params = {
+    max_tokens: 16
+  }
+) {
   if (!url || !key) {
     throw new Error('Missing url or key');
   }
@@ -25,6 +30,11 @@ export async function completion(prompt: string, params = {}) {
     })
   });
 
-  const output = await p.json();
-  console.log(output);
+  if (p.ok) {
+    const output = await p.json();
+    console.log(output);
+  } else {
+    const output = await p.text();
+    console.error(output);
+  }
 }
