@@ -14,6 +14,7 @@ from typing import List, Optional, Union, Tuple
 
 from fastapi import Depends, HTTPException, status
 from modal import Image, Secret, Stub, method, gpu, web_endpoint
+from modal.config import Config
 from pydantic import BaseModel
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
@@ -24,7 +25,9 @@ MODEL_DIR = "/model"
 NUM_GPU = 1
 MODEL = "PygmalionAI/mythalion-13b"
 
-if os.environ["MODAL_ENVIRONMENT"] == "dev":
+config = Config()
+
+if config.get(key="environment") == "dev":
     KEEP_WARM = None
 else:
     KEEP_WARM = 1
