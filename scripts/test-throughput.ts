@@ -1,4 +1,4 @@
-import { getWords } from 'scripts/get-words';
+import { getWordsFromFile } from 'scripts/get-words';
 import { completion } from 'scripts/shared';
 
 const prompts = [
@@ -77,7 +77,7 @@ const prompts = [
 ];
 
 async function main() {
-  const veryRandomPrompt = await getWords(2000, {
+  const veryRandomPrompt = await getWordsFromFile(2000, {
     startLine: Math.floor(Math.random() * 500)
   });
 

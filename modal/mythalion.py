@@ -183,6 +183,7 @@ class Model:
             index, tokens = 0, 0
             output = ""
             async for request_output in results_generator:
+                # Skipping invalid UTF8 tokens:
                 if (
                     request_output.outputs[0].text
                     and "\ufffd" == request_output.outputs[0].text[-1]

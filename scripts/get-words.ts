@@ -2,8 +2,8 @@ import { once } from 'events';
 import fs from 'fs/promises';
 import { createInterface } from 'readline';
 
-export async function getWords(
-  n: number,
+export async function getWordsFromFile(
+  wordsCount: number,
   { fileNo = 0, startLine = 0 } = {}
 ): Promise<string> {
   const filePath = new URL(`./${fileNo}.txt`, import.meta.url);
@@ -26,7 +26,7 @@ export async function getWords(
       }
       const lineWords = line.split(/\s+/).filter(Boolean);
       for (const word of lineWords) {
-        if (words.length < n) {
+        if (words.length < wordsCount) {
           words.push(word);
         } else {
           rl.removeAllListeners('line');
