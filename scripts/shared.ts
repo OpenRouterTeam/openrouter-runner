@@ -1,11 +1,13 @@
 import { config } from 'dotenv';
 
-config({ path: '.env.local' });
+const envFile = `.env.${process.argv[2] ?? 'dev'}`;
+
+config({ path: envFile });
 
 const url = process.env.MYTHALION_URL;
 const key = process.env.MYTHALION_API_KEY;
 
-export async function completion(prompt: string) {
+export async function completion(prompt: string, params = {}) {
   if (!url || !key) {
     throw new Error('Missing url or key');
   }
@@ -19,11 +21,10 @@ export async function completion(prompt: string) {
     body: JSON.stringify({
       id: Math.random().toString(36).substring(7),
       prompt,
-      params: {}
+      params
     })
   });
 
-  const output = await p.text();
-
+  const output = await p.json();
   console.log(output);
 }
