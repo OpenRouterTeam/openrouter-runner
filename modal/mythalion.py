@@ -24,6 +24,11 @@ MODEL_DIR = "/model"
 NUM_GPU = 1
 MODEL = "PygmalionAI/mythalion-13b"
 
+if os.environ["MODAL_ENVIRONMENT"] == "dev":
+    KEEP_WARM = None
+else:
+    KEEP_WARM = 1
+
 API_KEY_ID = "MYTHALION_API_KEY"
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
 # MODEL = "Gryphe/MythoMax-L2-13b"
@@ -120,7 +125,7 @@ stub = Stub(NAME, image=image)
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=12,
     container_idle_timeout=600,
-    keep_warm=1,
+    keep_warm=KEEP_WARM,
 )
 class Model:
     async def __aenter__(self):
@@ -227,7 +232,7 @@ class Model:
     secret=Secret.from_name("ext-api-key"),
     timeout=60 * 60,
     allow_concurrent_inputs=12,
-    keep_warm=1,
+    keep_warm=KEEP_WARM,
 )
 @web_endpoint(method="POST")
 def completion(
