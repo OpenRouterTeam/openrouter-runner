@@ -4,8 +4,8 @@ const envFile = `.env.${process.argv[2] ?? 'dev'}`;
 
 config({ path: envFile });
 
-const url = process.env.MYTHALION_URL;
-const key = process.env.MYTHALION_API_KEY;
+const url = process.env.API_URL;
+const key = process.env.API_KEY;
 
 export async function completion(
   prompt: string,
