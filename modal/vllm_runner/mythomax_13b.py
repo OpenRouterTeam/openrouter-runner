@@ -7,34 +7,21 @@
 #   with name "ext-api-key"
 # 3. modal deploy
 
-from modal import Image, Secret, Stub
-from modal.config import Config
+from modal import Image, Secret, Stub, web_endpoint, gpu
+import vllm_runner.shared.config as config
+import vllm_runner.shared.utils as utils
 
-from shared.download import download_model_to_folder
-from shared.gpu_model import create_gpu_model, GpuParams
-from shared.cpu_endpoint import create_cpu_completion_endpoint, CpuParams
+from vllm_runner.shared.gpu_model import Model
+from vllm_runner.shared.cpu_endpoint import completion
 
-NAME = "mythomax-13b"
-MODEL_DIR = "/model"
+config.app_name = "mythomax-13b"
 
-NUM_GPU = 1
-MODEL = "Gryphe/MythoMax-L2-13b"
-
-config = Config()
-
-if config.get(key="environment") == "dev":
-    KEEP_WARM = None
-else:
-    KEEP_WARM = 1
-
-API_KEY_ID = "MYTHOMAX_API_KEY"
+config.model = "Gryphe/MythoMax-L2-13b"
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
 # MODEL = "Gryphe/MythoMax-L2-13b"
 
-
-def download():
-    download_model_to_folder(MODEL, MODEL_DIR)
-
+config.api_key_id = "MYTHOMAX_API_KEY"
+config.concurrent_inputs = 12
 
 # image = (
 #     Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
@@ -66,31 +53,39 @@ image = (
     )
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
     .pip_install("hf-transfer~=0.1")
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
+    .env(
+        {
+            "HF_HUB_ENABLE_HF_TRANSFER": "1",
+            "RUNNER_NAME": config.app_name,
+            "RUNNER_MODEL": config.model,
+            "RUNNER_MODEL_PATH": config.model_path,
+            "API_KEY_ID": config.api_key_id,
+        }
+    )
     .run_function(
-        download,
+        utils.download_model,
         secret=Secret.from_name("huggingface"),
         timeout=60 * 20,
     )
 )
 
-stub = Stub(NAME, image=image)
+stub = Stub(config.app_name, image=image)
 
-Model = create_gpu_model(
-    stub,
-    GpuParams(
-        model_dir=MODEL_DIR,
-        gpu_count=NUM_GPU,
-        gpu_memory=20,
-        keep_warm=KEEP_WARM,
-    ),
-)
+stub.cls(
+    gpu=gpu.A100(),
+    secret=Secret.from_name("huggingface"),
+    allow_concurrent_inputs=config.concurrent_inputs,
+    container_idle_timeout=600,
+    keep_warm=config.keep_warm,
+)(Model)
 
-completion_endpoint = create_cpu_completion_endpoint(
-    stub,
-    CpuParams(
-        keep_warm=KEEP_WARM,
-        api_key_id=API_KEY_ID,
-    ),
-    Model,
+stub.function(
+    secret=Secret.from_name("ext-api-key"),
+    timeout=60 * 60,
+    allow_concurrent_inputs=config.concurrent_inputs,
+    keep_warm=config.keep_warm,
+)(
+    web_endpoint(
+        method="POST",
+    )(completion)
 )

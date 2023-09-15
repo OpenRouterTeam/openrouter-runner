@@ -33,9 +33,8 @@ pnpm x scripts/${script-name}
 cd modal
 poetry shell  # SKIP if already in shell
 
-modal deploy modal/${filename} # For production
-
-modal deploy modal/${filename} --env dev # For dev environment
+modal deploy vllm_runner/${filename} --env main # For production
+modal deploy vllm_runner/${filename} --env dev # For dev environment
 
 # After deployment is done:
 pnpm x scripts/test-${testname}.ts # For dev environment
