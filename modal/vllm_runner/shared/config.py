@@ -1,20 +1,8 @@
-from modal import Stub, image
 from modal.config import Config
+from modal import Stub
+from os import environ
 
 modal_config = Config()
+keep_warm = None if modal_config.get(key="environment") == "dev" else 1
 
-if modal_config.get(key="environment") == "dev":
-    keep_warm = None
-else:
-    keep_warm = 1
-
-
-model_path: str = "/model"
-gpu_count: int = 1
-
-api_key_id: str
-
-model: str = ""
-app_name: str
-
-concurrent_inputs: int
+stub = Stub(name=environ["RUNNER_NAME"])

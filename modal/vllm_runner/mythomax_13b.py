@@ -7,21 +7,25 @@
 #   with name "ext-api-key"
 # 3. modal deploy
 
-from modal import Image, Secret, Stub, web_endpoint, gpu
-import vllm_runner.shared.config as config
+from os import environ
+from modal import Image, Secret
 import vllm_runner.shared.utils as utils
 
-from vllm_runner.shared.gpu_model import Model
-from vllm_runner.shared.cpu_endpoint import completion
-
-config.app_name = "mythomax-13b"
-
-config.model = "Gryphe/MythoMax-L2-13b"
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
 # MODEL = "Gryphe/MythoMax-L2-13b"
 
-config.api_key_id = "MYTHOMAX_API_KEY"
-config.concurrent_inputs = 12
+env = {
+    "RUNNER_NAME": __name__,
+    "RUNNER_MODEL": "Gryphe/MythoMax-L2-13b",
+    "RUNNER_MODEL_PATH": "/model",
+    "API_KEY_ID": "MYTHOMAX_API_KEY",
+    "HF_HUB_ENABLE_HF_TRANSFER": "1",
+    "CONCURRENT_INPUTS": "12",
+}
+
+environ.update(env)
+
+from vllm_runner.shared.config import stub
 
 # image = (
 #     Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
@@ -41,7 +45,7 @@ config.concurrent_inputs = 12
 #     )
 # )
 
-image = (
+stub.gpu_image = (
     Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
     .pip_install(
         "vllm == 0.1.7",
@@ -53,15 +57,7 @@ image = (
     )
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
     .pip_install("hf-transfer~=0.1")
-    .env(
-        {
-            "HF_HUB_ENABLE_HF_TRANSFER": "1",
-            "RUNNER_NAME": config.app_name,
-            "RUNNER_MODEL": config.model,
-            "RUNNER_MODEL_PATH": config.model_path,
-            "API_KEY_ID": config.api_key_id,
-        }
-    )
+    .env(env)
     .run_function(
         utils.download_model,
         secret=Secret.from_name("huggingface"),
@@ -69,23 +65,8 @@ image = (
     )
 )
 
-stub = Stub(config.app_name, image=image)
+stub.cpu_image = Image.debian_slim().env(env)
 
-stub.cls(
-    gpu=gpu.A100(),
-    secret=Secret.from_name("huggingface"),
-    allow_concurrent_inputs=config.concurrent_inputs,
-    container_idle_timeout=600,
-    keep_warm=config.keep_warm,
-)(Model)
+import vllm_runner.shared.gpu_model
 
-stub.function(
-    secret=Secret.from_name("ext-api-key"),
-    timeout=60 * 60,
-    allow_concurrent_inputs=config.concurrent_inputs,
-    keep_warm=config.keep_warm,
-)(
-    web_endpoint(
-        method="POST",
-    )(completion)
-)
+import vllm_runner.shared.cpu_endpoint

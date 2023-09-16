@@ -1,27 +1,32 @@
 import os
 
+from modal import Secret, web_endpoint
 from fastapi import Depends, HTTPException, status
-
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from modal import Function
-
+from .gpu_model import Model
 from .protocol import (
     create_error_response,
     Payload,
 )
 
+from .config import keep_warm, stub
+
+
 auth_scheme = HTTPBearer()
 
 
-def _model(fn_name: str) -> Function:
-    return Function.lookup(os.environ["RUNNER_NAME"], f"Model.{fn_name}")
-
-
-def completion(
-    payload: Payload,
-    token: HTTPAuthorizationCredentials = Depends(auth_scheme),
+@stub.function(
+    secret=Secret.from_name("ext-api-key"),
+    timeout=60 * 60,
+    allow_concurrent_inputs=int(os.environ["CONCURRENT_INPUTS"]),
+    keep_warm=keep_warm,
+    image=stub.cpu_image,
+)
+@web_endpoint(method="POST")
+def completion_endpoint(
+    payload: Payload, token: HTTPAuthorizationCredentials = Depends(auth_scheme)
 ):
     if token.credentials != os.environ[os.environ["API_KEY_ID"]]:
         raise HTTPException(
@@ -32,8 +37,9 @@ def completion(
 
     from vllm.sampling_params import SamplingParams
 
-    max_model_len = _model("max_model_len").remote()
-    input_ids = _model("tokenize_prompt").remote(payload)
+    model = Model()
+    max_model_len = model.max_model_len.remote()
+    input_ids = model.tokenize_prompt.remote(payload)
 
     token_num = len(input_ids)
 
@@ -76,6 +82,6 @@ def completion(
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     return StreamingResponse(
-        _model("generate").remote_gen(payload, sampling_params, input_ids),
+        model.generate.remote_gen(payload, sampling_params, input_ids),
         media_type="text/event-stream",
     )
