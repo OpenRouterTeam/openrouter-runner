@@ -11,7 +11,7 @@ export async function completion(
   prompt: string,
   params = {
     max_tokens: 16
-  }
+  } as Record<string, unknown>
 ) {
   if (!url || !key) {
     throw new Error('Missing url or key');
