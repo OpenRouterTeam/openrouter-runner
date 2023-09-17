@@ -1,31 +1,20 @@
 import os
 
-from modal import Secret, web_endpoint
+from modal import web_endpoint, Cls
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from .gpu_model import Model
 from .protocol import (
     create_error_response,
     Payload,
 )
 
-from .config import keep_warm, stub
-
-
 auth_scheme = HTTPBearer()
 
 
-@stub.function(
-    secret=Secret.from_name("ext-api-key"),
-    timeout=60 * 60,
-    allow_concurrent_inputs=int(os.environ["CONCURRENT_INPUTS"]),
-    keep_warm=keep_warm,
-    image=stub.cpu_image,
-)
 @web_endpoint(method="POST")
-def completion_endpoint(
+def completion(
     payload: Payload, token: HTTPAuthorizationCredentials = Depends(auth_scheme)
 ):
     if token.credentials != os.environ[os.environ["API_KEY_ID"]]:
@@ -37,7 +26,9 @@ def completion_endpoint(
 
     from vllm.sampling_params import SamplingParams
 
+    Model = Cls.lookup(os.environ["RUNNER_NAME"], "Model")
     model = Model()
+
     max_model_len = model.max_model_len.remote()
     input_ids = model.tokenize_prompt.remote(payload)
 

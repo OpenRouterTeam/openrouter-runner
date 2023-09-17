@@ -1,7 +1,6 @@
 from typing import List
-from modal import method, gpu, Secret, Stub
+from modal import method
 import os
-from importlib import import_module
 
 from .protocol import (
     CompletionResponse,
@@ -9,17 +8,8 @@ from .protocol import (
     ErrorResponse,
     Payload,
 )
-from .config import keep_warm, stub
 
 
-@stub.cls(
-    image=stub.gpu_image,
-    gpu=gpu.A100(),
-    secret=Secret.from_name("huggingface"),
-    allow_concurrent_inputs=int(os.environ["CONCURRENT_INPUTS"]),
-    container_idle_timeout=600,
-    keep_warm=keep_warm,
-)
 class Model:
     async def __aenter__(self):
         from vllm.engine.arg_utils import AsyncEngineArgs

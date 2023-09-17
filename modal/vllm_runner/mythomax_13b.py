@@ -8,11 +8,15 @@
 # 3. modal deploy
 
 from os import environ
-from modal import Image, Secret
+from modal import Image, Secret, Stub
+from modal import gpu, Secret
+
 import vllm_runner.shared.utils as utils
+import vllm_runner.shared.config as config
 
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
 # MODEL = "Gryphe/MythoMax-L2-13b"
+
 
 env = {
     "RUNNER_NAME": __name__,
@@ -20,12 +24,11 @@ env = {
     "RUNNER_MODEL_PATH": "/model",
     "API_KEY_ID": "MYTHOMAX_API_KEY",
     "HF_HUB_ENABLE_HF_TRANSFER": "1",
-    "CONCURRENT_INPUTS": "12",
 }
 
-environ.update(env)
+concurrent_inputs = 12
 
-from vllm_runner.shared.config import stub
+stub = Stub(env["RUNNER_NAME"])
 
 # image = (
 #     Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
@@ -67,6 +70,25 @@ stub.gpu_image = (
 
 stub.cpu_image = Image.debian_slim().env(env)
 
-import vllm_runner.shared.gpu_model
+from vllm_runner.shared.gpu_model import Model
 
-import vllm_runner.shared.cpu_endpoint
+
+stub.cls(
+    image=stub.gpu_image,
+    gpu=gpu.A100(),
+    secret=Secret.from_name("huggingface"),
+    allow_concurrent_inputs=concurrent_inputs,
+    container_idle_timeout=600,
+    keep_warm=config.keep_warm,
+)(Model)
+
+
+from vllm_runner.shared.cpu_endpoint import completion
+
+stub.function(
+    image=stub.cpu_image,
+    secret=Secret.from_name("ext-api-key"),
+    timeout=60 * 60,
+    allow_concurrent_inputs=concurrent_inputs,
+    keep_warm=config.keep_warm,
+)(completion)
