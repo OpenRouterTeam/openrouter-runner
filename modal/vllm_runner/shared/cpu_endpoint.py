@@ -24,8 +24,6 @@ def completion(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    from vllm.sampling_params import SamplingParams
-
     Model = Cls.lookup(os.environ["RUNNER_NAME"], "Model")
     model = Model()
 
@@ -50,6 +48,8 @@ def completion(
             f"{max_tokens} in the completion). "
             f"Please reduce the length of the messages or completion.",
         )
+
+    from vllm.sampling_params import SamplingParams
 
     try:
         sampling_params = SamplingParams(
