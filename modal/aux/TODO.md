@@ -10,15 +10,15 @@ image = mk_gpu_image("PygmalionAI/mythalion-13b")
 - Refactor model template to reuse class
 
 ```python
-from auxilary.models.mythalion_13b import (
+from aux.models.mythalion_13b import (
     Model as Mythalion13BModel,
     model_id as mythalion_13b_model_id,
 )
 
-from auxilary.models.mythomax_13b import (
+from aux.models.mythomax_13b import (
     Model as Mythomax13BModel,
     model_id as mythomax_13b_model_id,
 )
 
-# Warning: Tag 'Model.tokenize_prompt' collision! Overriding existing function [auxilary.models.mythalion_13b].Model.tokenize_prompt with new function [auxilary.models.mythomax_13b].Model.tokenize_prompt
+# Warning: Tag 'Model.tokenize_prompt' collision! Overriding existing function [aux.models.mythalion_13b].Model.tokenize_prompt with new function [aux.models.mythomax_13b].Model.tokenize_prompt
 ```
