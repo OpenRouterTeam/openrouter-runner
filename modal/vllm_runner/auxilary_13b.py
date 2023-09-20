@@ -10,14 +10,14 @@
 
 import os
 
-from typing import List
+from typing import List, Union
 from fastapi import Depends, HTTPException, status
 from modal import Image, Secret, Stub, method, gpu, web_endpoint
+from pydantic import validator, ValidationError
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
 
-from vllm_runner.shared.config import keep_warm
 from vllm_runner.shared.protocol import (
     create_error_response,
     Payload as BasePayload,
@@ -25,47 +25,61 @@ from vllm_runner.shared.protocol import (
     ErrorPayload,
     ErrorResponse,
 )
-from enum import Enum
 
+from vllm_runner.shared.config import Config
 
-class ModelEnum(str, Enum):
-    mythalion = "PygmalionAI/mythalion-13b"
-    mythomax = "Gryphe/MythoMax-L2-13b"
+MODELS = [
+    "PygmalionAI/mythalion-13b",
+    "Gryphe/MythoMax-L2-13b",
+    "Undi95/ReMM-SLERP-L2-13B",
+    "meta-llama/Llama-2-13b-chat-hf",
+    "NousResearch/Nous-Hermes-Llama2-13b",
+]
+
+NORMALIZED_MODELS = {model.lower() for model in MODELS}
 
 
 class Payload(BasePayload):
-    model: ModelEnum
+    model: str
+
+    # Allow insensitive casing for the HF identifier
+    @validator("model", pre=True, always=True)
+    def validate_model(cls, model: str) -> str:
+        if model.lower() in NORMALIZED_MODELS:
+            return model
+        raise ValueError(f"Invalid model: {model}")
 
 
-NAME = "mythserver"
-MODEL_DIR = "/model"
-
-NUM_GPU = 1
-
-API_KEY_ID = "MYTHSERVER_API_KEY"
-# MODEL = "Undi95/ReMM-SLERP-L2-13B"
-# MODEL = "Gryphe/MythoMax-L2-13b"
-
-
-auth_scheme = HTTPBearer()
+config = Config(
+    name="auxilary_13b",
+    api_key_id="AUXILARY_13B_API_KEY",
+    model_dir="/models",
+    num_gpu=1,
+    max_batched_tokens=4096,
+    idle_timeout=5 * 60,  # 5 minutes
+    concurrency=24,
+)
 
 
 def download_models():
     from huggingface_hub import snapshot_download
     from pathlib import Path
 
+    model_dir_path = Path(config.model_dir)
     # make MODEL_DIR if not existed
-    Path(MODEL_DIR).mkdir(parents=True, exist_ok=True)
-    for model in ModelEnum:
-        repo_id = model.value
-        local_dir = Path(MODEL_DIR) / repo_id.lower()
+    model_dir_path.mkdir(parents=True, exist_ok=True)
+
+    for model in MODELS:
+        repo_id = model
+
+        local_dir_path = model_dir_path / repo_id.lower()
 
         # Ensure the directory exists
-        local_dir.mkdir(parents=True, exist_ok=True)
+        local_dir_path.mkdir(parents=True, exist_ok=True)
 
         snapshot_download(
             repo_id=repo_id,
-            local_dir=str(local_dir),  # Convert Path object to string
+            local_dir=str(local_dir_path),  # Convert Path object to string
             token=os.environ["HUGGINGFACE_TOKEN"],
         )
 
@@ -90,32 +104,31 @@ image = (
     )
 )
 
-stub = Stub(NAME, image=image)
+stub = Stub(config.name, image=image)
 
 
 @stub.cls(
-    gpu=gpu.A100(count=NUM_GPU, memory=20),
+    gpu=gpu.A100(count=config.num_gpu),
     secret=Secret.from_name("huggingface"),
-    allow_concurrent_inputs=12,
-    container_idle_timeout=600,
-    keep_warm=keep_warm,
+    allow_concurrent_inputs=config.concurrency,
+    container_idle_timeout=config.idle_timeout,
 )
 class Model:
-    def __init__(self, model: ModelEnum) -> None:
+    def __init__(self, model: str) -> None:
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
         from vllm.transformers_utils.tokenizer import get_tokenizer
         from pathlib import Path
 
-        model_dir = Path(MODEL_DIR) / model.value.lower()
+        model_dir_path = Path(config.model_dir) / model.lower()
 
         engine_args = AsyncEngineArgs(
-            model=str(model_dir),
-            tensor_parallel_size=NUM_GPU,
+            model=str(model_dir_path),
+            tensor_parallel_size=config.num_gpu,
             # using 95% of GPU memory by default
             gpu_memory_utilization=0.95,
             disable_log_requests=True,
-            max_num_batched_tokens=4096,
+            max_num_batched_tokens=config.max_batched_tokens,
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
@@ -191,18 +204,20 @@ class Model:
                 yield error_response
 
 
+auth_scheme = HTTPBearer()
+
+
 @stub.function(
     secret=Secret.from_name("ext-api-key"),
     timeout=60 * 60,
-    allow_concurrent_inputs=12,
-    keep_warm=keep_warm,
+    allow_concurrent_inputs=config.concurrency,
 )
 @web_endpoint(method="POST")
 def completion(
     payload: Payload,
     token: HTTPAuthorizationCredentials = Depends(auth_scheme),
 ):
-    if token.credentials != os.environ[API_KEY_ID]:
+    if token.credentials != os.environ[config.api_key_id]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect bearer token",
