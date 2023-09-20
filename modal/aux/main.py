@@ -1,12 +1,3 @@
-# PREREQUISITES:
-# 1. Create a modal secret group
-#   HUGGINGFACE_TOKEN = <your huggingface token>
-#   with name "huggingface"
-# 2. Create a modal secret group
-#   AUX_API_KEY = <generate a random key>
-#   with name "ext-api-key"
-# 3. modal deploy aux/main.py
-
 import os
 
 from fastapi import Depends, HTTPException, status
