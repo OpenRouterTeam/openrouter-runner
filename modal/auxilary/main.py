@@ -11,7 +11,7 @@
 import os
 
 from fastapi import Depends, HTTPException, status
-from modal import Image, Secret, Stub, method, gpu, web_endpoint
+from modal import Secret, web_endpoint
 from pydantic import validator
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -23,6 +23,7 @@ from vllm_runner.shared.protocol import (
 )
 
 from auxilary.shared.common import config, stub
+from auxilary.models.mythalion_13b import Model as Mythalion13BModel
 
 MODELS = [
     "PygmalionAI/mythalion-13b",
@@ -44,50 +45,6 @@ class Payload(BasePayload):
         if model.lower() in NORMALIZED_MODELS:
             return model
         raise ValueError(f"Invalid model: {model}")
-
-
-def download_models():
-    from huggingface_hub import snapshot_download
-    from pathlib import Path
-
-    model_dir_path = Path(config.download_dir)
-    # make MODEL_DIR if not existed
-    model_dir_path.mkdir(parents=True, exist_ok=True)
-
-    for model in MODELS:
-        repo_id = model
-
-        local_dir_path = model_dir_path / repo_id.lower()
-
-        # Ensure the directory exists
-        local_dir_path.mkdir(parents=True, exist_ok=True)
-
-        snapshot_download(
-            repo_id=repo_id,
-            local_dir=str(local_dir_path),  # Convert Path object to string
-            token=os.environ["HUGGINGFACE_TOKEN"],
-        )
-
-
-image = (
-    Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
-    .pip_install(
-        "vllm == 0.1.7",
-        # Pinned to Sep/11/2023
-        # "vllm @ git+https://github.com/vllm-project/vllm.git@b9cecc26359794af863b3484a3464108b7d5ee5f",
-        # Pinned to 08/15/2023
-        # "vllm @ git+https://github.com/vllm-project/vllm.git@805de738f618f8b47ab0d450423d23db1e636fa2",
-        "typing-extensions==4.5.0",  # >=4.6 causes typing issues
-    )
-    # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
-    .pip_install("hf-transfer~=0.1")
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
-    .run_function(
-        download_models,
-        secret=Secret.from_name("huggingface"),
-        timeout=60 * 60,
-    )
-)
 
 
 auth_scheme = HTTPBearer()
@@ -112,7 +69,7 @@ def completion(
 
     from vllm.sampling_params import SamplingParams
 
-    model = Model(payload.model)
+    model = Mythalion13BModel()
 
     max_model_len = model.max_model_len.remote()
     input_ids = model.tokenize_prompt.remote(payload)

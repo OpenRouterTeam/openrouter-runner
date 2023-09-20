@@ -7,26 +7,28 @@ from vllm_runner.shared.protocol import (
 from typing import List
 from modal import Secret, method, gpu
 
-from ..common import stub, config
+from ..shared.common import stub, config
+from ..shared.image import mk_gpu_image
+
+image = mk_gpu_image("PygmalionAI/mythalion-13b")
 
 
 @stub.cls(
     gpu=gpu.A100(count=config.num_gpu),
+    image=image,
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=config.concurrency,
     container_idle_timeout=config.idle_timeout,
 )
 class Model:
-    def __init__(self, model: str) -> None:
+    async def __aenter__(self):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
         from vllm.transformers_utils.tokenizer import get_tokenizer
         from pathlib import Path
 
-        model_dir_path = Path(config.download_dir) / model.lower()
-
         engine_args = AsyncEngineArgs(
-            model=str(model_dir_path),
+            model=config.download_dir,
             tensor_parallel_size=config.num_gpu,
             # using 95% of GPU memory by default
             gpu_memory_utilization=0.95,
@@ -42,7 +44,6 @@ class Model:
             trust_remote_code=engine_args.trust_remote_code,
         )
 
-    async def __aenter__(self):
         self.engine_model_config = await self.engine.get_model_config()
         self.max_model_len = self.engine_model_config.get_max_model_len()
 

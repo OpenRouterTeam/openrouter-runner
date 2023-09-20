@@ -1,18 +1,20 @@
 from modal import Image, Secret, Stub, method, gpu, web_endpoint
 
+from .common import config
 
-def mk_gpu_image():
+
+def mk_gpu_image(model: str):
     def download_model():
         import os
         from huggingface_hub import snapshot_download
         from pathlib import Path
 
         # make MODEL_DIR if not existed
-        Path(MODEL_DIR).mkdir(parents=True, exist_ok=True)
+        Path(config.download_dir).mkdir(parents=True, exist_ok=True)
 
         snapshot_download(
-            MODEL,
-            local_dir=MODEL_DIR,
+            model,
+            local_dir=config.download_dir,
             token=os.environ["HUGGINGFACE_TOKEN"],
         )
 
