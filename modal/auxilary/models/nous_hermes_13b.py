@@ -12,7 +12,7 @@ from modal import Secret, method, gpu, Image
 from ..shared.common import stub, config
 
 
-model_id = "PygmalionAI/mythalion-13b"
+model_id = "NousResearch/Nous-Hermes-Llama2-13b"
 
 
 def download_model():
@@ -52,13 +52,13 @@ image = (
 
 
 @stub.cls(
-    gpu=gpu.A100(count=config.num_gpu),
     image=image,
+    gpu=gpu.A100(count=config.num_gpu),
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=config.concurrency,
     container_idle_timeout=config.idle_timeout,
 )
-class Mythalion13BModel:
+class NousHermes13BModel:
     async def __aenter__(self):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine

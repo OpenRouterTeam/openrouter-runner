@@ -12,39 +12,61 @@ import os
 
 from fastapi import Depends, HTTPException, status
 from modal import Secret, web_endpoint
-from pydantic import validator
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
 
+from vllm_runner.shared.sampling_params import SamplingParams
 from vllm_runner.shared.protocol import (
     create_error_response,
     Payload as BasePayload,
 )
 
 from auxilary.shared.common import config, stub
-from auxilary.models.mythalion_13b import Model as Mythalion13BModel
 
-MODELS = [
-    "PygmalionAI/mythalion-13b",
-    "Gryphe/MythoMax-L2-13b",
-    "Undi95/ReMM-SLERP-L2-13B",
-    "meta-llama/Llama-2-13b-chat-hf",
-    "NousResearch/Nous-Hermes-Llama2-13b",
-]
+from auxilary.models.mythalion_13b import (
+    Mythalion13BModel,
+    model_id as mythalion_13b_model_id,
+)
 
-NORMALIZED_MODELS = {model.lower() for model in MODELS}
+from auxilary.models.mythomax_13b import (
+    Mythomax13BModel,
+    model_id as mythomax_13b_model_id,
+)
+
+from auxilary.models.remm_slerp_13b import (
+    RemmSlerp13BModel,
+    model_id as remm_slerp_13b_model_id,
+)
+from auxilary.models.llama2_chat_13b import (
+    Llama2Chat13BModel,
+    model_id as llama2_chat_13b_model_id,
+)
+
+from auxilary.models.nous_hermes_13b import (
+    NousHermes13BModel,
+    model_id as nous_hermes_13b_model_id,
+)
+
+
+def get_model(model: str):
+    normalized_model_id = model.lower()
+    if normalized_model_id == mythalion_13b_model_id.lower():
+        return Mythalion13BModel()
+    elif normalized_model_id == mythomax_13b_model_id.lower():
+        return Mythomax13BModel()
+    elif normalized_model_id == remm_slerp_13b_model_id.lower():
+        return RemmSlerp13BModel()
+    elif normalized_model_id == llama2_chat_13b_model_id.lower():
+        return Llama2Chat13BModel()
+    elif normalized_model_id == nous_hermes_13b_model_id.lower():
+        return NousHermes13BModel()
+    else:
+        raise ValueError(f"Invalid model: {model}")
 
 
 class Payload(BasePayload):
     model: str
-
-    # Allow insensitive casing for the HF identifier
-    @validator("model", pre=True, always=True)
-    def validate_model(cls, model: str) -> str:
-        if model.lower() in NORMALIZED_MODELS:
-            return model
-        raise ValueError(f"Invalid model: {model}")
 
 
 auth_scheme = HTTPBearer()
@@ -67,9 +89,10 @@ def completion(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    from vllm.sampling_params import SamplingParams
-
-    model = Mythalion13BModel()
+    try:
+        model = get_model(payload.model)
+    except ValueError as e:
+        return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     max_model_len = model.max_model_len.remote()
     input_ids = model.tokenize_prompt.remote(payload)
