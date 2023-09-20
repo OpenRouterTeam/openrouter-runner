@@ -8,3 +8,14 @@
 # Configuration
 
 See [](./shared/common.py)
+
+# Deployment
+
+Make sure `pwd` is `/modal`, then:
+
+```bash
+modal deploy auxilary/main.py --env=dev
+
+# OR
+modal deploy auxilary/main.py --env=main
+```
