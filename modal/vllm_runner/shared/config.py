@@ -9,7 +9,7 @@ class Config(BaseModel):
     name: str
     api_key_id: str
 
-    model_dir: str
+    download_dir: str
 
     num_gpu: int
     max_batched_tokens: int
