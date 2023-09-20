@@ -10,6 +10,8 @@ from .protocol import (
     Payload,
 )
 
+from .sampling_params import SamplingParams
+
 auth_scheme = HTTPBearer()
 
 
@@ -48,8 +50,6 @@ def completion(
             f"{max_tokens} in the completion). "
             f"Please reduce the length of the messages or completion.",
         )
-
-    from vllm.sampling_params import SamplingParams
 
     try:
         sampling_params = SamplingParams(
