@@ -1,5 +1,7 @@
 # Copied from: https://github.com/vllm-project/vllm/blob/bc0644574ca12d754a031596bdcfe8e1f0e6ab39/vllm/sampling_params.py
 
+# The main reason we copy it here is to keep our CPU endpoint container lean - since all we need from vllm is this params validator and not the whole package
+
 
 """Sampling parameters for text generation."""
 from typing import List, Optional, Union

@@ -1,6 +1,6 @@
 import os
 
-from modal import web_endpoint, Cls
+from modal import Cls
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -15,7 +15,6 @@ from .sampling_params import SamplingParams
 auth_scheme = HTTPBearer()
 
 
-@web_endpoint(method="POST")
 def completion(
     payload: Payload, token: HTTPAuthorizationCredentials = Depends(auth_scheme)
 ):

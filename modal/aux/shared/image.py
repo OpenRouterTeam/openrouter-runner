@@ -3,6 +3,7 @@ from modal import Image, Secret, Stub, method, gpu, web_endpoint
 from .common import config
 
 
+# DOES NOT WORK, see TODO.md
 def mk_gpu_image(model: str):
     def download_model():
         import os

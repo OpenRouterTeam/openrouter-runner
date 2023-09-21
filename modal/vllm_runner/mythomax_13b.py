@@ -9,7 +9,7 @@
 
 from os import environ
 from modal import Image, Secret, Stub
-from modal import gpu, Secret
+from modal import gpu, Secret, web_endpoint
 
 import vllm_runner.shared.utils as utils
 import vllm_runner.shared.config as config
@@ -91,4 +91,4 @@ stub.function(
     timeout=60 * 60,
     allow_concurrent_inputs=concurrent_inputs,
     keep_warm=config.keep_warm,
-)(completion)
+)(web_endpoint(method="POST")(completion))
