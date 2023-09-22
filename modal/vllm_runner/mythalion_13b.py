@@ -28,6 +28,7 @@ MODEL = "PygmalionAI/mythalion-13b"
 config = Config()
 
 KEEP_WARM = None
+IDLE_TIMEOUT = 60*5 # 5 minutes
 
 API_KEY_ID = "MYTHALION_API_KEY"
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
@@ -124,7 +125,7 @@ stub = Stub(NAME, image=image)
     gpu=gpu.A10G(count=NUM_GPU),
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=12,
-    container_idle_timeout=600,
+    container_idle_timeout=IDLE_TIMEOUT,
     keep_warm=KEEP_WARM,
 )
 class Model:
