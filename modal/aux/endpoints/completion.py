@@ -5,8 +5,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
 
-from ..shared.sampling_params import SamplingParams
-from ..shared.protocol import (
+from aux.shared.sampling_params import SamplingParams
+from aux.shared.protocol import (
     create_error_response,
     Payload,
 )

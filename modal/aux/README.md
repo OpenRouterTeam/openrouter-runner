@@ -7,25 +7,27 @@
     `AUX_API_KEY = <generate a random key>`
     with name "ext-api-key"
 3.  Make sure `pwd` is `/modal`
+4.  `modal config set-environment dev # or main`
 
-## Add new engine
+## Adding new container
 
-1. Copy one of the engine file in `aux/engine`
-2. Adapt the class name, image, machine type etc...
-3. Add the engine to [](./engines/__init__.py) with a dedicated list of model to run with it
-4. Run: `modal run aux/download.py --env=dev # or --env=main`
+1. Copy one of the container file in `aux/containers`
+2. Adapt the class name, image, machine type, engine, etc...
+3. Add the container to [](./containers/__init__.py)
+4. Add models to be run with the containers in a dedicated list
+5. Run: `modal run aux::download`
 
-## Add new model
+## Adding new model
 
-1. Add the model HF ID to [](./engines/__init__.py), put it under an engine list
-2. Runt the download script
+1. Add the model HF ID to [](./containers/__init__.py) under a list
+2. Run: `modal run aux::download`
 
 ## Configuration
 
 - For stub config, see: [](./shared/common.py)
-- For engine config, see: [](./engines/__init__.py)
-- For endpoint configs, see: [](./main.py)
+- For containers config, see: [](./containers/__init__.py)
+- For endpoint configs, see: [](./__init__.py)
 
-## Deployment
+## Deploying
 
-Run: `modal deploy aux/main.py --env=dev # or --env=main`
+Run: `modal deploy aux`

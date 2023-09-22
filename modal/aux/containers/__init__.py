@@ -1,5 +1,5 @@
 from .vllm_13b import Vllm13BContainer
-from ..shared.volume import models_path
+from aux.shared.common import models_path
 from typing import List
 
 
@@ -16,6 +16,8 @@ vllm_13b_model_ids = [
 ]
 _vllm_13b_models_lower = _to_lower_list(vllm_13b_model_ids)
 
+all_models = [*vllm_13b_model_ids]
+
 
 def get_container(model: str):
     normalized_model_id = model.lower()
@@ -23,6 +25,6 @@ def get_container(model: str):
 
     if model_path.exists():
         if normalized_model_id in _vllm_13b_models_lower:
-            return Vllm13BContainer(model_path, 4096)
+            return Vllm13BContainer(str(model_path), 4096)
 
     raise ValueError(f"Invalid model: {model}")

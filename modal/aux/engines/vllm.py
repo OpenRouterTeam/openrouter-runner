@@ -1,13 +1,12 @@
 from typing import List
 from modal import method
 
-from ..shared.protocol import (
+from aux.shared.protocol import (
     CompletionResponse,
     ErrorPayload,
     ErrorResponse,
     Payload,
 )
-
 from .base import BaseEngine
 
 
