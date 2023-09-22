@@ -1,76 +1,33 @@
-from vllm_runner.shared.protocol import (
-    Payload,
+from typing import List
+from modal import method
+
+from ..shared.protocol import (
     CompletionResponse,
     ErrorPayload,
     ErrorResponse,
-)
-from vllm_runner.shared.sampling_params import SamplingParams
-
-from typing import List
-from modal import Secret, method, gpu, Image
-
-from ..shared.common import stub, config
-
-
-model_id = "PygmalionAI/mythalion-13b"
-
-
-def download_model():
-    import os
-    from huggingface_hub import snapshot_download
-    from pathlib import Path
-
-    # make MODEL_DIR if not existed
-    Path(config.download_dir).mkdir(parents=True, exist_ok=True)
-
-    snapshot_download(
-        model_id,
-        local_dir=config.download_dir,
-        token=os.environ["HUGGINGFACE_TOKEN"],
-    )
-
-
-image = (
-    Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
-    .pip_install(
-        "vllm == 0.1.7",
-        # Pinned to Sep/11/2023
-        # "vllm @ git+https://github.com/vllm-project/vllm.git@b9cecc26359794af863b3484a3464108b7d5ee5f",
-        # Pinned to 08/15/2023
-        # "vllm @ git+https://github.com/vllm-project/vllm.git@805de738f618f8b47ab0d450423d23db1e636fa2",
-        "typing-extensions==4.5.0",  # >=4.6 causes typing issues
-    )
-    # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
-    .pip_install("hf-transfer~=0.1")
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
-    .run_function(
-        download_model,
-        secret=Secret.from_name("huggingface"),
-        timeout=60 * 60,
-    )
+    Payload,
 )
 
+from .base import BaseEngine
 
-@stub.cls(
-    gpu=gpu.A100(count=config.num_gpu),
-    image=image,
-    secret=Secret.from_name("huggingface"),
-    allow_concurrent_inputs=config.concurrency,
-    container_idle_timeout=config.idle_timeout,
-)
-class Mythalion13BModel:
-    async def __aenter__(self):
+
+class VllmEngine(BaseEngine):
+    def __init__(
+        self,
+        model_path: str,
+        max_num_batched_tokens: int,
+    ):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
         from vllm.transformers_utils.tokenizer import get_tokenizer
 
         engine_args = AsyncEngineArgs(
-            model=config.download_dir,
-            tensor_parallel_size=config.num_gpu,
+            model=model_path,
+            tensor_parallel_size=1,
             # using 95% of GPU memory by default
             gpu_memory_utilization=0.95,
             disable_log_requests=True,
-            max_num_batched_tokens=config.max_batched_tokens,
+            max_num_batched_tokens=max_num_batched_tokens,
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
@@ -81,6 +38,7 @@ class Mythalion13BModel:
             trust_remote_code=engine_args.trust_remote_code,
         )
 
+    async def __aenter__(self):
         self.engine_model_config = await self.engine.get_model_config()
         self.max_model_len = self.engine_model_config.get_max_model_len()
 
@@ -93,9 +51,7 @@ class Mythalion13BModel:
         return self.max_model_len
 
     @method()
-    async def generate(
-        self, payload: Payload, params: SamplingParams, input_ids
-    ):
+    async def generate(self, payload: Payload, params, input_ids):
         try:
             import time
 

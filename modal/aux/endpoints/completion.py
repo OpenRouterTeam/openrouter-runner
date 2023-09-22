@@ -1,36 +1,41 @@
 import os
 
-from modal import Cls
 from fastapi import Depends, HTTPException, status
-from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from .protocol import (
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import StreamingResponse
+
+from ..shared.sampling_params import SamplingParams
+from ..shared.protocol import (
     create_error_response,
     Payload,
 )
 
-from .sampling_params import SamplingParams
+from aux.shared.common import config
+from aux.containers import get_container
+
 
 auth_scheme = HTTPBearer()
 
 
 def completion(
-    payload: Payload, token: HTTPAuthorizationCredentials = Depends(auth_scheme)
+    payload: Payload,
+    token: HTTPAuthorizationCredentials = Depends(auth_scheme),
 ):
-    if token.credentials != os.environ[os.environ["API_KEY_ID"]]:
+    if token.credentials != os.environ[config.api_key_id]:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect bearer token",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    Model = Cls.lookup(os.environ["RUNNER_NAME"], "Model")
-    model = Model()
+    try:
+        runner = get_container(payload.model)
+    except ValueError as e:
+        return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
-    max_model_len = model.max_model_len.remote()
-    input_ids = model.tokenize_prompt.remote(payload)
-
+    max_model_len = runner.max_model_len.remote()
+    input_ids = runner.tokenize_prompt.remote(payload)
     token_num = len(input_ids)
 
     if payload.params.max_tokens is None:
@@ -72,6 +77,6 @@ def completion(
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     return StreamingResponse(
-        model.generate.remote_gen(payload, sampling_params, input_ids),
+        runner.generate.remote_gen(payload, sampling_params, input_ids),
         media_type="text/event-stream",
     )

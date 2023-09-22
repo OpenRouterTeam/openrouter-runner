@@ -1,15 +1,24 @@
-# Add new model
+# PREREQ:
 
-1. Copy one of the model file in `aux/models` and rename it to your model name.
-2. Change the `model_id` to the HF model ID.
-3. Adapt the Model class name accordingly.
-4. Import the model into [](./models/__init__.py) and add it to the get_model function.
+## Add new engine
 
-# Configuration
+1. Copy one of the engine file in `aux/engine`
+2. Adapt the class name, image, machine type etc...
+3. Add the engine to [](./engines/__init__.py) with a dedicated list of model to run with it
+4. Run: ``
 
-See [](./shared/common.py)
+## Add new model
 
-# Deployment
+1. Add the model HF ID to [](./engines/__init__.py), put it under an engine list
+2. Runt the download script
+
+## Configuration
+
+- For stub config, see: [](./shared/common.py)
+- For engine config, see: [](./engines/__init__.py)
+- For endpoint configs, see: [](./main.py)
+
+## Deployment
 
 1.  Create a modal secret group
     HUGGINGFACE_TOKEN = <your huggingface token>
@@ -25,8 +34,8 @@ See [](./shared/common.py)
 ```bash
 poetry shell
 
-modal deploy auxilary/main.py --env=dev
+modal deploy aux/main.py --env=dev
 
 # OR
-modal deploy auxilary/main.py --env=main
+modal deploy aux/main.py --env=main
 ```
