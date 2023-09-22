@@ -37,5 +37,5 @@ def download_models(all_models: List[str]):
                 cache_dir=cache_path,
                 token=env["HUGGINGFACE_TOKEN"],
             )
-    stub.models_volume.commit()
+            stub.models_volume.commit()
     print(f"ALL DONE!")
