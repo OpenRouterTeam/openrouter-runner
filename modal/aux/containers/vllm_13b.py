@@ -3,9 +3,11 @@
 # 2. A stub class wrapping an engine
 
 from modal import gpu, Image
+
 from aux.engines.vllm import VllmEngine
 from aux.shared.common import stub
 from aux.shared.volume import models_path, models_volume
+
 
 _vllm_image = Image.from_registry(
     "nvcr.io/nvidia/pytorch:22.12-py3"

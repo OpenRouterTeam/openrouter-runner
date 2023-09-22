@@ -7,7 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-modal = "^0.51.3294"
+modal = "^0.52.3559"
 huggingface-hub = "^0.17.1"
 
 [build-system]

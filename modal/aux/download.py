@@ -2,7 +2,7 @@ from modal import Secret, Image
 from .shared.common import stub
 
 from .shared.volume import get_model_path, models_path, models_volume
-from .engines import vllm_13b_model_ids
+from .containers import vllm_13b_model_ids
 
 _downloader_image = (
     Image.debian_slim()
