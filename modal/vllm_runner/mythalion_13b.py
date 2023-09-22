@@ -22,15 +22,12 @@ from fastapi.responses import JSONResponse, StreamingResponse, PlainTextResponse
 NAME = "mythalion"
 MODEL_DIR = "/model"
 
-NUM_GPU = 1
+NUM_GPU = 2
 MODEL = "PygmalionAI/mythalion-13b"
 
 config = Config()
 
-if config.get(key="environment") == "dev":
-    KEEP_WARM = None
-else:
-    KEEP_WARM = 1
+KEEP_WARM = None
 
 API_KEY_ID = "MYTHALION_API_KEY"
 # MODEL = "Undi95/ReMM-SLERP-L2-13B"
@@ -124,7 +121,7 @@ stub = Stub(NAME, image=image)
 
 
 @stub.cls(
-    gpu=gpu.A100(count=NUM_GPU, memory=20),
+    gpu=gpu.A10G(count=NUM_GPU),
     secret=Secret.from_name("huggingface"),
     allow_concurrent_inputs=12,
     container_idle_timeout=600,
