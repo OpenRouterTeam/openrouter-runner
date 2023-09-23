@@ -124,7 +124,7 @@ stub = Stub(NAME, image=image)
 @stub.cls(
     gpu=gpu.L4(count=NUM_GPU),
     secret=Secret.from_name("huggingface"),
-    allow_concurrent_inputs=12,
+    allow_concurrent_inputs=16,
     container_idle_timeout=IDLE_TIMEOUT,
     keep_warm=KEEP_WARM,
 )
@@ -219,7 +219,7 @@ class Model:
 @stub.function(
     secret=Secret.from_name("ext-api-key"),
     timeout=60 * 60,
-    allow_concurrent_inputs=12,
+    allow_concurrent_inputs=16,
     keep_warm=KEEP_WARM,
 )
 @web_endpoint(method="POST")
