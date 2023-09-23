@@ -59,7 +59,7 @@ def completion(
         sampling_params = SamplingParams(
             # early_stopping=payload.params.early_stopping,
             # length_penalty=payload.params.length_penalty,
-            **payload.params.model_dump(),
+            **payload.params.dict(),
             max_tokens=max_tokens,
         )
         print(sampling_params)
