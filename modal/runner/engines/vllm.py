@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from modal import method
 
 from runner.shared.protocol import (
@@ -7,26 +7,41 @@ from runner.shared.protocol import (
     ErrorResponse,
     Payload,
 )
+from pydantic import BaseModel
+
 from .base import BaseEngine
 
 
+class VllmParams(BaseModel):
+    model: str
+    tokenizer: Optional[str] = None
+    tokenizer_mode: str = "auto"
+    trust_remote_code: bool = False
+    download_dir: Optional[str] = None
+    load_format: str = "auto"
+    dtype: str = "auto"
+    seed: int = 0
+    worker_use_ray: bool = False
+    pipeline_parallel_size: int = 1
+    tensor_parallel_size: int = 1
+    block_size: int = 16
+    swap_space: int = 4  # GiB
+    gpu_memory_utilization: float = 0.95
+    max_num_batched_tokens: int = 4096
+    max_num_seqs: int = 256
+    disable_log_stats: bool = False
+
+
 class VllmEngine(BaseEngine):
-    def __init__(
-        self,
-        model_path: str,
-        max_num_batched_tokens: int,
-    ):
+    def __init__(self, params: VllmParams):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
         from vllm.transformers_utils.tokenizer import get_tokenizer
 
+        print(params)
         engine_args = AsyncEngineArgs(
-            model=model_path,
-            tensor_parallel_size=1,
-            # using 95% of GPU memory by default
-            gpu_memory_utilization=0.95,
+            **params.dict(),
             disable_log_requests=True,
-            max_num_batched_tokens=max_num_batched_tokens,
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)

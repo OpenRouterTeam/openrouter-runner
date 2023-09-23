@@ -1,4 +1,4 @@
-from runner.engines.vllm import VllmEngine
+from runner.engines.vllm import VllmEngine, VllmParams
 
 # Each container comprises of:
 # 1. An image
@@ -20,13 +20,26 @@ _vllm_image = Image.from_registry(
     "typing-extensions==4.5.0",  # >=4.6 causes typing issues
 )
 
+GPU_COUNT = 2
+
 
 @stub.cls(
     volumes={str(models_path): stub.models_volume},
     image=_vllm_image,
-    gpu=gpu.L4(count=2),
+    gpu=gpu.L4(count=GPU_COUNT),
     allow_concurrent_inputs=16,
     container_idle_timeout=5 * 60,  # 5 minutes
 )
 class Vllm13BContainer(VllmEngine):
-    pass
+    def __init__(
+        self,
+        model_path: str,
+        max_context_size: int,
+    ):
+        super().__init__(
+            VllmParams(
+                model=model_path,
+                max_num_batched_tokens=max_context_size,
+                tensor_parallel_size=GPU_COUNT,
+            )
+        )
