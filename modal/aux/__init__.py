@@ -20,7 +20,7 @@ from aux.containers import all_models
     image=downloader_image,
     volumes={str(models_path): stub.models_volume},
     secret=Secret.from_name("huggingface"),
-    timeout=len(all_models) * 600,
+    timeout=len(all_models) * 3600,  # 1 hours per model
 )
 def download():
     download_models(all_models)
