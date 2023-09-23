@@ -38,7 +38,6 @@ class VllmEngine(BaseEngine):
         from vllm.engine.async_llm_engine import AsyncLLMEngine
         from vllm.transformers_utils.tokenizer import get_tokenizer
 
-        print(params)
         engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,

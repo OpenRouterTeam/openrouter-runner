@@ -56,13 +56,12 @@ def completion(
         )
 
     try:
+        payload.params.max_tokens = max_tokens
         sampling_params = SamplingParams(
             # early_stopping=payload.params.early_stopping,
             # length_penalty=payload.params.length_penalty,
             **payload.params.dict(),
-            max_tokens=max_tokens,
         )
-        print(sampling_params)
     except ValueError as e:
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 

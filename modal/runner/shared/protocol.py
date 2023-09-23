@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from fastapi.responses import JSONResponse, PlainTextResponse
 
 from typing import List, Optional, Union
