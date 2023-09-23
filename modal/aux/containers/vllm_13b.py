@@ -24,7 +24,7 @@ _vllm_image = Image.from_registry(
 @stub.cls(
     volumes={str(models_path): stub.models_volume},
     image=_vllm_image,
-    gpu=gpu.A100(count=1),
+    gpu=gpu.L4(count=2),
     allow_concurrent_inputs=16,
     container_idle_timeout=5 * 60,  # 5 minutes
 )
