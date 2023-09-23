@@ -1,5 +1,5 @@
 from .vllm_13b import Vllm13BContainer
-from aux.shared.common import models_path
+from runner.shared.common import models_path
 from typing import List
 
 

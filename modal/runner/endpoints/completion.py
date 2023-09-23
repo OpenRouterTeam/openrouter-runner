@@ -5,14 +5,14 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
 
-from aux.shared.sampling_params import SamplingParams
-from aux.shared.protocol import (
+from runner.shared.sampling_params import SamplingParams
+from runner.shared.protocol import (
     create_error_response,
     Payload,
 )
 
-from aux.shared.common import config
-from aux.containers import get_container
+from runner.shared.common import config
+from runner.containers import get_container
 
 
 auth_scheme = HTTPBearer()

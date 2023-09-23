@@ -1,4 +1,4 @@
-from aux.engines.vllm import VllmEngine
+from runner.engines.vllm import VllmEngine
 
 # Each container comprises of:
 # 1. An image
@@ -6,7 +6,7 @@ from aux.engines.vllm import VllmEngine
 
 from modal import gpu, Image
 
-from aux.shared.common import stub, models_path
+from runner.shared.common import stub, models_path
 
 
 _vllm_image = Image.from_registry(

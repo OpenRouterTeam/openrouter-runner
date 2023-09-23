@@ -1,7 +1,7 @@
 from typing import List
 from modal import method
 
-from aux.shared.protocol import (
+from runner.shared.protocol import (
     CompletionResponse,
     ErrorPayload,
     ErrorResponse,

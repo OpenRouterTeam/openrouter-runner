@@ -9,8 +9,8 @@ class Config(BaseModel):
 
 
 config = Config(
-    name="aux",
-    api_key_id="AUX_API_KEY",
+    name="runner",
+    api_key_id="RUNNER_API_KEY",
 )
 
 stub = Stub(config.name)
