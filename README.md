@@ -37,6 +37,7 @@ modal deploy vllm_runner/${filename} --env main # For production
 modal deploy vllm_runner/${filename} --env dev # For dev environment
 
 # After deployment is done:
+cd ..
 pnpm x scripts/test-${testname}.ts # For dev environment
 pnpm x scripts/test-${testname}.ts prod # For prod environment
 ```

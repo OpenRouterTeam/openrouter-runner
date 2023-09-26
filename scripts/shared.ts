@@ -6,6 +6,7 @@ config({ path: envFile });
 
 const url = process.env.API_URL;
 const key = process.env.API_KEY;
+const model = process.env.MODEL;
 
 export async function completion(
   prompt: string,
@@ -17,17 +18,23 @@ export async function completion(
     throw new Error('Missing url or key');
   }
 
+  const bodyPayload: Record<string, unknown> = {
+    id: Math.random().toString(36).substring(7),
+    prompt,
+    params
+  };
+
+  if (model) {
+    bodyPayload.model = model;
+  }
+
   const p = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${key}`
     },
-    body: JSON.stringify({
-      id: Math.random().toString(36).substring(7),
-      prompt,
-      params
-    })
+    body: JSON.stringify(bodyPayload)
   });
 
   if (p.ok) {

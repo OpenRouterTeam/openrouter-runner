@@ -28,6 +28,7 @@ class Payload(BaseModel):
     prompt: str
     stream: bool = False
     params: Params
+    model: str
 
 
 class CompletionResponse(BaseModel):
