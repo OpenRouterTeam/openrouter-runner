@@ -1,41 +1,59 @@
-from typing import List
+from typing import List, Optional
 from modal import method
-import os
 
-from .protocol import (
+from runner.shared.protocol import (
     CompletionResponse,
     ErrorPayload,
     ErrorResponse,
     Payload,
 )
+from pydantic import BaseModel
+
+from .base import BaseEngine
 
 
-class Model:
-    async def __aenter__(self):
+class VllmParams(BaseModel):
+    model: str
+    tokenizer: Optional[str] = None
+    tokenizer_mode: str = "auto"
+    trust_remote_code: bool = False
+    download_dir: Optional[str] = None
+    load_format: str = "auto"
+    dtype: str = "auto"
+    seed: int = 0
+    worker_use_ray: bool = False
+    pipeline_parallel_size: int = 1
+    tensor_parallel_size: int = 1
+    block_size: int = 16
+    swap_space: int = 4  # GiB
+    gpu_memory_utilization: float = 0.95
+    max_num_batched_tokens: int = 4096
+    max_num_seqs: int = 256
+    disable_log_stats: bool = False
+
+
+class VllmEngine(BaseEngine):
+    def __init__(self, params: VllmParams):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
         from vllm.transformers_utils.tokenizer import get_tokenizer
 
         engine_args = AsyncEngineArgs(
-            model=os.environ["RUNNER_MODEL_PATH"],
-            tensor_parallel_size=1,
-            # using 95% of GPU memory by default
-            gpu_memory_utilization=0.95,
+            **params.dict(),
             disable_log_requests=True,
-            max_num_batched_tokens=4096,
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
-
-        self.engine_model_config = await self.engine.get_model_config()
-        self.max_model_len = self.engine_model_config.get_max_model_len()
-
         # A separate tokenizer to map token IDs to strings.
         self.tokenizer = get_tokenizer(
             engine_args.tokenizer,
             tokenizer_mode=engine_args.tokenizer_mode,
             trust_remote_code=engine_args.trust_remote_code,
         )
+
+    async def __aenter__(self):
+        self.engine_model_config = await self.engine.get_model_config()
+        self.max_model_len = self.engine_model_config.get_max_model_len()
 
     @method()
     async def tokenize_prompt(self, payload: Payload) -> List[int]:
