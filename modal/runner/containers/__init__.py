@@ -8,6 +8,7 @@ def _to_lower_list(l: List[str]):
 
 
 vllm_13b_model_ids = [
+    "mistralai/Mistral-7B-Instruct-v0.1",
     "PygmalionAI/mythalion-13b",
     "Gryphe/MythoMax-L2-13b",
     "Undi95/ReMM-SLERP-L2-13B",
