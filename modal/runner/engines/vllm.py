@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from .base import BaseEngine
 
 
+# Adapted from: https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py#L192
 class VllmParams(BaseModel):
     model: str
     tokenizer: Optional[str] = None
@@ -21,15 +22,18 @@ class VllmParams(BaseModel):
     load_format: str = "auto"
     dtype: str = "auto"
     seed: int = 0
+    max_model_len: Optional[int] = None
     worker_use_ray: bool = False
     pipeline_parallel_size: int = 1
     tensor_parallel_size: int = 1
     block_size: int = 16
     swap_space: int = 4  # GiB
     gpu_memory_utilization: float = 0.95
-    max_num_batched_tokens: int = 4096
-    max_num_seqs: int = 256
+    max_num_batched_tokens: Optional[int] = None
+    max_num_seqs: int = 4096
     disable_log_stats: bool = False
+    revision: Optional[str] = None
+    quantization: Optional[str] = None
 
 
 class VllmEngine(BaseEngine):
