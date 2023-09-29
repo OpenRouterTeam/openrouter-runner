@@ -21,6 +21,7 @@ class Params(BaseModel):
     top_k: int = -1
     top_p: float = 1.0
     use_beam_search: bool = False
+    skip_special_tokens: bool = True
 
 
 class Payload(BaseModel):
