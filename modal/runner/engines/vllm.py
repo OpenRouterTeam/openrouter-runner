@@ -62,7 +62,7 @@ class VllmEngine(BaseEngine):
 
     async def __aenter__(self):
         self.engine_model_config = await self.engine.get_model_config()
-        self.max_model_len = self.engine_model_config.get_max_model_len()
+        self.max_model_len = self.engine_model_config.max_model_len
 
     @method()
     async def tokenize_prompt(self, payload: Payload) -> List[int]:
