@@ -23,7 +23,7 @@ class VllmParams(BaseModel):
     dtype: str = "auto"
     seed: int = 0
     max_model_len: Optional[int] = None
-    worker_use_ray: bool = False
+    worker_use_ray: bool = True
     pipeline_parallel_size: int = 1
     tensor_parallel_size: int = 1
     block_size: int = 16
