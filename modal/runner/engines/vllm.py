@@ -29,7 +29,7 @@ class VllmParams(BaseModel):
     block_size: int = 16
     swap_space: int = 4  # GiB
     gpu_memory_utilization: float = 0.95
-    max_num_batched_tokens: Optional[int] = 4096
+    max_num_batched_tokens: Optional[int] = 8192
     max_num_seqs: int = 256
     disable_log_stats: bool = False
     revision: Optional[str] = None
