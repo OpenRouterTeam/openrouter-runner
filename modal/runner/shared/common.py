@@ -1,7 +1,7 @@
 from modal import Stub
 
-from shared import Config
-from shared.volumes import models_volume
+from shared.config import Config
+from shared.volumes import loras_volume, models_volume
 
 
 config = Config(
@@ -11,5 +11,5 @@ config = Config(
 
 stub = Stub(config.name)
 
-
 stub.models_volume = models_volume
+stub.loras_volume = loras_volume

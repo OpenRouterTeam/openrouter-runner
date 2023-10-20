@@ -1,6 +1,7 @@
 from modal import Secret, web_endpoint
 
-from runner.shared.common import stub, models_path
+from shared.volumes import models_path
+from runner.shared.common import stub
 
 from runner.endpoints.completion import completion
 

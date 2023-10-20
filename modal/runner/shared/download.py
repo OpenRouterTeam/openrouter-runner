@@ -1,6 +1,7 @@
 from modal import Image
 from typing import List
-from .common import get_model_path, stub
+from .common import stub
+from shared.volumes import get_model_path
 
 downloader_image = (
     Image.debian_slim()

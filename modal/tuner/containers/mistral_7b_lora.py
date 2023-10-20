@@ -5,16 +5,21 @@
 from modal import gpu, Image, method, Secret
 
 from tuner.shared.common import stub
-from shared.volumes import loras_path, get_lora_path
+from shared.volumes import (
+    loras_path,
+    get_lora_path,
+    models_path,
+    get_model_path,
+)
 
 from shared.protocol import create_sse_data, create_error_text
 
 # TODO: Swap to lower-end GPU on prod
-_gpu = gpu.A100(count=2)
+_gpu = gpu.A100(count=1)
 
 _vllm_image = Image.from_registry(
-    # "nvcr.io/nvidia/pytorch:23.09-py3"
-    "nvcr.io/nvidia/pytorch:22.12-py3"
+    "nvcr.io/nvidia/pytorch:23.09-py3"
+    # "nvcr.io/nvidia/pytorch:22.12-py3"
 ).pip_install(
     "bitsandbytes",
     "transformers",
@@ -47,22 +52,63 @@ The attributes must be one of the following: ['name', 'exp_release_date', 'relea
         Secret.from_name("wandb"),
         Secret.from_name("huggingface"),
     ],
-    volumes={str(loras_path): stub.loras_volume},
+    volumes={
+        str(loras_path): stub.loras_volume,
+        str(models_path): stub.models_volume,
+    },
     image=_vllm_image,
     gpu=_gpu,
-    container_idle_timeout=10 * 60,  # 10 minutes
+    container_idle_timeout=1200,
+    # cpu=8,
+    # memory=32,
 )
 class Mistral7BLoraContainer:
     def __init__(self):
         pass
 
     async def __aenter__(self):
-        pass
+        # TODO: Move the base_model_id to init params
+        base_model_id = "mistralai/Mistral-7B-Instruct-v0.1"
+        self.base_model_id = base_model_id
+
+        import torch
+        from transformers import (
+            AutoTokenizer,
+            AutoModelForCausalLM,
+            BitsAndBytesConfig,
+        )
+
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+        )
+
+        model_path = get_model_path(base_model_id).resolve().absolute()
+
+        self.model = AutoModelForCausalLM.from_pretrained(
+            model_path,
+            quantization_config=bnb_config,
+            local_files_only=True,
+        )
+        self.model.gradient_checkpointing_enable()
+
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_path,
+            model_max_length=512,
+            padding_side="left",
+            add_eos_token=True,
+            local_files_only=True,
+        )
+        self.tokenizer.pad_token = self.tokenizer.eos_token
 
     @method()
     async def generate(self):
         try:
             import wandb
+
+            yield create_sse_data("Init logger...")
 
             wandb.init(
                 project="tuner",
@@ -75,12 +121,15 @@ class Mistral7BLoraContainer:
             )
 
             yield create_sse_data("Loading accelerator...")
+
             fsdp_plugin = FullyShardedDataParallelPlugin(
                 state_dict_config=FullStateDictConfig(
-                    offload_to_cpu=True, rank0_only=False
+                    offload_to_cpu=True,
+                    rank0_only=False,
                 ),
                 optim_state_dict_config=FullOptimStateDictConfig(
-                    offload_to_cpu=True, rank0_only=False
+                    offload_to_cpu=True,
+                    rank0_only=False,
                 ),
             )
 
@@ -88,7 +137,7 @@ class Mistral7BLoraContainer:
 
             from datasets import load_dataset
 
-            # TODO: Upload data set first, then train?
+            # TODO: Upload data set to Supabase, then download?
             # train_dataset = load_dataset(
             #     "json", data_files="notes.jsonl", split="train"
             # )
@@ -96,38 +145,10 @@ class Mistral7BLoraContainer:
             #     "json", data_files="notes_validation.jsonl", split="train"
             # )
 
-            train_dataset = load_dataset("gem/viggo", split="train")
-            eval_dataset = load_dataset("gem/viggo", split="validation")
-            test_dataset = load_dataset("gem/viggo", split="test")
-
             yield create_sse_data("Loading data set...")
 
-            import torch
-            from transformers import (
-                AutoTokenizer,
-                AutoModelForCausalLM,
-                BitsAndBytesConfig,
-            )
-
-            base_model_id = "mistralai/Mistral-7B-Instruct-v0.1"
-            bnb_config = BitsAndBytesConfig(
-                load_in_4bit=True,
-                bnb_4bit_use_double_quant=True,
-                bnb_4bit_quant_type="nf4",
-                bnb_4bit_compute_dtype=torch.bfloat16,
-            )
-
-            model = AutoModelForCausalLM.from_pretrained(
-                base_model_id, quantization_config=bnb_config
-            )
-            tokenizer = AutoTokenizer.from_pretrained(
-                base_model_id,
-                model_max_length=512,
-                padding_side="left",
-                add_eos_token=True,
-            )
-
-            tokenizer.pad_token = tokenizer.eos_token
+            train_dataset = load_dataset("gem/viggo", split="train")
+            eval_dataset = load_dataset("gem/viggo", split="validation")
 
             # TODO: use tokenizer.apply_chat_template to leverage HF's tokenizer chat_template:
             def tokenize(prompt):
@@ -136,7 +157,7 @@ class Mistral7BLoraContainer:
                 #     payload.messages, return_tensors="pt"
                 # )
 
-                result = tokenizer(
+                result = self.tokenizer(
                     prompt,
                     truncation=True,
                     max_length=512,
@@ -146,24 +167,23 @@ class Mistral7BLoraContainer:
                 return result
 
             # Map through each data in the set, and call format_data_point before passing it to tokenize
-            tokenized_train_datase = train_dataset.map(
-                lambda data: tokenize(format_data_point(data))
-            )
-
             tokenized_train_dataset = train_dataset.map(
                 lambda data: tokenize(format_data_point(data))
             )
 
-            tokenized_val_dataset = eval_dataset.map(
+            tokenized_eval_dataset = eval_dataset.map(
                 lambda data: tokenize(format_data_point(data))
             )
 
-            from peft import prepare_model_for_kbit_training
+            from peft import (
+                prepare_model_for_kbit_training,
+                LoraConfig,
+                get_peft_model,
+            )
 
-            model.gradient_checkpointing_enable()
-            model = prepare_model_for_kbit_training(model)
+            yield create_sse_data("Prepare model...")
 
-            from peft import LoraConfig, get_peft_model
+            model = prepare_model_for_kbit_training(self.model)
 
             config = LoraConfig(
                 r=8,
@@ -186,26 +206,30 @@ class Mistral7BLoraContainer:
             model = get_peft_model(model, config)
 
             # Apply the accelerator. You can comment this out to remove the accelerator.
-            model = accelerator.prepare_model(model)
+            model = accelerator.prepare(model)
+
+            yield create_sse_data("Accelerator applied...")
+
+            import torch
 
             if torch.cuda.device_count() > 1:  # If more than 1 GPU
+                yield create_sse_data("parallel")
                 model.is_parallelizable = True
                 model.model_parallel = True
 
             import transformers
             from datetime import datetime
 
+            # TODO: Move to generator params
             finetune_id = "viggo-finetune"
             user_name = "lab"
 
             lora_path = get_lora_path(user_name, finetune_id)
 
-            tokenizer.pad_token = tokenizer.eos_token
-
             trainer = transformers.Trainer(
                 model=model,
                 train_dataset=tokenized_train_dataset,
-                eval_dataset=tokenized_val_dataset,
+                eval_dataset=tokenized_eval_dataset,
                 args=transformers.TrainingArguments(
                     output_dir=str(lora_path),
                     warmup_steps=5,
@@ -222,17 +246,19 @@ class Mistral7BLoraContainer:
                     eval_steps=100,  # Evaluate and save checkpoints every 50 steps
                     do_eval=True,  # Perform evaluation at the end of training
                     report_to="wandb",  # Comment this out if you don't want to use weights & baises
-                    run_name=f"{user_name}-{finetune_id}-{base_model_id}-{datetime.now().strftime('%Y-%m-%d-%H-%M')}",  # Name of the W&B run (optional)
+                    run_name=f"{user_name} | {finetune_id} | {self.base_model_id} | {datetime.now().strftime('%Y-%m-%d-%H-%M')}",  # Name of the W&B run (optional)
                 ),
                 data_collator=transformers.DataCollatorForLanguageModeling(
-                    tokenizer, mlm=False
+                    self.tokenizer, mlm=False
                 ),
             )
 
             model.config.use_cache = False
+            yield create_sse_data("Begin training...")
 
             trainer.train()
 
         except Exception as err:
             e = create_error_text(err)
+            print(e)
             yield create_sse_data(e)

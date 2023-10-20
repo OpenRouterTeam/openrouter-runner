@@ -10,12 +10,19 @@ from runner.shared.common import stub, models_path
 
 _gpu = gpu.A100(count=1, memory=80)
 
-_vllm_image = Image.from_registry(
-    # "nvcr.io/nvidia/pytorch:23.09-py3"
-    "nvcr.io/nvidia/pytorch:22.12-py3"
-).pip_install(
-    "vllm == 0.2.0",
-    "typing-extensions==4.5.0",  # >=4.6 causes typing issues
+_vllm_image = (
+    Image.from_registry(
+        # "nvcr.io/nvidia/pytorch:23.09-py3"
+        "nvcr.io/nvidia/pytorch:22.12-py3"
+    )
+    # Use latest torch
+    .pip_install(
+        "torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118"
+    )
+    # Pinned to 10/16/23
+    .pip_install(
+        "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20"
+    )
 )
 
 
