@@ -1,5 +1,5 @@
 import { getWordsFromFile } from 'scripts/get-words';
-import { completion } from 'scripts/shared';
+import { completion, runIfCalledAsScript } from 'scripts/shared';
 
 const prompts = [
   `Ullamco mollit deserunt mollit ea est cillum nulla et est. Magna incididunt laborum amet consequat sint amet. Cillum aliqua id nulla nisi in. Sunt commodo aliqua quis deserunt. Adipisicing eu officia laboris commodo. Ullamco sunt irure eu aute laborum ut commodo ullamco incididunt duis officia cupidatat et voluptate.
@@ -90,7 +90,4 @@ async function main() {
   );
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+runIfCalledAsScript(main, import.meta.url);

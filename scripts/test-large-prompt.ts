@@ -1,5 +1,5 @@
 import { getWordsFromFile } from 'scripts/get-words';
-import { completion } from 'scripts/shared';
+import { completion, runIfCalledAsScript } from 'scripts/shared';
 
 async function main() {
   const prompt = await getWordsFromFile(2500);
@@ -9,7 +9,4 @@ async function main() {
   });
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+runIfCalledAsScript(main, import.meta.url);

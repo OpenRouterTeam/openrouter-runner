@@ -1,11 +1,10 @@
 from typing import List, Optional
 from modal import method
 
-from runner.shared.protocol import (
-    ErrorPayload,
-    ErrorResponse,
+from shared.protocol import (
     Payload,
     create_sse_data,
+    create_error_text,
 )
 from pydantic import BaseModel
 
@@ -110,13 +109,9 @@ class VllmEngine(BaseEngine):
             # yield "[DONE]"
             # print(request_output.outputs[0].text)
         except Exception as err:
-            error_response = ErrorResponse(
-                error=ErrorPayload(
-                    message=f"{err}", type=f"{type(err).__name__}"
-                )
-            ).json(ensure_ascii=False)
+            e = create_error_text(err)
 
             if payload.stream:
-                yield f"data: {error_response}\n\n"
+                yield f"data: {e}\n\n"
             else:
-                yield error_response
+                yield e

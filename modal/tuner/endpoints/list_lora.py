@@ -3,7 +3,9 @@ import os
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from tuner.shared.common import config, loras_path
+
+from tuner.shared.common import config
+from shared.volumes import loras_path
 
 auth_scheme = HTTPBearer()
 

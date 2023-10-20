@@ -5,11 +5,10 @@ from runner.engines.vllm import VllmEngine, VllmParams
 # 2. A stub class wrapping an engine
 
 from modal import gpu, Image
+from shared.volumes import models_path
+from runner.shared.common import stub
 
-from runner.shared.common import stub, models_path
-
-GPU_COUNT = 1
-
+_gpu = gpu.L4(count=1)
 _vllm_image = Image.from_registry(
     # "nvcr.io/nvidia/pytorch:23.09-py3"
     "nvcr.io/nvidia/pytorch:22.12-py3"
@@ -22,8 +21,8 @@ _vllm_image = Image.from_registry(
 @stub.cls(
     volumes={str(models_path): stub.models_volume},
     image=_vllm_image,
-    gpu=gpu.L4(count=GPU_COUNT),
-    allow_concurrent_inputs=16,
+    gpu=_gpu,
+    allow_concurrent_inputs=8,
     container_idle_timeout=10 * 60,  # 5 minutes
 )
 class Vllm7BContainer(VllmEngine):
@@ -34,6 +33,7 @@ class Vllm7BContainer(VllmEngine):
         super().__init__(
             VllmParams(
                 model=model_path,
-                tensor_parallel_size=GPU_COUNT,
+                tensor_parallel_size=_gpu.count,
+                gpu_memory_utilization=0.80,
             )
         )

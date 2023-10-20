@@ -1,25 +1,13 @@
-from modal import Stub, Volume
-from pydantic import BaseModel
-from pathlib import Path
-
-
-class Config(BaseModel):
-    name: str
-    api_key_id: str
-
+from modal import Stub
+from shared.config import Config
+from shared.volumes import loras_volume
 
 config = Config(
-    name="lora",
+    name="tuner",
     api_key_id="RUNNER_API_KEY",
 )
 
 stub = Stub(config.name)
 
 
-stub.loras_volume = Volume.persisted("loras-volume")
-
-loras_path = Path("/loras")
-
-
-def get_lora_path(user_name: str, lora_name: str):
-    return loras_path / user_name.lower() / lora_name.lower()
+stub.loras_volume = loras_volume

@@ -4,10 +4,13 @@
 
 from modal import gpu, Image, method, Secret
 
-from tuner.shared.common import stub, loras_path, get_lora_path
-from runner.shared.protocol import create_sse_data, create_error_text
+from tuner.shared.common import stub
+from shared.volumes import loras_path, get_lora_path
 
-GPU_COUNT = 2
+from shared.protocol import create_sse_data, create_error_text
+
+# TODO: Swap to lower-end GPU on prod
+_gpu = gpu.A100(count=2)
 
 _vllm_image = Image.from_registry(
     # "nvcr.io/nvidia/pytorch:23.09-py3"
@@ -46,7 +49,7 @@ The attributes must be one of the following: ['name', 'exp_release_date', 'relea
     ],
     volumes={str(loras_path): stub.loras_volume},
     image=_vllm_image,
-    gpu=gpu.A100(count=GPU_COUNT),
+    gpu=_gpu,
     container_idle_timeout=10 * 60,  # 10 minutes
 )
 class Mistral7BLoraContainer:
@@ -57,12 +60,12 @@ class Mistral7BLoraContainer:
         pass
 
     @method()
-    async def generate(self, payload):
+    async def generate(self):
         try:
             import wandb
 
             wandb.init(
-                project="openrouter-qloras",
+                project="tuner",
             )
 
             from accelerate import FullyShardedDataParallelPlugin, Accelerator
@@ -232,7 +235,4 @@ class Mistral7BLoraContainer:
 
         except Exception as err:
             e = create_error_text(err)
-            if payload.stream:
-                yield create_sse_data(e)
-            else:
-                yield e
+            yield create_sse_data(e)
