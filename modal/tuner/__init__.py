@@ -8,7 +8,7 @@ from tuner.endpoints.list_lora import list_lora
 
 stub.function(
     secret=Secret.from_name("ext-api-key"),
-    timeout=60 * 60,
+    timeout=60 * 60 * 5,  # 5 hours
     allow_concurrent_inputs=32,
     volumes={str(loras_path): stub.loras_volume},
 )(web_endpoint(method="POST")(create_lora))

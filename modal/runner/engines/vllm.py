@@ -110,8 +110,8 @@ class VllmEngine(BaseEngine):
             # print(request_output.outputs[0].text)
         except Exception as err:
             e = create_error_text(err)
-
+            print(e)
             if payload.stream:
-                yield f"data: {e}\n\n"
+                yield create_sse_data(e)
             else:
                 yield e

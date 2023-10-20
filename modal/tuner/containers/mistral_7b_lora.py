@@ -15,7 +15,7 @@ from shared.volumes import (
 from shared.protocol import create_sse_data, create_error_text
 
 # TODO: Swap to lower-end GPU on prod
-_gpu = gpu.A100(count=1)
+_gpu = gpu.A100(count=1, memory=80)
 
 _vllm_image = Image.from_registry(
     "nvcr.io/nvidia/pytorch:23.09-py3"
@@ -58,7 +58,8 @@ The attributes must be one of the following: ['name', 'exp_release_date', 'relea
     },
     image=_vllm_image,
     gpu=_gpu,
-    container_idle_timeout=1200,
+    timeout=60 * 60 * 5,  # 5 hours
+    container_idle_timeout=1200,  # 20 minutes
     # cpu=8,
     # memory=32,
 )
@@ -217,7 +218,11 @@ class Mistral7BLoraContainer:
                 model.is_parallelizable = True
                 model.model_parallel = True
 
-            import transformers
+            from transformers import (
+                Trainer,
+                TrainingArguments,
+                DataCollatorForLanguageModeling,
+            )
             from datetime import datetime
 
             # TODO: Move to generator params
@@ -226,11 +231,11 @@ class Mistral7BLoraContainer:
 
             lora_path = get_lora_path(user_name, finetune_id)
 
-            trainer = transformers.Trainer(
+            trainer = Trainer(
                 model=model,
                 train_dataset=tokenized_train_dataset,
                 eval_dataset=tokenized_eval_dataset,
-                args=transformers.TrainingArguments(
+                args=TrainingArguments(
                     output_dir=str(lora_path),
                     warmup_steps=5,
                     per_device_train_batch_size=2,
@@ -248,8 +253,9 @@ class Mistral7BLoraContainer:
                     report_to="wandb",  # Comment this out if you don't want to use weights & baises
                     run_name=f"{user_name} | {finetune_id} | {self.base_model_id} | {datetime.now().strftime('%Y-%m-%d-%H-%M')}",  # Name of the W&B run (optional)
                 ),
-                data_collator=transformers.DataCollatorForLanguageModeling(
-                    self.tokenizer, mlm=False
+                data_collator=DataCollatorForLanguageModeling(
+                    self.tokenizer,
+                    mlm=False,
                 ),
             )
 
@@ -257,6 +263,7 @@ class Mistral7BLoraContainer:
             yield create_sse_data("Begin training...")
 
             trainer.train()
+            yield create_sse_data("Training finished.")
 
         except Exception as err:
             e = create_error_text(err)

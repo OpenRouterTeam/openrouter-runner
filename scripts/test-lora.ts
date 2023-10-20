@@ -29,6 +29,7 @@ async function createLora() {
   }
   const createResponse = await fetch(createUrl, {
     method: 'POST',
+    keepalive: true,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${key}`
