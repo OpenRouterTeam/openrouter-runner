@@ -32,8 +32,12 @@ class Payload(BaseModel):
     model: str
 
 
-class CompletionResponse(BaseModel):
+class SSEData(BaseModel):
     text: str
+
+
+def create_sse_data(text: str) -> str:
+    return f"data: {SSEData(text=text).json(ensure_ascii=False)}\n\n"
 
 
 class ErrorPayload(BaseModel):
@@ -43,6 +47,12 @@ class ErrorPayload(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: ErrorPayload
+
+
+def create_error_text(err: Exception) -> str:
+    return ErrorResponse(
+        error=ErrorPayload(message=f"{err}", type=f"{type(err).__name__}")
+    ).json(ensure_ascii=False)
 
 
 def create_error_response(status_code: int, message: str) -> JSONResponse:
