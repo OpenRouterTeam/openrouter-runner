@@ -32,7 +32,8 @@ class LoreanEngine(BaseEngine):
             bnb_4bit_compute_dtype=torch.bfloat16,
         )
 
-        model_path = get_model_path(params.model).resolve().absolute()
+        base_model = "mistralai/Mistral-7B-Instruct-v0.1"
+        model_path = get_model_path(base_model).resolve().absolute()
 
         self.model = AutoModelForCausalLM.from_pretrained(
             model_path,

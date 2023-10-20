@@ -1,4 +1,5 @@
 from .vllm_13b import Vllm13BContainer
+from .lorean_7b import Lorean7BContainer
 
 # from .vllm_7b import Vllm7BContainer
 # from .vllm_awq import VllmAWQ
@@ -38,6 +39,9 @@ all_models = [
 def get_container(model: str):
     normalized_model_id = model.lower()
     model_path = get_model_path(normalized_model_id)
+
+    if normalized_model_id == "lorean":
+        return Lorean7BContainer(str(model_path))
 
     if model_path.exists():
         if normalized_model_id in _vllm_13b_models_lower:
