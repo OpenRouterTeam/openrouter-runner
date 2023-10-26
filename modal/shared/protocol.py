@@ -32,12 +32,16 @@ class Payload(BaseModel):
     model: str
 
 
-class SSEData(BaseModel):
+class ResponseBody(BaseModel):
     text: str
 
 
+def create_response_text(text: str) -> str:
+    return ResponseBody(text=text).json(ensure_ascii=False)
+
+
 def create_sse_data(text: str) -> str:
-    return f"data: {SSEData(text=text).json(ensure_ascii=False)}\n\n"
+    return f"data: {create_response_text(text)}\n\n"
 
 
 class ErrorPayload(BaseModel):

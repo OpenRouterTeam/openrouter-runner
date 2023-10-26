@@ -77,7 +77,8 @@ const prompts = [
 ];
 
 async function main() {
-  const veryRandomPrompt = await getWordsFromFile(2000, {
+  const veryRandomPrompt = await getWordsFromFile({
+    wordsCount: 2000,
     startLine: Math.floor(Math.random() * 500)
   });
 

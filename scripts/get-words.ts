@@ -2,11 +2,12 @@ import { once } from 'events';
 import fs from 'fs/promises';
 import { createInterface } from 'readline';
 
-export async function getWordsFromFile(
-  wordsCount: number,
-  { fileNo = 0, startLine = 0 } = {}
-): Promise<string> {
-  const filePath = new URL(`./${fileNo}.txt`, import.meta.url);
+export async function getWordsFromFile({
+  wordsCount = Infinity,
+  fileName = '0',
+  startLine = 0
+} = {}): Promise<string> {
+  const filePath = new URL(`./${fileName}.txt`, import.meta.url);
   const fileStream = await fs.open(filePath, 'r');
   const input = fileStream.createReadStream();
 
