@@ -6,7 +6,7 @@ const key = process.env.API_KEY;
 
 async function main() {
   if (!url || !key) {
-    throw new Error('listLora: Missing url or key');
+    throw new Error('punctuator: Missing url or key');
   }
 
   const input = await getWordsFromFile({
