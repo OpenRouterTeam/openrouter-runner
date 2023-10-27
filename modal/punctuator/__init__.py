@@ -13,54 +13,40 @@ from shared.protocol import (
     create_error_text,
 )
 
+import os
+
 
 class Payload(BaseModel):
     input: str
 
 
-def download_models():
-    from simpletransformers.ner import NERModel
+MODEL_DIR = "/test-model"
+BASE_MODEL = "oliverguhr/fullstop-punctuation-multilang-large"
 
-    NERModel(
-        "bert",
-        "felflare/bert-restore-punctuation",
-        labels=[
-            "OU",
-            "OO",
-            ".O",
-            "!O",
-            ",O",
-            ".U",
-            "!U",
-            ",U",
-            ":O",
-            ";O",
-            ":U",
-            "'O",
-            "-O",
-            "?O",
-            "?U",
-        ],
-        args={"silent": True, "max_seq_length": 512},
+
+def download_models():
+    from huggingface_hub import snapshot_download
+
+    os.makedirs(MODEL_DIR, exist_ok=True)
+
+    snapshot_download(
+        BASE_MODEL,
+        local_dir=MODEL_DIR,
+        token=os.environ["HUGGINGFACE_TOKEN"],
     )
 
 
 _gpu = gpu.A10G(count=1)
 _image = (
-    Image.from_registry(
-        # "nvcr.io/nvidia/pytorch:23.09-py3"
-        "nvcr.io/nvidia/pytorch:22.12-py3",
-    )
-    .pip_install("rpunct")
+    Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
     .pip_install(
-        "torch==1.8.1+cu111",
-        find_links="https://download.pytorch.org/whl/torch_stable.html",
+        "torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118"
     )
+    .pip_install("sentencepiece")
+    .pip_install("deepmultilingualpunctuation")
     .pip_install("hf-transfer~=0.1")
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
-    .run_function(
-        download_models, secret=Secret.from_name("huggingface"), gpu="any"
-    )
+    .run_function(download_models, secret=Secret.from_name("huggingface"))
 )
 
 
@@ -81,13 +67,12 @@ auth_scheme = HTTPBearer()
     container_idle_timeout=5 * 60,  # 5 minutes
 )
 class Punctuator:
-    def __enter__(
+    def __init__(
         self,
     ):
-        from rpunct import RestorePuncts
+        from deepmultilingualpunctuation import PunctuationModel
 
-        self.rpunct = RestorePuncts()
-        pass
+        self.model = PunctuationModel(model=MODEL_DIR)
 
     @method()
     def transform(self, input_str: str):
@@ -102,7 +87,7 @@ class Punctuator:
         def punctuate_thread():
             try:
                 output[0] = create_response_text(
-                    self.rpunct.punctuate(input_str)
+                    self.model.restore_punctuation(input_str)
                 )
             except Exception as err:
                 output[0] = create_error_text(err)
