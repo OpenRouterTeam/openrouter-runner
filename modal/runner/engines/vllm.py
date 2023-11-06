@@ -61,25 +61,22 @@ class VllmEngine(BaseEngine):
             trust_remote_code=engine_args.trust_remote_code,
         )
 
-    async def __aenter__(self):
-        self.engine_model_config = await self.engine.get_model_config()
-        self.max_model_len = self.engine_model_config.max_model_len
+    # @method()
+    # async def tokenize_prompt(self, payload: Payload) -> List[int]:
+    #     return self.tokenizer(payload.prompt).input_ids
+
+    # @method()
+    # async def max_model_len(self) -> int:
+    #     engine_model_config = await self.engine.get_model_config()
+    #     return engine_model_config.max_model_len
 
     @method()
-    async def tokenize_prompt(self, payload: Payload) -> List[int]:
-        return self.tokenizer(payload.prompt).input_ids
-
-    @method()
-    async def max_model_len(self) -> int:
-        return self.max_model_len
-
-    @method()
-    async def generate(self, payload: Payload, params, input_ids):
+    async def generate(self, payload: Payload, params):
         try:
             import time
 
             results_generator = self.engine.generate(
-                payload.prompt, params, payload.id, input_ids
+                payload.prompt, params, payload.id
             )
 
             t0 = time.time()
