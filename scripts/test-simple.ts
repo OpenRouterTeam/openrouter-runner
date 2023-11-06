@@ -1,4 +1,4 @@
-import { completion } from 'scripts/shared';
+import { completion, runIfCalledAsScript } from 'scripts/shared';
 
 async function main() {
   const prompt = 'What was Project A119 and what were its objectives?';
@@ -6,7 +6,4 @@ async function main() {
   await completion(prompt);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+runIfCalledAsScript(main, import.meta.url);

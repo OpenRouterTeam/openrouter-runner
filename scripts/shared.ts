@@ -1,3 +1,5 @@
+import { realpathSync } from 'fs';
+import { pathToFileURL } from 'url';
 import { config } from 'dotenv';
 
 const envFile = `.env.${process.argv[2] ?? 'dev'}`;
@@ -43,5 +45,22 @@ export async function completion(
   } else {
     const output = await p.text();
     console.error(output);
+  }
+}
+
+export function isEntryFile(url: string) {
+  const realPath = realpathSync(process.argv[1]!);
+  const realPathURL = pathToFileURL(realPath);
+
+  return url === realPathURL.href;
+}
+
+// Passs down import.meta.url from the caller
+export function runIfCalledAsScript(fn: () => Promise<void>, url: string) {
+  if (isEntryFile(url)) {
+    fn().catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
   }
 }

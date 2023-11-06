@@ -6,9 +6,16 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.13"
 huggingface-hub = "^0.17.1"
 modal = "^0.52.3594"
+transformers = "^4.34.1"
+bitsandbytes = "^0.41.1"
+peft = "^0.5.0"
+accelerate = "^0.23.0"
+datasets = "^2.14.5"
+scipy = "^1.11.3"
+wandb = "^0.15.12"
 
 
 [build-system]

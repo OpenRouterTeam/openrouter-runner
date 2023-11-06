@@ -6,7 +6,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
 
 from runner.shared.sampling_params import SamplingParams
-from runner.shared.protocol import (
+from shared.protocol import (
     create_error_response,
     Payload,
 )

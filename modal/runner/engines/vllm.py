@@ -1,11 +1,10 @@
 from typing import List, Optional
 from modal import method
 
-from runner.shared.protocol import (
-    CompletionResponse,
-    ErrorPayload,
-    ErrorResponse,
+from shared.protocol import (
     Payload,
+    create_sse_data,
+    create_error_text,
 )
 from pydantic import BaseModel
 
@@ -93,10 +92,7 @@ class VllmEngine(BaseEngine):
                     continue
                 token = request_output.outputs[0].text[index:]
                 if payload.stream:
-                    choice = CompletionResponse(text=token).json(
-                        ensure_ascii=False
-                    )
-                    yield f"data: {choice}\n\n"
+                    yield create_sse_data(token)
                 else:
                     output += token
                 index = len(request_output.outputs[0].text)
@@ -104,7 +100,7 @@ class VllmEngine(BaseEngine):
                 tokens = len(request_output.outputs[0].token_ids)
 
             if not payload.stream:
-                yield CompletionResponse(text=output).json(ensure_ascii=False)
+                yield create_sse_data(output)
 
             throughput = tokens / (time.time() - t0)
             print(f"Tokens count: {tokens} tokens")
@@ -113,13 +109,9 @@ class VllmEngine(BaseEngine):
             # yield "[DONE]"
             # print(request_output.outputs[0].text)
         except Exception as err:
-            error_response = ErrorResponse(
-                error=ErrorPayload(
-                    message=f"{err}", type=f"{type(err).__name__}"
-                )
-            ).json(ensure_ascii=False)
-
+            e = create_error_text(err)
+            print(e)
             if payload.stream:
-                yield f"data: {error_response}\n\n"
+                yield create_sse_data(e)
             else:
-                yield error_response
+                yield e
