@@ -4,6 +4,7 @@ from modal import method
 from shared.protocol import (
     Payload,
     create_sse_data,
+    create_response_text,
     create_error_text,
 )
 from pydantic import BaseModel
@@ -100,7 +101,7 @@ class VllmEngine(BaseEngine):
                 tokens = len(request_output.outputs[0].token_ids)
 
             if not payload.stream:
-                yield create_sse_data(output)
+                yield create_response_text(output)
 
             throughput = tokens / (time.time() - t0)
             print(f"Tokens count: {tokens} tokens")
