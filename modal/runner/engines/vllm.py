@@ -41,6 +41,7 @@ class VllmEngine(BaseEngine):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
         from vllm.transformers_utils.tokenizer import get_tokenizer
+
         import ray, torch
 
         # ref: https://github.com/vllm-project/vllm/issues/1116

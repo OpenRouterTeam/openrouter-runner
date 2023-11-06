@@ -9,7 +9,7 @@ from modal import gpu, Image
 from shared.volumes import models_path
 from runner.shared.common import stub
 
-_gpu = gpu.A10G(count=1)
+_gpu = gpu.A10G(count=2)
 
 _vllm_image = (
     Image.from_registry(
