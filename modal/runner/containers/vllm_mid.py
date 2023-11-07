@@ -5,10 +5,12 @@ from runner.engines.vllm import VllmEngine, VllmParams
 # 2. A stub class wrapping an engine
 
 from modal import gpu, Image
+
 from shared.volumes import models_path
 from runner.shared.common import stub
 
-_gpu = gpu.L4(count=1)
+_gpu = gpu.A100(count=1)
+
 _vllm_image = (
     Image.from_registry(
         # "nvcr.io/nvidia/pytorch:23.09-py3"
@@ -17,10 +19,9 @@ _vllm_image = (
     # Use latest torch
     .pip_install(
         "torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118"
-    )
-    # Pinned to 10/16/23
-    .pip_install(
-        "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20"
+    ).pip_install(
+        "vllm==0.2.1.post1",
+        # "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20",
     )
 )
 
@@ -29,10 +30,10 @@ _vllm_image = (
     volumes={str(models_path): stub.models_volume},
     image=_vllm_image,
     gpu=_gpu,
-    allow_concurrent_inputs=8,
+    allow_concurrent_inputs=16,
     container_idle_timeout=10 * 60,  # 5 minutes
 )
-class Vllm7BContainer(VllmEngine):
+class VllmMidContainer(VllmEngine):
     def __init__(
         self,
         model_path: str,
@@ -41,6 +42,5 @@ class Vllm7BContainer(VllmEngine):
             VllmParams(
                 model=model_path,
                 tensor_parallel_size=_gpu.count,
-                gpu_memory_utilization=0.80,
             )
         )

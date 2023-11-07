@@ -23,7 +23,7 @@ class VllmParams(BaseModel):
     dtype: str = "auto"
     seed: int = 0
     max_model_len: Optional[int] = None
-    worker_use_ray: bool = True
+    worker_use_ray: bool = False
     pipeline_parallel_size: int = 1
     tensor_parallel_size: int = 1
     block_size: int = 16
@@ -31,8 +31,10 @@ class VllmParams(BaseModel):
     gpu_memory_utilization: float = 0.95
     max_num_batched_tokens: Optional[int] = None
     max_num_seqs: int = 256
+    # max_paddings: int = 256
     disable_log_stats: bool = False
     revision: Optional[str] = None
+    tokenizer_revision: Optional[str] = None
     quantization: Optional[str] = None
 
 
@@ -40,12 +42,6 @@ class VllmEngine(BaseEngine):
     def __init__(self, params: VllmParams):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
-        from vllm.transformers_utils.tokenizer import get_tokenizer
-        import ray, torch
-
-        # ref: https://github.com/vllm-project/vllm/issues/1116
-        ray.shutdown()
-        ray.init(num_gpus=torch.cuda.device_count())
 
         engine_args = AsyncEngineArgs(
             **params.dict(),
@@ -53,32 +49,23 @@ class VllmEngine(BaseEngine):
         )
 
         self.engine = AsyncLLMEngine.from_engine_args(engine_args)
-        # A separate tokenizer to map token IDs to strings.
-        self.tokenizer = get_tokenizer(
-            engine_args.tokenizer,
-            tokenizer_mode=engine_args.tokenizer_mode,
-            trust_remote_code=engine_args.trust_remote_code,
-        )
 
-    async def __aenter__(self):
-        self.engine_model_config = await self.engine.get_model_config()
-        self.max_model_len = self.engine_model_config.max_model_len
+    # @method()
+    # async def tokenize_prompt(self, payload: Payload) -> List[int]:
+    #     return self.tokenizer(payload.prompt).input_ids
 
-    @method()
-    async def tokenize_prompt(self, payload: Payload) -> List[int]:
-        return self.tokenizer(payload.prompt).input_ids
+    # @method()
+    # async def max_model_len(self) -> int:
+    #     engine_model_config = await self.engine.get_model_config()
+    #     return engine_model_config.max_model_len
 
     @method()
-    async def max_model_len(self) -> int:
-        return self.max_model_len
-
-    @method()
-    async def generate(self, payload: Payload, params, input_ids):
+    async def generate(self, payload: Payload, params):
         try:
             import time
 
             results_generator = self.engine.generate(
-                payload.prompt, params, payload.id, input_ids
+                payload.prompt, params, payload.id
             )
 
             t0 = time.time()

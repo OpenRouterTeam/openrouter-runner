@@ -51,13 +51,13 @@ class LoreanEngine(BaseEngine):
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.max_model_len = 512
 
-    @method()
-    async def tokenize_prompt(self, payload: Payload) -> List[int]:
-        return self.tokenizer.encode(payload.prompt)
+    # @method()
+    # async def tokenize_prompt(self, payload: Payload) -> List[int]:
+    #     return self.tokenizer.encode(payload.prompt)
 
-    @method()
-    async def max_model_len(self) -> int:
-        return self.max_model_len
+    # @method()
+    # async def max_model_len(self) -> int:
+    #     return self.max_model_len
 
     @method()
     async def generate(self, payload: Payload, params, input_ids):
