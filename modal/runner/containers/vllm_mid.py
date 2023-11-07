@@ -9,7 +9,7 @@ from modal import gpu, Image
 from shared.volumes import models_path
 from runner.shared.common import stub
 
-_gpu = gpu.A10G(count=2)
+_gpu = gpu.A100(count=1)
 
 _vllm_image = (
     Image.from_registry(
@@ -19,10 +19,9 @@ _vllm_image = (
     # Use latest torch
     .pip_install(
         "torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118"
-    )
-    # Pinned to 10/16/23
-    .pip_install(
-        "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20"
+    ).pip_install(
+        "vllm==0.2.1.post1",
+        # "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20",
     )
 )
 

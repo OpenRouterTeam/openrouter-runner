@@ -21,7 +21,8 @@ _vllm_image = (
     )
     # Pinned to 10/16/23
     .pip_install(
-        "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20"
+        "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20",
+        "typing-extensions==4.5.0",  # >=4.6 causes typing issues
     )
 )
 
