@@ -3,6 +3,7 @@
 # from .vllm_7b import Vllm7BContainer
 # from .vllm_awq import VllmAWQ
 
+from .vllm_top import VllmTopContainer
 from .vllm_mid import VllmMidContainer
 
 from shared.volumes import get_model_path
@@ -24,15 +25,18 @@ vllm_mid_model_ids = [
 ]
 _vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
 
-# vllm_7b_model_ids = []
-# _vllm_7b_models_lower = _to_lower_list(vllm_7b_model_ids)
 
+vllm_top_model_ids = [
+    "NousResearch/Yarn-Mistral-7b-128k",
+]
+_vllm_top_models_lower = _to_lower_list(vllm_top_model_ids)
 
 # vllm_awq_model_ids = ["TheBloke/Xwin-LM-70B-V0.1-AWQ"]
 # _vllm_awq_models_lower = _to_lower_list(vllm_awq_model_ids)
 
 all_models = [
     *vllm_mid_model_ids,
+    *vllm_top_model_ids,
     # *vllm_7b_model_ids,
     # *vllm_awq_model_ids,
 ]
@@ -46,6 +50,8 @@ def get_container(model: str):
     #     return Lorean7BContainer(str(model_path))
 
     if model_path.exists():
+        if normalized_model_id in _vllm_top_models_lower:
+            return VllmTopContainer(str(model_path))
         if normalized_model_id in _vllm_mid_models_lower:
             return VllmMidContainer(str(model_path))
         # if normalized_model_id in _vllm_7b_models_lower:
