@@ -93,10 +93,11 @@ class VllmEngine(BaseEngine):
                     output,
                     prompt_tokens,
                     completion_tokens,
+                    done=True,
                 )
             else:
                 yield create_sse_data(
-                    "[DONE]",
+                    "",
                     prompt_tokens,
                     completion_tokens,
                 )
