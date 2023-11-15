@@ -34,14 +34,24 @@ class Payload(BaseModel):
 
 class ResponseBody(BaseModel):
     text: str
+    prompt_tokens: int
+    completion_tokens: int
 
 
-def create_response_text(text: str) -> str:
-    return ResponseBody(text=text).json(ensure_ascii=False)
+def create_response_text(
+    text: str, prompt_tokens: int = 0, completion_tokens: int = 0
+) -> str:
+    return ResponseBody(
+        text=text,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+    ).json(ensure_ascii=False)
 
 
-def create_sse_data(text: str) -> str:
-    return f"data: {create_response_text(text)}\n\n"
+def create_sse_data(
+    text: str, prompt_tokens: int = 0, completion_tokens: int = 0
+) -> str:
+    return f"data: {create_response_text(text, prompt_tokens, completion_tokens)}\n\n"
 
 
 class ErrorPayload(BaseModel):
