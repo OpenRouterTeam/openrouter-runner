@@ -100,6 +100,7 @@ class VllmEngine(BaseEngine):
                     "",
                     prompt_tokens,
                     completion_tokens,
+                    done=True,
                 )
 
             throughput = completion_tokens / (time.time() - t0)
