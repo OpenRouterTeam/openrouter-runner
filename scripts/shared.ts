@@ -14,7 +14,8 @@ export async function completion(
   prompt: string,
   params = {
     max_tokens: 16
-  } as Record<string, unknown>
+  } as Record<string, unknown>,
+  stream = false
 ) {
   if (!url || !key) {
     throw new Error('Missing url or key');
@@ -23,7 +24,8 @@ export async function completion(
   const bodyPayload: Record<string, unknown> = {
     id: Math.random().toString(36).substring(7),
     prompt,
-    params
+    params,
+    stream
   };
 
   if (model) {
@@ -39,7 +41,7 @@ export async function completion(
     body: JSON.stringify(bodyPayload)
   });
 
-  if (p.ok) {
+  if (p.ok && !stream) {
     const output = await p.json();
     console.log(output);
   } else {

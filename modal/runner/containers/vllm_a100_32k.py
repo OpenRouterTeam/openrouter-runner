@@ -34,9 +34,10 @@ _vllm_image = (
     image=_vllm_image,
     gpu=_gpu,
     allow_concurrent_inputs=16,
-    container_idle_timeout=10 * 60,  # 5 minutes
+    container_idle_timeout=10 * 60,  # 5 minutes,
+    # keep_warm=True,
 )
-class VllmTopContainer(VllmEngine):
+class Vllm_A100_32K_Container(VllmEngine):
     def __init__(
         self,
         model_path: str,
@@ -47,7 +48,6 @@ class VllmTopContainer(VllmEngine):
                 tensor_parallel_size=_gpu.count,
                 trust_remote_code=True,
                 gpu_memory_utilization=0.95,
-                max_model_len=128_000,
-                max_num_batched_tokens=128_000,
+                max_model_len=32_000,
             )
         )

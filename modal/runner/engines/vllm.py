@@ -69,7 +69,7 @@ class VllmEngine(BaseEngine):
             )
 
             t0 = time.time()
-            index, tokens = 0, 0
+            index, completion_tokens = 0, 0
             output = ""
             async for request_output in results_generator:
                 # Skipping invalid UTF8 tokens:
@@ -85,13 +85,26 @@ class VllmEngine(BaseEngine):
                     output += token
                 index = len(request_output.outputs[0].text)
                 # Token accounting
-                tokens = len(request_output.outputs[0].token_ids)
 
+            prompt_tokens = len(request_output.prompt_token_ids)
+            completion_tokens = len(request_output.outputs[0].token_ids)
             if not payload.stream:
-                yield create_response_text(output)
+                yield create_response_text(
+                    output,
+                    prompt_tokens,
+                    completion_tokens,
+                    done=True,
+                )
+            else:
+                yield create_sse_data(
+                    "",
+                    prompt_tokens,
+                    completion_tokens,
+                    done=True,
+                )
 
-            throughput = tokens / (time.time() - t0)
-            print(f"Tokens count: {tokens} tokens")
+            throughput = completion_tokens / (time.time() - t0)
+            print(f"Tokens count: {completion_tokens} tokens")
             print(f"Request completed: {throughput:.4f} tokens/s")
 
             # yield "[DONE]"
