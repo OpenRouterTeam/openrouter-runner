@@ -42,10 +42,6 @@ class Vllm_A100_32K_Container(VllmEngine):
         self,
         model_path: str,
     ):
-        import ray
-
-        ray.shutdown()
-        ray.init(num_gpus=_gpu.count)
         super().__init__(
             VllmParams(
                 model=model_path,
