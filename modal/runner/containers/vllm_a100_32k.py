@@ -35,7 +35,7 @@ _vllm_image = (
     gpu=_gpu,
     allow_concurrent_inputs=16,
     container_idle_timeout=10 * 60,  # 5 minutes,
-    keep_warm=True,
+    # keep_warm=True,
 )
 class Vllm_A100_32K_Container(VllmEngine):
     def __init__(
