@@ -52,6 +52,5 @@ class Vllm_A100_200K_Container(VllmEngine):
                 trust_remote_code=True,
                 gpu_memory_utilization=0.95,
                 max_model_len=200_000,
-                max_num_batched_tokens=200_000,
             )
         )
