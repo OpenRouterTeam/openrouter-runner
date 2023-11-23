@@ -1,43 +1,16 @@
 # OpenRouter Runner
 
-## First-time Setup
+OpenRouter Runner is a monolith inference engine, used for lots of the OSS models backup host on [openrouter.ai](https://openrouter.ai).
 
-1. [Install Poetry](https://python-poetry.org/docs/#system-requirements)
-2. Setup Poetry:
+## Engines
 
-```sh
-poetry install
-poetry shell
-modal token new
-```
+- vLLM
+- HF Transformers
 
-For intellisense, it's recommended to run vscode via the poetry shell:
+## Contributions
 
-```sh
-poetry shell
-code .
-```
+Interested in contributing? Please read our [contributing guide](./.github/CONTRIBUTING.md) and follow our [code of conduct](./.github/CODE_OF_CONDUCT.md).
 
-3. To run a script:
+## License
 
-```sh
-pnpm i
-pnpm x scripts/${script-name}
-```
-
-## Deploying + Testing
-
-### Modal
-
-```sh
-cd modal
-poetry shell  # SKIP if already in shell
-
-modal deploy vllm_runner/${filename} --env main # For production
-modal deploy vllm_runner/${filename} --env dev # For dev environment
-
-# After deployment is done:
-cd ..
-pnpm x scripts/test-${testname}.ts # For dev environment
-pnpm x scripts/test-${testname}.ts prod # For prod environment
-```
+[MIT](./LICENSE)
