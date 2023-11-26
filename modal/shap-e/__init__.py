@@ -16,27 +16,21 @@ from shared.protocol import (
 
 class Payload(BaseModel):
     prompt: str
-    num_outputs: int
-    num_inference_steps: int
+    num_outputs: int = 1
+    num_inference_steps: int = 32
     extension: Optional[str] = None
-
-
-MODEL_DIR = "/test-model"
-BASE_MODEL = "oliverguhr/fullstop-punctuation-multilang-large"
 
 
 _gpu = gpu.T4(count=1)
 _image = (
-    Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
-    .pip_install(
-        "torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118"
-    )
+    Image.from_registry("nvcr.io/nvidia/pytorch:23.09-py3")
+    .pip_install("torch")
     .pip_install("shap-e @ git+https://github.com/openai/shap-e.git")
 )
 
 
 config = Config(
-    name="shap-2",
+    name="shap-e",
     api_key_id="RUNNER_API_KEY",
 )
 
