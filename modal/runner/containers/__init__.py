@@ -25,6 +25,7 @@ vllm_mid_model_ids = [
     "HuggingFaceH4/zephyr-7b-beta",
     "Intel/neural-chat-7b-v3-1",
     "microsoft/Orca-2-13b",
+    "NeverSleep/Noromaid-20b-v0.1.1",
 ]
 _vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
 
@@ -35,8 +36,7 @@ vllm_a100_128k_model_ids = [
 _vllm_a100_128k_model_lower = _to_lower_list(vllm_a100_128k_model_ids)
 
 vllm_a100_32k_model_ids = [
-    "NousResearch/Nous-Capybara-34B",
-    "NeverSleep/Noromaid-20b-v0.1.1"
+    "NousResearch/Nous-Capybara-34B"
 ]
 _vllm_a100_32k_models_lower = _to_lower_list(vllm_a100_32k_model_ids)
 
