@@ -6,6 +6,7 @@
 from .vllm_a100_128k import Vllm_A100_128K_Container
 from .vllm_a100_32k import Vllm_A100_32K_Container
 from .vllm_mid import VllmMidContainer
+from .vllm_top import VllmTopContainer
 
 from shared.volumes import get_model_path
 from typing import List
@@ -25,10 +26,13 @@ vllm_mid_model_ids = [
     "HuggingFaceH4/zephyr-7b-beta",
     "Intel/neural-chat-7b-v3-1",
     "microsoft/Orca-2-13b",
-    "NeverSleep/Noromaid-20b-v0.1.1",
 ]
 _vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
 
+vllm_top_model_ids = [
+    "NeverSleep/Noromaid-20b-v0.1.1",
+]
+_vllm_top_model_lower = _to_lower_list(vllm_top_model_ids)
 
 vllm_a100_128k_model_ids = [
     "NousResearch/Yarn-Mistral-7b-128k",
@@ -46,9 +50,9 @@ _vllm_a100_32k_models_lower = _to_lower_list(vllm_a100_32k_model_ids)
 
 all_models = [
     *vllm_mid_model_ids,
+    *vllm_top_model_ids,
     *vllm_a100_32k_model_ids,
     *vllm_a100_128k_model_ids,
-    # *vllm_7b_model_ids,
     # *vllm_awq_model_ids,
 ]
 
@@ -69,6 +73,9 @@ def get_container(model: str):
 
         if normalized_model_id in _vllm_mid_models_lower:
             return VllmMidContainer(str(model_path))
+
+        if normalized_model_id in _vllm_top_model_lower:
+            return VllmTopContainer(str(model_path))
 
         # if normalized_model_id in _vllm_7b_models_lower:
         #     return Vllm7BContainer(str(model_path))

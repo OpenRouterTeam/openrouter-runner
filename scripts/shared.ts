@@ -16,7 +16,7 @@ export async function completion(
     model = defaultModel,
     max_tokens = 16,
     stream = false,
-    stop = ["</s>"]
+    stop = ['</s>']
   } = {}
 ) {
   if (!url || !key) {
@@ -45,7 +45,7 @@ export async function completion(
     console.log(output);
   } else {
     const output = await p.text();
-    console.error(output);
+    console.log(output);
   }
 }
 
@@ -57,10 +57,13 @@ export function isEntryFile(url: string) {
 }
 
 // Passs down import.meta.url from the caller
-export function runIfCalledAsScript(fn: (...args: string[]) => Promise<void>, url: string) {
+export function runIfCalledAsScript(
+  fn: (...args: string[]) => Promise<void>,
+  url: string
+) {
   if (isEntryFile(url)) {
     // Call fn with the arguments passed in from the command line
-    fn( ...process.argv.slice(2) ).catch((error) => {
+    fn(...process.argv.slice(2)).catch((error) => {
       console.error(error);
       process.exit(1);
     });
