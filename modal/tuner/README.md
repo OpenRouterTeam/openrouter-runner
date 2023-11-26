@@ -30,4 +30,4 @@
 
 ## Deploying
 
-Run: `modal deploy lora`
+Run: `modal deploy tuner`
