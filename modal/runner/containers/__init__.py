@@ -23,6 +23,7 @@ vllm_mid_model_ids = [
     "NousResearch/Nous-Hermes-Llama2-13b",
     "mistralai/Mistral-7B-Instruct-v0.1",
     "HuggingFaceH4/zephyr-7b-beta",
+    "microsoft/Orca-2-13b",
 ]
 _vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
 
