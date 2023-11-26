@@ -36,7 +36,7 @@ vllm_a100_128k_model_ids = [
 _vllm_a100_128k_model_lower = _to_lower_list(vllm_a100_128k_model_ids)
 
 vllm_a100_32k_model_ids = [
-    "NousResearch/Nous-Capybara-34B"
+    "NousResearch/Nous-Capybara-34B",
 ]
 _vllm_a100_32k_models_lower = _to_lower_list(vllm_a100_32k_model_ids)
 
