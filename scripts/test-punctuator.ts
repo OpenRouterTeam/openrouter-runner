@@ -2,7 +2,7 @@ import { getWordsFromFile } from 'scripts/get-words';
 import { runIfCalledAsScript } from 'scripts/shared';
 
 const url = process.env.PUNC_API_URL;
-const key = process.env.API_KEY;
+const key = process.env.RUNNER_API_KEY;
 
 async function main() {
   if (!url || !key) {

@@ -6,7 +6,7 @@
 2.  Create a modal secret group
     `RUNNER_API_KEY = <generate a random key>`
     with name "ext-api-key"
-3.  Make sure `pwd` is `/modal`
+3.  Make sure your current directory, `pwd`, is `/modal`
 4.  `modal config set-environment dev # or main`
 
 ## Adding new container
@@ -27,6 +27,19 @@
 - For stub config, see: [](./shared/common.py)
 - For containers config, see: [](./containers/__init__.py)
 - For endpoint configs, see: [](./__init__.py)
+
+## Testing a model
+
+1. `cd ..`
+2. Load your environment, e.g. `source .env.dev`
+3. Run: `pnpm x scripts/test-simple.ts YourModel/Identifier`
+
+Other tests are available in `scripts`:
+
+```shell
+pnpm x scripts/test-${testname}.ts Gryphe/MythoMax-L2-13b # For dev environment
+pnpm x scripts/test-${testname}.ts Gryphe/MythoMax-L2-13b prod # For prod environment
+```
 
 ## Deploying
 
