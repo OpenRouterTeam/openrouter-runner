@@ -9,7 +9,7 @@ from modal import gpu, Image
 from shared.volumes import models_path
 from runner.shared.common import stub
 
-_gpu = gpu.A100(count=1)
+_gpu = gpu.A100(count=1, memory=80)
 
 _vllm_image = (
     Image.from_registry(
@@ -36,7 +36,7 @@ _vllm_image = (
     allow_concurrent_inputs=16,
     container_idle_timeout=10 * 60,  # 5 minutes
 )
-class VllmMidContainer(VllmEngine):
+class VllmTopContainer(VllmEngine):
     def __init__(
         self,
         model_path: str,

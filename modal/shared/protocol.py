@@ -13,7 +13,7 @@ class Params(BaseModel):
     frequency_penalty: float = 0.0
     ignore_eos: bool = False
     logprobs: Optional[int] = None
-    max_tokens: Optional[int] = 16
+    max_tokens: Optional[int] = 42
     n: int = 1
     presence_penalty: float = 0.0
     stop: Union[None, str, List[str]] = None
