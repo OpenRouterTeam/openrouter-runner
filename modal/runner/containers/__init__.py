@@ -26,6 +26,7 @@ vllm_mid_model_ids = [
     "HuggingFaceH4/zephyr-7b-beta",
     "Intel/neural-chat-7b-v3-1",
     "microsoft/Orca-2-13b",
+    "Undi95/Toppy-M-7B",
 ]
 _vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
 
