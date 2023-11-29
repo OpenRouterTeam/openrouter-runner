@@ -7,7 +7,7 @@ async function main() {
   });
 
   await completion(prompt, {
-    max_tokens: 42
+    max_tokens: 5000
   });
 }
 
