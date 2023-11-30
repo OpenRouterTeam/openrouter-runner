@@ -8,7 +8,7 @@ from runner.endpoints.completion import completion
 stub.function(
     secret=Secret.from_name("ext-api-key"),
     timeout=60 * 15,
-    allow_concurrent_inputs=12,
+    allow_concurrent_inputs=100,
     volumes={str(models_path): stub.models_volume},
 )(web_endpoint(method="POST")(completion))
 
