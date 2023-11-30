@@ -32,7 +32,8 @@ _vllm_image = (
     image=_vllm_image,
     gpu=_gpu,
     allow_concurrent_inputs=16,
-    container_idle_timeout=10 * 60,  # 5 minutes
+    container_idle_timeout=20 * 60,
+    timeout=10 * 60,
 )
 class VllmAWQ(VllmEngine):
     def __init__(
