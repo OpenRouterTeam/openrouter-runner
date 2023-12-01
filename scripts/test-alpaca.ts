@@ -9,14 +9,11 @@ What was Project A119 and what were its objectives?
 ### Response:
 `;
 
-  await completion(
-    prompt,
-    {
-      max_tokens: 1024,
-      stop: ['###'],
-      stream: true
-    },
-  );
+  await completion(prompt, {
+    max_tokens: 1024,
+    stop: ['###'],
+    stream: true
+  });
 }
 
 runIfCalledAsScript(main, import.meta.url);

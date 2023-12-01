@@ -33,8 +33,9 @@ _vllm_image = (
     volumes={str(models_path): stub.models_volume},
     image=_vllm_image,
     gpu=_gpu,
-    allow_concurrent_inputs=16,
-    container_idle_timeout=10 * 60,  # 5 minutes,
+    allow_concurrent_inputs=8,
+    container_idle_timeout=20 * 60,
+    timeout=10 * 60,
 )
 class Vllm_A100_200K_Container(VllmEngine):
     def __init__(
