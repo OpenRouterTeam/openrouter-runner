@@ -9,6 +9,8 @@ config = Config(
     api_key_id="RUNNER_API_KEY",
 )
 
+BACKLOG_THRESHOLD = 5
+
 stub = Stub(config.name)
 
 stub.models_volume = models_volume

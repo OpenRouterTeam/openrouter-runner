@@ -11,9 +11,8 @@ from shared.protocol import (
     Payload,
 )
 
-from runner.shared.common import config
+from runner.shared.common import config, BACKLOG_THRESHOLD
 from runner.containers import get_container
-
 
 auth_scheme = HTTPBearer()
 
@@ -31,6 +30,13 @@ def completion(
 
     try:
         runner = get_container(payload.model)
+        stats = runner.generate.get_current_stats()
+        print(stats)
+        if stats.backlog > BACKLOG_THRESHOLD:
+            return create_error_response(
+                status.HTTP_503_SERVICE_UNAVAILABLE,
+                f"Backlog is too high: {stats.backlog}",
+            )
     except ValueError as e:
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
