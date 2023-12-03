@@ -7,6 +7,7 @@ from .vllm_a100_128k import Vllm_A100_128K_Container
 from .vllm_a100_32k import Vllm_A100_32K_Container
 from .vllm_mid import VllmMidContainer
 from .vllm_top import VllmTopContainer
+from .hermes_llava import HermesLlavaContainer
 
 from shared.volumes import get_model_path
 from typing import List
@@ -46,6 +47,10 @@ vllm_a100_32k_model_ids = [
 ]
 _vllm_a100_32k_models_lower = _to_lower_list(vllm_a100_32k_model_ids)
 
+hermes_llava_model_ids = [
+    "NousResearch/Nous-Hermes-2-Vision",
+]
+_hermes_llava_models_lower = _to_lower_list(hermes_llava_model_ids)
 
 # vllm_awq_model_ids = ["TheBloke/Xwin-LM-70B-V0.1-AWQ"]
 # _vllm_awq_models_lower = _to_lower_list(vllm_awq_model_ids)
@@ -55,6 +60,7 @@ all_models = [
     *vllm_top_model_ids,
     *vllm_a100_32k_model_ids,
     *vllm_a100_128k_model_ids,
+    *hermes_llava_model_ids
     # *vllm_awq_model_ids,
 ]
 
@@ -67,6 +73,9 @@ def get_container(model: str):
     #     return Lorean7BContainer(str(model_path))
 
     if model_path.exists():
+        if normalized_model_id in _hermes_llava_models_lower:
+            return HermesLlavaContainer(str(model_path))
+
         if normalized_model_id in _vllm_a100_32k_models_lower:
             return Vllm_A100_32K_Container(str(model_path))
 
