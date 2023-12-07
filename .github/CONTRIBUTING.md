@@ -68,32 +68,8 @@ Else:
 2. Adapt the class name, image, machine type, engine, etc...
 3. Add the container to the [containers init](../modal/runner/containers/__init__.py)
 
-### Setup Modal Secrets and Environment
-
-1.  Create a modal secret group
-    `HUGGINGFACE_TOKEN = <your huggingface token>`
-    with name "huggingface"
-2.  Create a modal secret group
-    `RUNNER_API_KEY = <generate a random key>`
-    with name "ext-api-key"
-3.  Make sure `pwd` is `/modal`
-4.  `modal config set-environment dev # or main`
-
 ## Deploying + Testing
 
-### Modal
-
-Pre-requisites: [Setup Modal Secrets and Environment](#setup-modal-secrets-and-environment)
-
-```sh
-cd modal
-poetry shell  # SKIP if already in shell
-
-modal deploy vllm_runner/${filename} --env main # For production
-modal deploy vllm_runner/${filename} --env dev # For dev environment
-
-# After deployment is done:
-cd ..
-pnpm x scripts/test-${testname}.ts # For dev environment
-pnpm x scripts/test-${testname}.ts prod # For prod environment
-```
+Follow the steps in the [Runner README](../modal/runner/README.md). Make sure you test
+on your own Modal account before submitting a PR. New Modal accounts should receive $30
+in free credits for development.

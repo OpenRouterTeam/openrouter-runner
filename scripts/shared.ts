@@ -2,20 +2,22 @@ import { realpathSync } from 'fs';
 import { pathToFileURL } from 'url';
 import { config } from 'dotenv';
 
-const envFile = `.env.${process.argv[2] ?? 'dev'}`;
+const envFile = `.env.dev`;
 
 config({ path: envFile });
 
 const url = process.env.API_URL;
-const key = process.env.API_KEY;
-const model = process.env.MODEL;
+const key = process.env.RUNNER_API_KEY;
+const defaultModel = process.env.MODEL;
 
 export async function completion(
   prompt: string,
-  params = {
-    max_tokens: 16
-  } as Record<string, unknown>,
-  stream = false
+  {
+    model = defaultModel,
+    max_tokens = 16,
+    stream = false,
+    stop = ['</s>']
+  } = {}
 ) {
   if (!url || !key) {
     throw new Error('Missing url or key');
@@ -24,13 +26,10 @@ export async function completion(
   const bodyPayload: Record<string, unknown> = {
     id: Math.random().toString(36).substring(7),
     prompt,
-    params,
+    model,
+    params: { max_tokens, stop },
     stream
   };
-
-  if (model) {
-    bodyPayload.model = model;
-  }
 
   const p = await fetch(url, {
     method: 'POST',
@@ -46,7 +45,7 @@ export async function completion(
     console.log(output);
   } else {
     const output = await p.text();
-    console.error(output);
+    console.log(output);
   }
 }
 
@@ -58,9 +57,13 @@ export function isEntryFile(url: string) {
 }
 
 // Passs down import.meta.url from the caller
-export function runIfCalledAsScript(fn: () => Promise<void>, url: string) {
+export function runIfCalledAsScript(
+  fn: (...args: string[]) => Promise<void>,
+  url: string
+) {
   if (isEntryFile(url)) {
-    fn().catch((error) => {
+    // Call fn with the arguments passed in from the command line
+    fn(...process.argv.slice(2)).catch((error) => {
       console.error(error);
       process.exit(1);
     });

@@ -33,7 +33,8 @@ _image = Image.from_registry(
     image=_image,
     gpu=_gpu,
     allow_concurrent_inputs=8,
-    container_idle_timeout=10 * 60,  # 5 minutes
+    container_idle_timeout=20 * 60,
+    timeout=10 * 60,
 )
 class Lorean7BContainer(LoreanEngine):
     def __init__(

@@ -2,7 +2,7 @@ import { runIfCalledAsScript } from 'scripts/shared';
 
 const listUrl = process.env.LIST_LORA_API_URL;
 const createUrl = process.env.CREATE_LORA_API_URL;
-const key = process.env.API_KEY;
+const key = process.env.RUNNER_API_KEY;
 
 async function listLora() {
   if (!listUrl || !key) {

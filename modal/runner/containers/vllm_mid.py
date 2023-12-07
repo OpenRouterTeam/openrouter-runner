@@ -13,16 +13,19 @@ _gpu = gpu.A100(count=1)
 
 _vllm_image = (
     Image.from_registry(
-        # "nvcr.io/nvidia/pytorch:23.09-py3"
-        "nvcr.io/nvidia/pytorch:22.12-py3"
+        "nvcr.io/nvidia/pytorch:23.09-py3"
+        # "nvcr.io/nvidia/pytorch:22.12-py3"
     )
     # Use latest torch
     .pip_install(
-        "torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118"
-    ).pip_install(
-        "vllm==0.2.1.post1",
-        # "vllm @ git+https://github.com/vllm-project/vllm.git@651c614aa43e497a2e2aab473493ba295201ab20",
+        "torch",
+        "torchvision",
+        "torchaudio",
     )
+    .pip_install(
+        "transformers @ git+https://github.com/huggingface/transformers@main"
+    )
+    .pip_install("vllm @ git+https://github.com/vllm-project/vllm.git@main")
 )
 
 
@@ -30,8 +33,9 @@ _vllm_image = (
     volumes={str(models_path): stub.models_volume},
     image=_vllm_image,
     gpu=_gpu,
-    allow_concurrent_inputs=16,
-    container_idle_timeout=10 * 60,  # 5 minutes
+    allow_concurrent_inputs=8,
+    container_idle_timeout=20 * 60,
+    timeout=10 * 60,
 )
 class VllmMidContainer(VllmEngine):
     def __init__(

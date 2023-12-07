@@ -9,7 +9,7 @@ from modal import gpu, Image
 from shared.volumes import models_path
 from runner.shared.common import stub
 
-_gpu = gpu.A100(count=2, memory=80)
+_gpu = gpu.A100(count=1, memory=80)
 
 _vllm_image = (
     Image.from_registry(
@@ -37,21 +37,14 @@ _vllm_image = (
     container_idle_timeout=20 * 60,
     timeout=10 * 60,
 )
-class Vllm_A100_200K_Container(VllmEngine):
+class VllmTopContainer(VllmEngine):
     def __init__(
         self,
         model_path: str,
     ):
-        import ray
-
-        ray.shutdown()
-        ray.init(num_gpus=_gpu.count)
         super().__init__(
             VllmParams(
                 model=model_path,
                 tensor_parallel_size=_gpu.count,
-                trust_remote_code=True,
-                gpu_memory_utilization=0.95,
-                max_model_len=200_000,
             )
         )
