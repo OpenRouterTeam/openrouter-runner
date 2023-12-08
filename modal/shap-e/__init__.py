@@ -40,7 +40,11 @@ _gpu = gpu.T4(count=1)
 _image = (
     Image.from_registry("nvcr.io/nvidia/pytorch:23.09-py3")
     .pip_install("torch")
+    .pip_install("torchvision")
     .pip_install("ipywidgets")
+    .pip_install(
+        "pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@stable"
+    )
     .pip_install("shap-e @ git+https://github.com/openai/shap-e.git")
     .run_function(download_models, gpu=_gpu)
 )
@@ -128,7 +132,9 @@ class Model:
                     data_uri = f"data:application/x-ply;base64,{base64_data}"
                     outputs.append(data_uri)
 
-                output[0] = ResponseBody(outputs).json(ensure_ascii=False)
+                output[0] = ResponseBody(outputs=outputs).json(
+                    ensure_ascii=False
+                )
 
             except Exception as err:
                 output[0] = create_error_text(err)
