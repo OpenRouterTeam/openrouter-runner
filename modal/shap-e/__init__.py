@@ -42,9 +42,10 @@ _image = (
     .pip_install("torch")
     .pip_install("torchvision")
     .pip_install("ipywidgets")
-    .pip_install(
-        "pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@stable"
-    )
+    # .pip_install(
+    #     "pytorch3d @ git+https://github.com/facebookresearch/pytorch3d.git@stable",
+    #     gpu=_gpu,
+    # )
     .pip_install("shap-e @ git+https://github.com/openai/shap-e.git")
     .run_function(download_models, gpu=_gpu)
 )
