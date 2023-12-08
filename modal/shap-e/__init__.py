@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 from shared.config import Config
 from shared.protocol import (
@@ -21,11 +21,28 @@ class Payload(BaseModel):
     extension: Optional[str] = None
 
 
+class ResponseBody(BaseModel):
+    outputs: List[str]
+
+
+def download_models():
+    import torch
+    from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
+    from shap_e.models.download import load_model, load_config
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    load_model("transmitter", device=device)
+    load_model("text300M", device=device)
+    diffusion_from_config(load_config("diffusion"))
+
+
 _gpu = gpu.T4(count=1)
 _image = (
     Image.from_registry("nvcr.io/nvidia/pytorch:23.09-py3")
     .pip_install("torch")
+    .pip_install("ipywidgets")
     .pip_install("shap-e @ git+https://github.com/openai/shap-e.git")
+    .run_function(download_models, gpu=_gpu)
 )
 
 
@@ -62,9 +79,6 @@ class Model:
     def generate(self, payload: Payload):
         import threading
         import time
-        import os
-        import base64
-        import uuid
 
         output = [
             None
@@ -74,6 +88,8 @@ class Model:
         def make_object():
             from shap_e.diffusion.sample import sample_latents
             from shap_e.util.notebooks import decode_latent_mesh
+            import io
+            import base64
 
             try:
                 prompt = payload.prompt
@@ -95,21 +111,25 @@ class Model:
                     sigma_max=160,
                     s_churn=0,
                 )
-                data = []
+                outputs = []
+
                 for i, latent in enumerate(latents):
                     t = decode_latent_mesh(self.xm, latent).tri_mesh()
-                    file_id = str(uuid.uuid4())
-                    filename = f"{file_id}.ply"
-                    with open(filename, "wb") as f:
-                        t.write_ply(f)
-                    with open(filename, "rb") as f:
-                        base64_data = base64.b64encode(f.read()).decode("utf-8")
-                        data_uri = (
-                            f"data:application/x-ply;base64,{base64_data}"
-                        )
-                        output[0] = data_uri
-                    os.remove(filename)
-                return data
+                    buffer = io.BytesIO()
+
+                    t.write_ply(buffer)
+
+                    buffer.seek(0)
+
+                    # Encode the buffer content to base64
+                    base64_data = base64.b64encode(buffer.read()).decode(
+                        "utf-8"
+                    )
+                    data_uri = f"data:application/x-ply;base64,{base64_data}"
+                    outputs.append(data_uri)
+
+                output[0] = ResponseBody(outputs).json(ensure_ascii=False)
+
             except Exception as err:
                 output[0] = create_error_text(err)
             finally:
