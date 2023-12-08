@@ -28,6 +28,7 @@ vllm_mid_model_ids = [
     "microsoft/Orca-2-13b",
     "Undi95/Toppy-M-7B",
     "jebcarter/Psyfighter-13B",
+    "KoboldAI/LLaMA2-13B-Psyfighter2",
 ]
 _vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
 
