@@ -21,8 +21,12 @@ class Payload(BaseModel):
     extension: Optional[str] = None
 
 
+class Generation(BaseModel):
+    uri: Optional[str] = None
+    url: Optional[str] = None
+
 class ResponseBody(BaseModel):
-    outputs: List[str]
+    outputs: List[Generation]
 
 
 def download_models():
@@ -130,8 +134,7 @@ class Model:
                     base64_data = base64.b64encode(buffer.read()).decode(
                         "utf-8"
                     )
-                    data_uri = f"data:application/x-ply;base64,{base64_data}"
-                    outputs.append(data_uri)
+                    outputs.append(Generation(uri=f"data:application/x-ply;base64,{base64_data}"))
 
                 output[0] = ResponseBody(outputs=outputs).json(
                     ensure_ascii=False
