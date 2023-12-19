@@ -6,9 +6,9 @@ authors = ["OpenRouter <support@openrouter.ai>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.10,<3.12"
 huggingface-hub = "^0.17.1"
-modal = "^0.55.4036"
+modal = "^0.56.4225"
 transformers = "^4.34.1"
 bitsandbytes = "^0.41.1"
 peft = "^0.5.0"
