@@ -13,7 +13,7 @@ downloader_image = (
 
 
 def download_models(all_models: List[str]):
-    from huggingface_hub import snapshot_download
+    from huggingface_hub import snapshot_download, list_repo_files
     from os import environ as env
 
     cache_path = get_model_path("__cache__")
@@ -22,6 +22,21 @@ def download_models(all_models: List[str]):
         model_path.mkdir(parents=True, exist_ok=True)
 
         try:
+            # only download safetensors if available
+            has_safetensors = any(
+                fn.lower().endswith(".safetensors")
+                for fn in list_repo_files(
+                    model_name, 
+                    repo_type="model",
+                    token=env["HUGGINGFACE_TOKEN"],
+                )
+            )
+            patterns = ["tokenizer.model", "*.json"]
+            if has_safetensors:
+                patterns.append("*.safetensors")
+            else:
+                patterns.append("*.bin")
+
             snapshot_download(
                 model_name,
                 local_dir=model_path,
