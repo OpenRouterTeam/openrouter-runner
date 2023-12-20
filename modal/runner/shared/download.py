@@ -25,7 +25,11 @@ def download_models(all_models: List[str]):
             # only download safetensors if available
             has_safetensors = any(
                 fn.lower().endswith(".safetensors")
-                for fn in list_repo_files(model_name, repo_type="model")
+                for fn in list_repo_files(
+                    model_name, 
+                    repo_type="model",
+                    token=env["HUGGINGFACE_TOKEN"],
+                )
             )
             patterns = ["tokenizer.model", "*.json"]
             if has_safetensors:
