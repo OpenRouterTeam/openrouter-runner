@@ -60,3 +60,6 @@ VllmContainerA100_40G = _make_container("VllmContainerA100_40G", num_gpus=1, con
 VllmContainerA100_80G = _make_container(
     "VllmContainerA100_80G", num_gpus=1, memory=80
 )
+VllmContainerA100_160G = _make_container(
+    "VllmContainerA100_160G", num_gpus=2, memory=80
+)
