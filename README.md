@@ -78,7 +78,7 @@ Before diving into OpenRouter Runner, ensure you have the following set up and r
 1. Fork this repository
 2. In your code editor of choice go to the modal folder
     `cd modal`
-3. Follow the instructions in the [Runner ReadMe](./modal/runner/README.md) to get started developing.
+3. Follow the detailed instructions in the [Runner ReadMe](./modal/runner/README.md) to get started developing.
 
 ## Contributions
 
