@@ -2,8 +2,7 @@
 
 OpenRouter Runner is a monolith inference engine, built with [Modal](https://modal.com/). It serves as a robust solution for the deployment of tons of open source models that are hosted in a fallback capacity on [openrouter.ai](https://openrouter.ai).
 
-> [!NOTE]
-> ✨ If you can make the runner run faster and cheaper, we'll route to your services!
+> ✨ If you can make the Runner run faster and cheaper, we'll route to your services!
 
 ## Runner Structure
 
