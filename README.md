@@ -29,7 +29,7 @@ The types of AI models that are available to be used in the Runner are dictated 
 
 - **Cloud-Native Deployment**: Simplified deployment process, making it accessible through a command or web interface.
 
-For deployment instructions and engine integration on Modal, visit our [deployment guide](link-to-deployment-guide).
+For deployment instructions and engine integration on Modal, visit our [deployment guide](./modal/runner/README.md).
 
 
 ### Engines
