@@ -102,7 +102,7 @@ Adding new models to OpenRouter Runner is straightforward, especially when using
     ```shell
     modal run runner::download
     ```
-This step does not deploy your app but ensures all necessary models are downloaded and ready for when you do deploy. After running this command, you can check the specified storage location or logs to confirm that the models have been successfully downloaded. Note that depending on the size and number of models, this process can take some time.
+    This step does not deploy your app but ensures all necessary models are downloaded and ready for when you do deploy. After running this command, you can check the specified storage location or logs to confirm that the models have been successfully downloaded. Note that depending on the size and number of models, this process can take some time.
 
 5. **Start testing the Models**: Now you can go to the [Configuration and Testing](#configuration-and-testing) section to start testing your models!
 
@@ -141,7 +141,7 @@ Sometimes the model you want to deploy requires an environment or configurations
     ```shell
     modal run runner::download
     ```
-This step does not deploy your app but ensures all necessary models are downloaded and ready for when you do deploy. After running this command, you can check the specified storage location or logs to confirm that the models have been successfully downloaded. Note that depending on the size and number of models, this process can take some time.
+    This step does not deploy your app but ensures all necessary models are downloaded and ready for when you do deploy. After running this command, you can check the specified storage location or logs to confirm that the models have been successfully downloaded. Note that depending on the size and number of models, this process can take some time.
 
 
 7. **Start Testing**: With your new container deployed, proceed to the [Configuration and Testing](#configuration-and-testing) section to begin testing your model!
