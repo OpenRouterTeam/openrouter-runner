@@ -40,7 +40,7 @@ For deployment instructions and engine integration on Modal, visit our [deployme
 
 - **HF Transformers**: Built on the widely-used Hugging Face Transformers library, these engines provide a seamless experience for deploying transformer-based models, which are essential for a wide range of NLP tasks from text classification to question answering.
 
-- **Custom Engines**: OpenRouter Runner is engineered to be extensible, allowing developers to integrate their own custom-built engines. Whether you have a specialized use case or require unique processing capabilities, our system is designed to accommodate your needs.
+- **Custom Engines**: OpenRouter Runner is engineered to be extensible, allowing developers to integrate other engines for other models that they would to see in the router. Whether you have a specialized use case or require unique processing capabilities, our system is designed to accommodate your needs.
 
 For instructions on how to deploy an additional engine to the Runner, check out our [contributing guide](./.github/CONTRIBUTING.md).
 
