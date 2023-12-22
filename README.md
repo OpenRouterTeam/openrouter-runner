@@ -1,6 +1,6 @@
 # OpenRouter Runner
 
-OpenRouter Runner is a monolith inference engine, built with [Modal](https://modal.com/) a platform for deploying scalable apps. It serves as a robust solution for lots of the open source models hosted in a fallback capacity on [openrouter.ai](https://openrouter.ai).
+OpenRouter Runner is a monolith inference engine, built with [Modal](https://modal.com/). It serves as a robust solution for lots of the open source models hosted in a fallback capacity on [openrouter.ai](https://openrouter.ai).
 
 ## Runner Structure
 
@@ -55,7 +55,23 @@ As we continue to develop and expand the OpenRouter Runner, new endpoints will b
 
 If you're interested in building on top of the OpenRouter Runner follow the instructions below to get started.
 
-1. Fork the OpenRouter Runner Repository
+### Pre-Requisites
+
+Before diving into OpenRouter Runner, ensure you have the following set up and ready:
+
+- **Modal Account**: Sign up at [Modal](https://modal.com/) to deploy and manage containers. Understanding how Modal works will greatly help in deploying and scaling your models.
+  
+- **Hugging Face Account**: For access to a vast repository of pre-trained models and libraries. Get an account at [Hugging Face](https://huggingface.co/).
+  
+- **Python Knowledge**: Familiarity with Python as it's the primary language used for interacting with the inference engines and the Modal API.
+  
+- **Understanding of Containers**: Knowledge of containerization technology (like Docker) and how containers work is crucial, especially for customizing environments.
+  
+- **Familiarity with AI and ML Concepts**: An understanding of basic AI and machine learning concepts, particularly around model inference, will be very beneficial.
+
+### Start Building
+
+1. Fork this repository (OpenRouter-Runner)
 2. In your code editor of choice go to the modal folder
     `cd modal`
 3. Follow the instructions in the [Runner ReadMe](./modal/runner/README.md) to get started developing.
