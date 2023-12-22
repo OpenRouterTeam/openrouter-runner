@@ -98,7 +98,7 @@ Adding new models to OpenRouter Runner is straightforward, especially when using
 
 3. **Handle Access Permissions**: If you plan to deploy a model like `"meta-llama/Llama-2-13b-chat-hf"` which is included in the codebase, and you don't yet have access, visit [here](https://huggingface.co/meta-llama/Llama-2-13b-chat-hf) for instructions on how to request access. Temporarily, you can comment out this model in the list to proceed with deployment.
 
-4. **Deploy the Model**: Run the following command to download the models and deploy the containerized app to Modal:
+4. **Deploy the Container**: Run the following command to download the models and deploy the containerized app to Modal:
     ```shell
     modal run runner::download
     ```
