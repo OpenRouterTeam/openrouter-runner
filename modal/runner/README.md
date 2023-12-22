@@ -98,11 +98,11 @@ Adding new models to OpenRouter Runner is straightforward, especially when using
 
 3. **Handle Access Permissions**: If you plan to deploy a model like `"meta-llama/Llama-2-13b-chat-hf"` which is included in the codebase, and you don't yet have access, visit [here](https://huggingface.co/meta-llama/Llama-2-13b-chat-hf) for instructions on how to request access. Temporarily, you can comment out this model in the list to proceed with deployment.
 
-4. **Deploy the Container**: Run the following command to download the models and deploy the containerized app to Modal:
+4. **Download and Prepare Models**: Use the CLI to execute the `runner::download` function within your application. This command is designed to download and prepare the required models for your containerized app.
     ```shell
     modal run runner::download
     ```
-    This command pulls the specified models and packages them into your configured containers for deployment. Now if you go to your dashboard on [Modal](https://modal.com/) you'll be able to see that your app is running and downloaded and the models. As a heads up it might take a few minutes to download all the models. 
+This step does not deploy your app but ensures all necessary models are downloaded and ready for when you do deploy. After running this command, you can check the specified storage location or logs to confirm that the models have been successfully downloaded. Note that depending on the size and number of models, this process can take some time.
 
 5. **Start testing the Models**: Now you can go to the [Configuration and Testing](#configuration-and-testing) section to start testing your models!
 
@@ -137,11 +137,12 @@ Sometimes the model you want to deploy requires an environment or configurations
     ]
     ```
 
-6. **Deploy the Container**: Use the Modal CLI to deploy your new container. This will download the required models and deploy your containerized app to Modal.
+6. **Download and Prepare Models**: Use the CLI to execute the `runner::download` function within your application. This command is designed to download and prepare the required models for your containerized app.
     ```shell
     modal run runner::download
     ```
-    After running this command, check your Modal dashboard to confirm that your app is running and the models are downloaded. Be patient; downloading all the models can take some time.
+This step does not deploy your app but ensures all necessary models are downloaded and ready for when you do deploy. After running this command, you can check the specified storage location or logs to confirm that the models have been successfully downloaded. Note that depending on the size and number of models, this process can take some time.
+
 
 7. **Start Testing**: With your new container deployed, proceed to the [Configuration and Testing](#configuration-and-testing) section to begin testing your model!
 
