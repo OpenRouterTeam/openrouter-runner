@@ -1,8 +1,10 @@
 # OpenRouter Runner
 
-OpenRouter Runner is a monolith inference engine, built with [Modal](https://modal.com/). It serves as a robust solution for lots of the open source models hosted in a fallback capacity on [openrouter.ai](https://openrouter.ai).
+OpenRouter Runner is a monolith inference engine, built with [Modal](https://modal.com/). It serves as a robust solution for the deployment of tons of open source models that are hosted in a fallback capacity on [openrouter.ai](https://openrouter.ai).
 
 ## Runner Structure
+
+![OpenRouter Runner Structure](https://i.imgur.com/taN5BbH.png)
 
 The OpenRouter Runner consists of three main components that can be scaled out and customized.
 - **Containers** 
@@ -71,7 +73,7 @@ Before diving into OpenRouter Runner, ensure you have the following set up and r
 
 ### Start Building
 
-1. Fork this repository (OpenRouter-Runner)
+1. Fork this repository
 2. In your code editor of choice go to the modal folder
     `cd modal`
 3. Follow the instructions in the [Runner ReadMe](./modal/runner/README.md) to get started developing.
