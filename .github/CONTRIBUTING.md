@@ -216,6 +216,5 @@ To deploy your OpenRouter Runner to Modal and monitor its performance, please se
 
 ## Contributions
 
-Your contributions are invaluable to us. Please adhere to our [contributing guide](./CONTRIBUTING.md) and [code of conduct](./CODE_OF_CONDUCT.md) to maintain a healthy and welcoming community. For detailed instructions on adding models, engines, containers, and more, refer to the original contribution guide and the newly integrated Runner README content.
-
+Your contributions are invaluable to us. Please adhere to our [contributing guide](./CONTRIBUTING.md) and [code of conduct](./CODE_OF_CONDUCT.md) to maintain a healthy and welcoming community.
 ---
