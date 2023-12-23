@@ -9,7 +9,7 @@ config = Config(
     api_key_id="RUNNER_API_KEY",
 )
 
-BACKLOG_THRESHOLD = 15
+BACKLOG_THRESHOLD = 42
 
 stub = Stub(config.name)
 
