@@ -97,7 +97,7 @@ When adding a new model to OpenRouter Runner, you'll be integrating external AI 
     ```
 
 3. **Handle Unsupported Models**:
-    - If the model isn't supported by existing engines or containers, you'll need to [add a new engine](#adding-new-engine) and [add a new container](#adding-new-container).
+    - If the model isn't supported by existing engines or containers, you'll need to [add a new engine](#adding-a-new-engine) and [add a new container](#adding-a-new-container).
 
 >[!IMPORTANT]
 > Always verify the model's license and ensure it's compatible with OpenRouter Runner's usage.
@@ -138,8 +138,8 @@ Creating a new engine involves setting up the logic to interact with different t
             # This might include setting up asynchronous calls, handling streaming data, etc.
     ```
 
-6. **Proceed to Container Creation**:
-    - After successfully creating your new engine, the next step is to incorporate it into a new container. The container will provide the necessary runtime environment for your engine to execute. Follow the guidelines in the "Adding new container" section to create a container that leverages your new engine.
+5. **Proceed to Container Creation**:
+    - After successfully creating your new engine, the next step is to incorporate it into a new container. The container will provide the necessary runtime environment for your engine to execute. Follow the guidelines in the [add a new container](#adding-a-new-container) section to create a container that leverages your new engine.
 
 
 >[!TIP]
