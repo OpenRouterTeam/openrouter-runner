@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 from modal import method
 
 from shared.protocol import (

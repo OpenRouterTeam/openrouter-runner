@@ -1,4 +1,3 @@
-from typing import List
 from modal import method
 from shared.volumes import get_model_path, get_lora_path
 from shared.protocol import (
