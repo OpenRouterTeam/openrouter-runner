@@ -20,6 +20,7 @@ wandb = "^0.15.12"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.9"
+pre-commit = "^3.6.0"
 
 [build-system]
 requires = ["poetry-core"]
