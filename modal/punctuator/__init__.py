@@ -11,7 +11,7 @@ from shared.protocol import (
     create_response_text,
 )
 
-from modal import Image, Secret, Stub, gpu, method, web_endpoint
+from modal import Image, Secret, gpu, method, web_endpoint
 
 
 class Payload(BaseModel):
@@ -52,8 +52,6 @@ config = Config(
     name="punctuator",
     api_key_id="RUNNER_API_KEY",
 )
-
-stub = Stub(config.name)
 
 auth_scheme = HTTPBearer()
 
