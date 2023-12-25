@@ -18,7 +18,7 @@ stub.function(
     image=downloader_image,
     volumes={str(models_path): stub.models_volume},
     secret=Secret.from_name("huggingface"),
-    timeout=len(all_models) * 3600,  # 1 hours per model
+    timeout=len(all_models) * 3600,  # 1 hour per model
 )
 def download():
     download_models(all_models)
