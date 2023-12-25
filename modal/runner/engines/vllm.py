@@ -90,7 +90,7 @@ class VllmEngine(BaseEngine):
                 async for request_output in results_generator:
                     final_output = request_output
 
-                output = request_output.outputs[0].text
+                output = final_output.outputs[0].text
 
             prompt_tokens = len(request_output.prompt_token_ids)
             completion_tokens = len(request_output.outputs[0].token_ids)
