@@ -1,9 +1,8 @@
-from modal import Secret, web_endpoint
-
 from shared.volumes import models_path
-from runner.shared.common import stub
 
+from modal import Secret, web_endpoint
 from runner.endpoints.completion import completion
+from runner.shared.common import stub
 
 stub.function(
     secret=Secret.from_name("ext-api-key"),
@@ -13,8 +12,8 @@ stub.function(
 )(web_endpoint(method="POST")(completion))
 
 
-from runner.shared.download import downloader_image, download_models
 from runner.containers import all_models
+from runner.shared.download import download_models, downloader_image
 
 
 @stub.function(

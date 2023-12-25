@@ -1,13 +1,14 @@
 from typing import Optional
-from modal import method
 
+from pydantic import BaseModel
 from shared.protocol import (
     Payload,
-    create_sse_data,
-    create_response_text,
     create_error_text,
+    create_response_text,
+    create_sse_data,
 )
-from pydantic import BaseModel
+
+from modal import method
 
 from .base import BaseEngine
 
@@ -76,7 +77,7 @@ class VllmEngine(BaseEngine):
                     # Skipping invalid UTF8 tokens:
                     if (
                         request_output.outputs[0].text
-                        and "\ufffd" == request_output.outputs[0].text[-1]
+                        and request_output.outputs[0].text[-1] == "\ufffd"
                     ):
                         continue
                     token = request_output.outputs[0].text[index:]

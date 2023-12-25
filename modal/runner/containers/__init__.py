@@ -1,11 +1,13 @@
+from typing import List
+
+from shared.volumes import get_model_path
+
 from .vllm_unified import (
+    VllmContainer_7B,
     VllmContainerA100_40G,
     VllmContainerA100_80G,
     VllmContainerA100_160G,
-    VllmContainer_7B,
 )
-from shared.volumes import get_model_path
-from typing import List
 
 
 def _to_lower_list(l: List[str]):

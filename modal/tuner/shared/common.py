@@ -1,6 +1,7 @@
-from modal import Stub
 from shared.config import Config
 from shared.volumes import loras_volume, models_volume
+
+from modal import Stub
 
 config = Config(
     name="tuner",
