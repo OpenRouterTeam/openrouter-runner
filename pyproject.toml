@@ -40,6 +40,7 @@ select = [
 ignore = [
     "E501", # line too long, handled by ruff formatter already
     "E741", # ambiguous variable name -- often fine
+    "B008", # function calls in argument defaults -- expected for fastapi dependency injection
 ]
 
 [tool.mypy]
