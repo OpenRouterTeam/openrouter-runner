@@ -77,7 +77,7 @@ def create_link(open_input: Input):
             s_churn=0,
         )
         data = []
-        for i, latent in enumerate(latents):
+        for latent in latents:
             t = decode_latent_mesh(xm, latent).tri_mesh()
             file_id = str(uuid.uuid4())
             filename = f"{file_id}.ply"

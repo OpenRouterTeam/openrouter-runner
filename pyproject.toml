@@ -39,6 +39,7 @@ select = [
 ]
 ignore = [
     "E501", # line too long, handled by ruff formatter already
+    "E741", # ambiguous variable name -- often fine
 ]
 
 [tool.mypy]

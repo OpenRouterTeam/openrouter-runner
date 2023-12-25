@@ -122,7 +122,7 @@ class Model:
                 )
                 outputs = []
 
-                for i, latent in enumerate(latents):
+                for latent in latents:
                     t = decode_latent_mesh(self.xm, latent).tri_mesh()
                     buffer = io.BytesIO()
 

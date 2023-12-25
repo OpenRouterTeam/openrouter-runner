@@ -1,5 +1,3 @@
-from typing import List
-
 from shared.volumes import get_model_path
 
 from .vllm_unified import (
@@ -10,7 +8,7 @@ from .vllm_unified import (
 )
 
 
-def _to_lower_list(l: List[str]):
+def _to_lower_list(l: list[str]):
     return [x.lower() for x in l]
 
 vllm_7b_model_ids = [
