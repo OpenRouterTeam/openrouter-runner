@@ -42,6 +42,11 @@ Setting up your development environment is the first step to contributing. Here'
     ```
     Replace `script-name` with the name of the script you want to execute.
 
+5. **Setup linting**: To ensure PR consistency, install lightweight pre-commit hooks:
+    ```sh
+    pre-commit install
+    ```
+
 ### Environment and Secrets Setup
 
 Properly setting up your environment and secrets is crucial for a secure and efficient development workflow. Here's how to do it:

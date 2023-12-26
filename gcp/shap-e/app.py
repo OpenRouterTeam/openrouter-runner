@@ -1,19 +1,19 @@
+import base64
+import os
 import sys
 import uuid
-import os
-import base64
+from typing import List, Optional
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.responses import PlainTextResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
-from typing import Optional, List
 
 sys.path.insert(0, "./shap-e/")
 import torch
-from shap_e.diffusion.sample import sample_latents
 from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
-from shap_e.models.download import load_model, load_config
+from shap_e.diffusion.sample import sample_latents
+from shap_e.models.download import load_config, load_model
 from shap_e.util.notebooks import decode_latent_mesh
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -77,7 +77,7 @@ def create_link(open_input: Input):
             s_churn=0,
         )
         data = []
-        for i, latent in enumerate(latents):
+        for latent in latents:
             t = decode_latent_mesh(xm, latent).tri_mesh()
             file_id = str(uuid.uuid4())
             filename = f"{file_id}.ply"

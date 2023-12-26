@@ -9,6 +9,12 @@ async function main(model?: string) {
     stop: ['</s>'],
     stream: true
   });
+
+  await completion(prompt, {
+    model,
+    max_tokens: 1024,
+    stop: ['</s>'],
+  });
 }
 
 runIfCalledAsScript(main, import.meta.url);

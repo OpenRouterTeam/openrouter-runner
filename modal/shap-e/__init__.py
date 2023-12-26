@@ -1,17 +1,16 @@
-from modal import Secret, web_endpoint, Stub, gpu, Image, method
+from typing import List, Optional
 
-from runner.shared.common import stub
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
-
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-from typing import Optional, List
-
+from runner.shared.common import stub
 from shared.config import Config
 from shared.protocol import (
     create_error_text,
 )
+
+from modal import Image, Secret, gpu, method, web_endpoint
 
 
 class Payload(BaseModel):
@@ -32,7 +31,7 @@ class ResponseBody(BaseModel):
 def download_models():
     import torch
     from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
-    from shap_e.models.download import load_model, load_config
+    from shap_e.models.download import load_config, load_model
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     load_model("transmitter", device=device)
@@ -60,8 +59,6 @@ config = Config(
     api_key_id="RUNNER_API_KEY",
 )
 
-stub = Stub(config.name)
-
 auth_scheme = HTTPBearer()
 
 
@@ -77,7 +74,7 @@ class Model:
     ):
         import torch
         from shap_e.diffusion.gaussian_diffusion import diffusion_from_config
-        from shap_e.models.download import load_model, load_config
+        from shap_e.models.download import load_config, load_model
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.xm = load_model("transmitter", device=device)
@@ -95,10 +92,11 @@ class Model:
         output_ready = threading.Event()
 
         def make_object():
+            import base64
+            import io
+
             from shap_e.diffusion.sample import sample_latents
             from shap_e.util.notebooks import decode_latent_mesh
-            import io
-            import base64
 
             try:
                 prompt = payload.prompt
@@ -122,7 +120,7 @@ class Model:
                 )
                 outputs = []
 
-                for i, latent in enumerate(latents):
+                for latent in latents:
                     t = decode_latent_mesh(self.xm, latent).tri_mesh()
                     buffer = io.BytesIO()
 

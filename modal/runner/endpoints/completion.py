@@ -1,18 +1,15 @@
 import os
 
 from fastapi import Depends, HTTPException, status
-
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.responses import StreamingResponse
-
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from runner.containers import get_container
+from runner.shared.common import BACKLOG_THRESHOLD, config
 from runner.shared.sampling_params import SamplingParams
 from shared.protocol import (
-    create_error_response,
     Payload,
+    create_error_response,
 )
-
-from runner.shared.common import config, BACKLOG_THRESHOLD
-from runner.containers import get_container
 
 auth_scheme = HTTPBearer()
 
