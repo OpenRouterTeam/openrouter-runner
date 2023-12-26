@@ -48,18 +48,20 @@ _vllm_a100_80gb_32k_models_lower = _to_lower_list(vllm_a100_80gb_32k_model_ids)
 
 vllm_a100_160gb_16k_models = [
     "ehartford/dolphin-2.5-mixtral-8x7b",
+    "ehartford/dolphin-2.5-mixtral-8x7b",
 ]
 _vllm_a100_160gb_16k_models_lower = _to_lower_list(vllm_a100_160gb_16k_models)
 
 
 all_models = [
+    *vllm_7b_model_ids,
     *vllm_mid_model_ids,
     *vllm_top_model_ids,
     *vllm_a100_80gb_32k_model_ids,
     *vllm_a100_80gb_128k_model_ids,
     *vllm_a100_160gb_16k_models
 ]
-
+all_models_lower = _to_lower_list(all_models)
 
 def get_container(model: str):
     normalized_model_id = model.lower()
@@ -87,8 +89,6 @@ def get_container(model: str):
         if normalized_model_id in _vllm_top_model_lower:
             return VllmContainerA100_80G(str(model_path))
         
-        # if normalized_model_id in _vllm_7b_models_lower:
-        #     return Vllm7BContainer(str(model_path))
         # if normalized_model_id in _vllm_awq_models_lower:
         #     return VllmAWQ(str(model_path))
 

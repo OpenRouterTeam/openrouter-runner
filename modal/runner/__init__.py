@@ -1,8 +1,9 @@
 from shared.volumes import models_path
 
 from modal import Secret, web_endpoint
-from runner.containers import all_models
+from runner.containers import all_models, all_models_lower
 from runner.endpoints.completion import completion
+from runner.shared.clean import clean_models_volume
 from runner.shared.common import stub
 from runner.shared.download import download_models, downloader_image
 
@@ -22,3 +23,15 @@ stub.function(
 )
 def download():
     download_models(all_models)
+
+
+@stub.function(
+    image=downloader_image,
+    volumes={str(models_path): stub.models_volume},
+    secret=Secret.from_name("huggingface"),
+    timeout=len(all_models) * 3600,  # 1 hours per model
+)
+def clean(all: bool = False, dry: bool = False):
+    print(f"Cleaning models volume. ALL: {all}. DRY: {dry}")
+    remaining_models = [] if all else all_models_lower
+    clean_models_volume(remaining_models, dry)
