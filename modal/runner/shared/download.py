@@ -48,7 +48,7 @@ def download_models(all_models: List[str]):
                 cache_dir=cache_path,
                 token=env["HUGGINGFACE_TOKEN"],
             )
-            print(f"Volume contains {model_name}.")
+            print(f"Volume contains {model_name}")
         except FileNotFoundError:
             print(f"Downloading {model_name} ...")
             snapshot_download(
