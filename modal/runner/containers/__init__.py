@@ -47,8 +47,8 @@ vllm_a100_80gb_32k_model_ids = [
 _vllm_a100_80gb_32k_models_lower = _to_lower_list(vllm_a100_80gb_32k_model_ids)
 
 vllm_a100_160gb_16k_models = [
-    "ehartford/dolphin-2.5-mixtral-8x7b",
-    "ehartford/dolphin-2.5-mixtral-8x7b",
+    "cognitivecomputations/dolphin-2.5-mixtral-8x7b",
+    "cognitivecomputations/dolphin-2.6-mixtral-8x7b",
 ]
 _vllm_a100_160gb_16k_models_lower = _to_lower_list(vllm_a100_160gb_16k_models)
 
