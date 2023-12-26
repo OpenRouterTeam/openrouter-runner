@@ -38,6 +38,11 @@ poetry shell
 code .
 ```
 
+Setup lightweight pre-commit hooks for linting:
+```sh
+pre-commit install
+```
+
 2. To run a script:
 
 ```sh

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generator, Any, List
+from typing import Any, Generator
 
 
 class BaseEngine(ABC):

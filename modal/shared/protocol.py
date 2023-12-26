@@ -1,7 +1,7 @@
-from pydantic import BaseModel
-from fastapi.responses import JSONResponse, PlainTextResponse
-
 from typing import List, Optional, Union
+
+from fastapi.responses import JSONResponse, PlainTextResponse
+from pydantic import BaseModel
 
 
 # https://github.com/vllm-project/vllm/blob/320a622ec4d098f2da5d097930f4031517e7327b/vllm/sampling_params.py#L7-L52

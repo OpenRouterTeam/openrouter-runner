@@ -1,5 +1,6 @@
-from modal import Volume
 from pathlib import Path
+
+from modal import Volume
 
 models_volume = Volume.persisted("models-volume")
 models_path = Path("/models")

@@ -1,19 +1,17 @@
-from modal import Secret, web_endpoint, Stub, gpu, Image, method
+import os
 
-from runner.shared.common import stub
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
-
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
-
+from runner.shared.common import stub
 from shared.config import Config
 from shared.protocol import (
-    create_response_text,
     create_error_text,
+    create_response_text,
 )
 
-import os
+from modal import Image, Secret, gpu, method, web_endpoint
 
 
 class Payload(BaseModel):
@@ -54,8 +52,6 @@ config = Config(
     name="punctuator",
     api_key_id="RUNNER_API_KEY",
 )
-
-stub = Stub(config.name)
 
 auth_scheme = HTTPBearer()
 

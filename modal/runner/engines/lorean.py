@@ -1,13 +1,13 @@
-from typing import List
-from modal import method
-from shared.volumes import get_model_path, get_lora_path
+from pydantic import BaseModel
 from shared.protocol import (
     Payload,
-    create_sse_data,
     create_error_text,
+    create_sse_data,
 )
+from shared.volumes import get_lora_path, get_model_path
 
-from pydantic import BaseModel
+from modal import method
+
 from .base import BaseEngine
 
 
@@ -20,8 +20,8 @@ class LoreanEngine(BaseEngine):
     def __init__(self, params: LoreanParams):
         import torch
         from transformers import (
-            AutoTokenizer,
             AutoModelForCausalLM,
+            AutoTokenizer,
             BitsAndBytesConfig,
         )
 
@@ -64,8 +64,9 @@ class LoreanEngine(BaseEngine):
         try:
             # https://github.com/huggingface/transformers/blob/v4.34.1/src/transformers/generation/streamers.py#L182-L203
             import time
-            from peft import PeftModel
             from threading import Thread
+
+            from peft import PeftModel
             from transformers import TextIteratorStreamer
 
             finetune_id = "viggo-finetune"
@@ -95,7 +96,7 @@ class LoreanEngine(BaseEngine):
             output = ""
             for token in streamer:
                 # Skipping invalid UTF8 tokens:
-                if token and "\ufffd" == token:
+                if token and token == "\ufffd":
                     continue
                 if payload.stream:
                     yield create_sse_data(token)

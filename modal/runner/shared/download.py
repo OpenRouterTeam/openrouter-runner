@@ -1,7 +1,10 @@
-from modal import Image
 from typing import List
-from .common import stub
+
 from shared.volumes import get_model_path
+
+from modal import Image
+
+from .common import stub
 
 downloader_image = (
     Image.debian_slim()
@@ -13,8 +16,9 @@ downloader_image = (
 
 
 def download_models(all_models: List[str]):
-    from huggingface_hub import snapshot_download, list_repo_files
     from os import environ as env
+
+    from huggingface_hub import list_repo_files, snapshot_download
 
     cache_path = get_model_path("__cache__")
     for model_name in all_models:
@@ -54,4 +58,4 @@ def download_models(all_models: List[str]):
                 token=env["HUGGINGFACE_TOKEN"],
             )
             stub.models_volume.commit()
-    print(f"ALL DONE!")
+    print("ALL DONE!")

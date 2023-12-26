@@ -4,7 +4,7 @@
 """Sampling parameters for text generation."""
 from enum import IntEnum
 from functools import cached_property
-from typing import Callable, List, Optional, Union
+from typing import List, Optional, Union
 
 # import torch
 
