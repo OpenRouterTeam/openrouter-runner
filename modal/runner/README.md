@@ -71,7 +71,7 @@ Adding new models to OpenRouter Runner is straightforward, especially when using
 
 1. **Find and Copy the Model ID**: Browse [Hugging Face](https://huggingface.co/models) for the model you wish to deploy. For example, let's use `"mistralai/Mistral-7B-Instruct-v0.2"`.
 
-2. **Update Model List**: Open the `runner/containers/__init__.py` file. Locate the list of model IDs for the container you're using (e.g., `vllm_7b_model_ids` for a VLLM 7B model container). Add your new model ID to the list:
+2. **Update Model List**: Open the `runner/containers/__init__.py` file. Locate the list of model IDs for the container you're using (e.g., `vllm_7b_model_ids` for a vLLM 7B model container). Add your new model ID to the list:
     ```python
     vllm_7b_model_ids = [
         "mistralai/Mistral-7B-Instruct-v0.1",
