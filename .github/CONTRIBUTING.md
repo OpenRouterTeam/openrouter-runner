@@ -42,7 +42,7 @@ Setting up your development environment is the first step to contributing. Here'
     ```
     Replace `script-name` with the name of the script you want to execute.
 
-5. **Setup linting**: To ensure PR consistency, install lightweight pre-commit hooks:
+5. **(OPTIONAL) Setup linting**: To ensure PR consistency, install  our lightweight pre-commit hooks:
     ```sh
     pre-commit install
     ```
