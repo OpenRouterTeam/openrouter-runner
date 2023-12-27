@@ -1,4 +1,5 @@
 import os
+import secrets
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
@@ -19,10 +20,15 @@ class Config(BaseModel):
 
         Raises: HTTPException(401) if the token is invalid.
         """
-        if token.credentials != os.environ[self.api_key_id]:
+
+        # Timing attacks possible through direct comparison. Prevent it with a constant time comparison here.
+        got_credential = token.credentials.encode()
+        want_credential = os.environ[self.api_key_id].encode()
+        if not secrets.compare_digest(got_credential, want_credential):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect bearer token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
+
         return token
