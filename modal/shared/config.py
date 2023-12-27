@@ -18,7 +18,9 @@ class Config(BaseModel):
         API Authentication dependency for protected endpoints. Checks that the request's bearer token
         matches the server's configured API key.
 
-        Raises: HTTPException(401) if the token is invalid.
+        Raises:
+            * HTTPException(403) if no token is provided.
+            * HTTPException(401) if the token is invalid.
         """
 
         # Timing attacks possible through direct comparison. Prevent it with a constant time comparison here.
