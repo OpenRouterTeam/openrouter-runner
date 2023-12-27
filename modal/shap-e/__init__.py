@@ -1,6 +1,6 @@
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
@@ -23,6 +23,7 @@ class Payload(BaseModel):
 class Generation(BaseModel):
     uri: Optional[str] = None
     url: Optional[str] = None
+
 
 class ResponseBody(BaseModel):
     outputs: List[Generation]
@@ -86,9 +87,7 @@ class Model:
         import threading
         import time
 
-        output = [
-            None
-        ]  # Use a list to hold the output to bypass Python's scoping limitations
+        output = [None]  # Use a list to hold the output to bypass Python's scoping limitations
         output_ready = threading.Event()
 
         def make_object():
@@ -129,14 +128,10 @@ class Model:
                     buffer.seek(0)
 
                     # Encode the buffer content to base64
-                    base64_data = base64.b64encode(buffer.read()).decode(
-                        "utf-8"
-                    )
+                    base64_data = base64.b64encode(buffer.read()).decode("utf-8")
                     outputs.append(Generation(uri=f"data:application/x-ply;base64,{base64_data}"))
 
-                output[0] = ResponseBody(outputs=outputs).json(
-                    ensure_ascii=False
-                )
+                output[0] = ResponseBody(outputs=outputs).json(ensure_ascii=False)
 
             except Exception as err:
                 output[0] = create_error_text(err)
@@ -159,17 +154,9 @@ class Model:
 )
 @web_endpoint(method="POST")
 def create(
-    payload: Payload, token: HTTPAuthorizationCredentials = Depends(auth_scheme)
+    payload: Payload,
+    _token: Annotated[HTTPAuthorizationCredentials, Depends(config.auth)],
 ):
-    import os
-
-    if token.credentials != os.environ[config.api_key_id]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     p = Model()
 
     return StreamingResponse(
