@@ -1,5 +1,4 @@
 import os
-from typing import Annotated
 
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
@@ -38,7 +37,9 @@ def download_models():
 _gpu = gpu.A10G(count=1)
 _image = (
     Image.from_registry("nvcr.io/nvidia/pytorch:22.12-py3")
-    .pip_install("torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118")
+    .pip_install(
+        "torch==2.0.1+cu118", index_url="https://download.pytorch.org/whl/cu118"
+    )
     .pip_install("sentencepiece")
     .pip_install("deepmultilingualpunctuation")
     .pip_install("hf-transfer~=0.1")
@@ -72,12 +73,16 @@ class Punctuator:
         import threading
         import time
 
-        output = [None]  # Use a list to hold the output to bypass Python's scoping limitations
+        output = [
+            None
+        ]  # Use a list to hold the output to bypass Python's scoping limitations
         output_ready = threading.Event()
 
         def punctuate_thread():
             try:
-                output[0] = create_response_text(self.model.restore_punctuation(input_str))
+                output[0] = create_response_text(
+                    self.model.restore_punctuation(input_str)
+                )
             except Exception as err:
                 output[0] = create_error_text(err)
                 print(output[0])
@@ -103,7 +108,7 @@ class Punctuator:
 @web_endpoint(method="POST")
 def punct(
     payload: Payload,
-    _token: Annotated[HTTPAuthorizationCredentials, Depends(config.auth)],
+    _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
     p = Punctuator()
 

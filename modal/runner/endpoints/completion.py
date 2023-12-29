@@ -1,5 +1,3 @@
-from typing import Annotated
-
 from fastapi import Depends, status
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials
@@ -14,7 +12,7 @@ from shared.protocol import (
 
 def completion(
     payload: Payload,
-    _token: Annotated[HTTPAuthorizationCredentials, Depends(config.auth)],
+    _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
     try:
         runner = get_container(payload.model)

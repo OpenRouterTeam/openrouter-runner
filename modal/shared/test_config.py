@@ -1,5 +1,4 @@
 import os
-from typing import Annotated
 
 from fastapi import Depends, FastAPI, testclient
 from fastapi.security import HTTPAuthorizationCredentials
@@ -15,15 +14,19 @@ def test_auth():
     os.environ["RUNNER_API_KEY"] = "abc123"
 
     @app.get("/test")
-    def test(_token: Annotated[HTTPAuthorizationCredentials, Depends(config.auth)]):
+    def test(_token: HTTPAuthorizationCredentials = Depends(config.auth)):
         return "OK"
 
     with testclient.TestClient(app) as client:
         response = client.get("/test")
         assert response.status_code == 403
 
-        response = client.get("/test", headers={"Authorization": "Bearer invalid"})
+        response = client.get(
+            "/test", headers={"Authorization": "Bearer invalid"}
+        )
         assert response.status_code == 401
 
-        response = client.get("/test", headers={"Authorization": "Bearer abc123"})
+        response = client.get(
+            "/test", headers={"Authorization": "Bearer abc123"}
+        )
         assert response.status_code == 200

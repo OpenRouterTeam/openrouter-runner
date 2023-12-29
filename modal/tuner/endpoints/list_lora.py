@@ -1,5 +1,4 @@
 import os
-from typing import Annotated
 
 from fastapi import Depends, status
 from fastapi.responses import JSONResponse
@@ -8,7 +7,7 @@ from shared.volumes import loras_path
 from tuner.shared.common import config
 
 
-def list_lora(_token: Annotated[HTTPAuthorizationCredentials, Depends(config.auth)]):
+def list_lora(_token: HTTPAuthorizationCredentials = Depends(config.auth)):
     # Get all files from the loras volume
 
     files = os.listdir(loras_path)
