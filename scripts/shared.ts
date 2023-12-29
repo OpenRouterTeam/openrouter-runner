@@ -16,10 +16,11 @@ export async function completion(
     model = defaultModel,
     max_tokens = 16,
     stream = false,
-    stop = ['</s>']
+    stop = ['</s>'],
+    apiKey = key
   } = {}
 ) {
-  if (!url || !key) {
+  if (!url || !apiKey) {
     throw new Error('Missing url or key');
   }
 
@@ -27,7 +28,7 @@ export async function completion(
     id: Math.random().toString(36).substring(7),
     prompt,
     model,
-    params: { max_tokens, stop },
+    params: {max_tokens, stop},
     stream
   };
 
@@ -35,7 +36,7 @@ export async function completion(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`
+      Authorization: `Bearer ${apiKey}`
     },
     body: JSON.stringify(bodyPayload)
   });
@@ -46,6 +47,10 @@ export async function completion(
   } else {
     const output = await p.text();
     console.log(output);
+  }
+
+  if (!p.ok) {
+    throw new Error(`Status: ${p.status}`);
   }
 }
 
