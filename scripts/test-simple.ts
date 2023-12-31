@@ -13,18 +13,16 @@ async function main(model?: string) {
   await completion(prompt, {
     model,
     max_tokens: 1024,
-    stop: ['</s>'],
+    stop: ['</s>']
   });
 
-  // Unauthorized requests should fail with a 401
-  let gotExpectedError = false;
-  try {
-      await completion(prompt, {model, apiKey: "BADKEY"});
-  } catch (e: any) {
-    gotExpectedError = e.message == "Status: 401";
-  }
-  if (!gotExpectedError) {
-    throw new Error("Unauthorized request returned unexpected response")
+  const unauthedResp = await completion(prompt, {
+    model,
+    apiKey: 'BADKEY'
+  });
+
+  if (unauthedResp.ok || unauthedResp.status !== 401) {
+    throw new Error('Unauthorized request returned unexpected response');
   }
 }
 

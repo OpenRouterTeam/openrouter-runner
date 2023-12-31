@@ -24,11 +24,13 @@ export async function completion(
     throw new Error('Missing url or key');
   }
 
+  console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
+
   const bodyPayload: Record<string, unknown> = {
     id: Math.random().toString(36).substring(7),
     prompt,
     model,
-    params: {max_tokens, stop},
+    params: { max_tokens, stop },
     stream
   };
 
@@ -49,9 +51,7 @@ export async function completion(
     console.log(output);
   }
 
-  if (!p.ok) {
-    throw new Error(`Status: ${p.status}`);
-  }
+  return p;
 }
 
 export function isEntryFile(url: string) {
