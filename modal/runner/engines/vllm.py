@@ -1,14 +1,14 @@
 from typing import Optional
 
+from modal import method
 from pydantic import BaseModel
+
 from shared.protocol import (
     Payload,
     create_error_text,
     create_response_text,
     create_sse_data,
 )
-
-from modal import method
 
 from .base import BaseEngine
 

@@ -2,6 +2,8 @@
 # 1. An image
 # 2. A stub class wrapping an engine
 
+from modal import Image, Secret, gpu, method
+
 from shared.protocol import create_error_text, create_sse_data
 from shared.volumes import (
     get_lora_path,
@@ -10,8 +12,6 @@ from shared.volumes import (
     models_path,
 )
 from tuner.shared.common import stub
-
-from modal import Image, Secret, gpu, method
 
 # TODO: Swap to lower-end GPU on prod
 _gpu = gpu.A100(count=1, memory=80)

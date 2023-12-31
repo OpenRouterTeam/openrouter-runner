@@ -1,12 +1,12 @@
+from modal import method
 from pydantic import BaseModel
+
 from shared.protocol import (
     Payload,
     create_error_text,
     create_sse_data,
 )
 from shared.volumes import get_lora_path, get_model_path
-
-from modal import method
 
 from .base import BaseEngine
 

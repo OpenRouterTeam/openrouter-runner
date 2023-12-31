@@ -1,8 +1,8 @@
 from typing import List
 
-from shared.volumes import get_model_path
-
 from modal import Image
+
+from shared.volumes import get_model_path
 
 from .common import stub
 

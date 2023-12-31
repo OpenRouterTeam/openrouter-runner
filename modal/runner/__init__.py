@@ -1,11 +1,11 @@
-from shared.volumes import models_path
-
 from modal import Secret, web_endpoint
+
 from runner.containers import all_models, all_models_lower
 from runner.endpoints.completion import completion
 from runner.shared.clean import clean_models_volume
 from runner.shared.common import stub
 from runner.shared.download import download_models, downloader_image
+from shared.volumes import models_path
 
 stub.function(
     secret=Secret.from_name("ext-api-key"),
