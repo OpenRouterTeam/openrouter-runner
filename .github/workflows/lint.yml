@@ -9,5 +9,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: chartboost/ruff-action@v1
+        with:
+          version: 0.1.9
       - name: Formatter
         run: ruff format . --check --diff
