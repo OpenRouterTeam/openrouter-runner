@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
@@ -23,6 +23,7 @@ class Payload(BaseModel):
 class Generation(BaseModel):
     uri: Optional[str] = None
     url: Optional[str] = None
+
 
 class ResponseBody(BaseModel):
     outputs: List[Generation]
@@ -132,7 +133,11 @@ class Model:
                     base64_data = base64.b64encode(buffer.read()).decode(
                         "utf-8"
                     )
-                    outputs.append(Generation(uri=f"data:application/x-ply;base64,{base64_data}"))
+                    outputs.append(
+                        Generation(
+                            uri=f"data:application/x-ply;base64,{base64_data}"
+                        )
+                    )
 
                 output[0] = ResponseBody(outputs=outputs).json(
                     ensure_ascii=False
@@ -159,17 +164,9 @@ class Model:
 )
 @web_endpoint(method="POST")
 def create(
-    payload: Payload, token: HTTPAuthorizationCredentials = Depends(auth_scheme)
+    payload: Payload,
+    _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
-    import os
-
-    if token.credentials != os.environ[config.api_key_id]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     p = Model()
 
     return StreamingResponse(

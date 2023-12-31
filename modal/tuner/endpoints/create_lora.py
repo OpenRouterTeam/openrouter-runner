@@ -1,23 +1,11 @@
-import os
-
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials
 from tuner.containers.mistral_7b_lora import Mistral7BLoraContainer
 from tuner.shared.common import config
 
-auth_scheme = HTTPBearer()
 
-
-def create_lora(
-    token: HTTPAuthorizationCredentials = Depends(auth_scheme),
-):
-    if token.credentials != os.environ[config.api_key_id]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+def create_lora(_token: HTTPAuthorizationCredentials = Depends(config.auth)):
     tuner = Mistral7BLoraContainer()
     return StreamingResponse(
         tuner.generate.remote_gen(),

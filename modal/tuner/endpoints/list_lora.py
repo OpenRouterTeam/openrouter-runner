@@ -1,23 +1,13 @@
 import os
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, status
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import HTTPAuthorizationCredentials
 from shared.volumes import loras_path
 from tuner.shared.common import config
 
-auth_scheme = HTTPBearer()
 
-
-def list_lora(
-    token: HTTPAuthorizationCredentials = Depends(auth_scheme),
-):
-    if token.credentials != os.environ[config.api_key_id]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+def list_lora(_token: HTTPAuthorizationCredentials = Depends(config.auth)):
     # Get all files from the loras volume
 
     files = os.listdir(loras_path)
