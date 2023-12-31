@@ -85,7 +85,7 @@ class VllmEngine(BaseEngine):
                     yield create_sse_data(token)
 
                 output = ""
-            else:   
+            else:
                 final_output = None
                 async for request_output in results_generator:
                     final_output = request_output

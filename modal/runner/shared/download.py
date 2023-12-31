@@ -30,7 +30,7 @@ def download_models(all_models: List[str]):
             has_safetensors = any(
                 fn.lower().endswith(".safetensors")
                 for fn in list_repo_files(
-                    model_name, 
+                    model_name,
                     repo_type="model",
                     token=env["HUGGINGFACE_TOKEN"],
                 )

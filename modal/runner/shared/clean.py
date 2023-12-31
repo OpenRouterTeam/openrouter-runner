@@ -23,8 +23,8 @@ def clean_models_volume(all_models: List[str], dry: bool = True):
                 print(f"    Removing {model_path}")
                 if not dry:
                     shutil.rmtree(model_path, ignore_errors=True)
-    
+
     if not dry:
         stub.models_volume.commit()
-    
+
     print("ALL DONE!")
