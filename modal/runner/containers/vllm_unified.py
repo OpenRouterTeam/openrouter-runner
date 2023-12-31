@@ -54,11 +54,15 @@ def _make_container(
     return wrap(_VllmContainer)
 
 
-VllmContainer_7B = _make_container("VllmContainer_7B", num_gpus=1, concurrent_inputs=100)
-VllmContainerA100_40G = _make_container("VllmContainerA100_40G", num_gpus=1, concurrent_inputs=32)
+VllmContainer_7B = _make_container(
+    "VllmContainer_7B", num_gpus=1, concurrent_inputs=100
+)
+VllmContainerA100_40G = _make_container(
+    "VllmContainerA100_40G", num_gpus=1, concurrent_inputs=32
+)
 VllmContainerA100_80G = _make_container(
     "VllmContainerA100_80G", num_gpus=1, memory=80
 )
 VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80
+    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
 )
