@@ -3,14 +3,14 @@ from typing import List, Optional
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from modal import Image, Secret, gpu, method, web_endpoint
 from pydantic import BaseModel
+
 from runner.shared.common import stub
 from shared.config import Config
 from shared.protocol import (
     create_error_text,
 )
-
-from modal import Image, Secret, gpu, method, web_endpoint
 
 
 class Payload(BaseModel):

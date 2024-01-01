@@ -3,15 +3,15 @@ import os
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials
+from modal import Image, Secret, gpu, method, web_endpoint
 from pydantic import BaseModel
+
 from runner.shared.common import stub
 from shared.config import Config
 from shared.protocol import (
     create_error_text,
     create_response_text,
 )
-
-from modal import Image, Secret, gpu, method, web_endpoint
 
 
 class Payload(BaseModel):

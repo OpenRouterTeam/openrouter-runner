@@ -1,14 +1,14 @@
 from typing import Optional
 
+from modal import method
 from pydantic import BaseModel
+
 from shared.protocol import (
     Payload,
     create_error_text,
     create_response_text,
     create_sse_data,
 )
-
-from modal import method
 
 from .base import BaseEngine
 
@@ -85,7 +85,7 @@ class VllmEngine(BaseEngine):
                     yield create_sse_data(token)
 
                 output = ""
-            else:   
+            else:
                 final_output = None
                 async for request_output in results_generator:
                     final_output = request_output

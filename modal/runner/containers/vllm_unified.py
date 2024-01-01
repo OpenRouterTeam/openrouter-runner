@@ -1,11 +1,11 @@
 from typing import Optional
 
-from shared.volumes import models_path
-
 import modal.gpu
 from modal import Image
+
 from runner.engines.vllm import VllmEngine, VllmParams
 from runner.shared.common import stub
+from shared.volumes import models_path
 
 _vllm_image = Image.from_registry(
     "nvcr.io/nvidia/pytorch:23.09-py3"
