@@ -6,9 +6,26 @@ const envFile = `.env.dev`;
 
 config({ path: envFile });
 
-const url = process.env.API_URL;
-const key = process.env.RUNNER_API_KEY;
+const url = process.env.API_URL!;
+const key = process.env.RUNNER_API_KEY!;
 const defaultModel = process.env.MODEL;
+
+export async function postToApi(
+  path: string,
+  body: Record<string, unknown>,
+  apiKey: string = key
+) {
+  const p = await fetch(`${url}${path}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify(body)
+  });
+
+  return p;
+}
 
 export async function completion(
   prompt: string,
@@ -21,10 +38,6 @@ export async function completion(
     quiet = false
   } = {}
 ) {
-  if (!url || !apiKey) {
-    throw new Error('Missing url or key');
-  }
-
   if (!quiet) {
     console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
   }
@@ -37,14 +50,7 @@ export async function completion(
     stream
   };
 
-  const p = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(bodyPayload)
-  });
+  const p = await postToApi('/', bodyPayload, apiKey);
 
   const output = p.ok && !stream ? await p.json() : await p.text();
   if (!quiet) {
