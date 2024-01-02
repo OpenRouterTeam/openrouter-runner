@@ -49,6 +49,8 @@ _vllm_a100_80gb_32k_models_lower = _to_lower_list(vllm_a100_80gb_32k_model_ids)
 
 vllm_a100_160gb_16k_models = [
     "cognitivecomputations/dolphin-2.6-mixtral-8x7b",
+    "cognitivecomputations/dolphin-2.7-mixtral-8x7b",
+    "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3",
 ]
 _vllm_a100_160gb_16k_models_lower = _to_lower_list(vllm_a100_160gb_16k_models)
 

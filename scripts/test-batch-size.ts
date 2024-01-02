@@ -1,10 +1,10 @@
 import { getWordsFromFile } from 'scripts/get-words';
 import { completion, runIfCalledAsScript } from 'scripts/shared';
 
-const batchSize = 8;
+const batchSize = 4;
 const context = 16_000;
 const inputSize = 12_000;
-const wordsCount = Math.ceil((inputSize * 4) / 3);
+const wordsCount = Math.ceil((inputSize * 2) / 4);
 const maxTokens = Math.floor(((context - inputSize) * 95) / 100);
 
 async function main() {
