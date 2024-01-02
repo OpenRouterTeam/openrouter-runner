@@ -22,6 +22,13 @@ def download_models(all_models: List[str]):
 
     cache_path = get_model_path("__cache__")
     for model_name in all_models:
+        parts = model_name.split(":")
+
+        model_revision = None
+        if len(parts) != 1:
+            model_name = parts[0]
+            model_revision = parts[1]
+
         model_path = get_model_path(model_name)
         model_path.mkdir(parents=True, exist_ok=True)
 
@@ -43,6 +50,7 @@ def download_models(all_models: List[str]):
 
             snapshot_download(
                 model_name,
+                revision=model_revision,
                 local_dir=model_path,
                 local_files_only=True,
                 cache_dir=cache_path,
