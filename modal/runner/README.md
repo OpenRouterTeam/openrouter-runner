@@ -83,18 +83,6 @@ Adding new models to OpenRouter Runner is straightforward, especially when using
     ```
     This simple step registers the new model to be run with the existing container.
 
->[!IMPORTANT]
-> When updating the `vllm_7b_model_ids`, ensure you uncomment the relevant model in the `all_models` list to allow it to be downloaded. For example:
-> ```python
-> all_models = [
->     # Uncomment the line below when adding new models to vllm_7b_model_ids
->     # *vllm_7b_model_ids,
->     *vllm_mid_model_ids,
->     *vllm_top_model_ids,
->     *vllm_a100_32k_model_ids,
->     *vllm_a100_128k_model_ids,
-> ]
-> ```
 
 3. **Handle Access Permissions**: If you plan to deploy a model like `"meta-llama/Llama-2-13b-chat-hf"` which is included in the codebase, and you don't yet have access, visit [here](https://huggingface.co/meta-llama/Llama-2-13b-chat-hf) for instructions on how to request access. Temporarily, you can comment out this model in the list to proceed with deployment.
 
