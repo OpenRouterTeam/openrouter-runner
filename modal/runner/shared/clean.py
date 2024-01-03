@@ -1,9 +1,7 @@
 import os
 from typing import List
 
-from shared.volumes import get_model_path, models_path
-
-from .common import stub
+from shared.volumes import get_model_path, models_path, models_volume
 
 
 def clean_models_volume(all_models: List[str], dry: bool = True):
@@ -25,6 +23,6 @@ def clean_models_volume(all_models: List[str], dry: bool = True):
                     shutil.rmtree(model_path, ignore_errors=True)
 
     if not dry:
-        stub.models_volume.commit()
+        models_volume.commit()
 
     print("ALL DONE!")

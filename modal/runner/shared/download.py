@@ -2,9 +2,7 @@ from typing import List
 
 from modal import Image
 
-from shared.volumes import get_model_path
-
-from .common import stub
+from shared.volumes import get_model_path, models_volume
 
 downloader_image = (
     Image.debian_slim()
@@ -57,5 +55,5 @@ def download_models(all_models: List[str]):
                 cache_dir=cache_path,
                 token=env["HUGGINGFACE_TOKEN"],
             )
-            stub.models_volume.commit()
+            models_volume.commit()
     print("ALL DONE!")

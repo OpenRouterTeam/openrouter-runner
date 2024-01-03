@@ -5,19 +5,19 @@ from runner.endpoints.completion import completion
 from runner.shared.clean import clean_models_volume
 from runner.shared.common import stub
 from runner.shared.download import download_models, downloader_image
-from shared.volumes import models_path
+from shared.volumes import models_path, models_volume
 
 stub.function(
     secret=Secret.from_name("ext-api-key"),
     timeout=60 * 15,
     allow_concurrent_inputs=100,
-    volumes={str(models_path): stub.models_volume},
+    volumes={models_path: models_volume},
 )(web_endpoint(method="POST")(completion))
 
 
 @stub.function(
     image=downloader_image,
-    volumes={str(models_path): stub.models_volume},
+    volumes={models_path: models_volume},
     secret=Secret.from_name("huggingface"),
     timeout=len(all_models) * 3600,  # 1 hour per model
 )
@@ -27,7 +27,7 @@ def download():
 
 @stub.function(
     image=downloader_image,
-    volumes={str(models_path): stub.models_volume},
+    volumes={models_path: models_volume},
     secret=Secret.from_name("huggingface"),
     timeout=len(all_models) * 3600,  # 1 hours per model
 )

@@ -9,7 +9,9 @@ from shared.volumes import (
     get_lora_path,
     get_model_path,
     loras_path,
+    loras_volume,
     models_path,
+    models_volume,
 )
 from tuner.shared.common import stub
 
@@ -52,8 +54,8 @@ The attributes must be one of the following: ['name', 'exp_release_date', 'relea
         Secret.from_name("huggingface"),
     ],
     volumes={
-        str(loras_path): stub.loras_volume,
-        str(models_path): stub.models_volume,
+        loras_path: loras_volume,
+        models_path: models_volume,
     },
     image=_vllm_image,
     gpu=_gpu,

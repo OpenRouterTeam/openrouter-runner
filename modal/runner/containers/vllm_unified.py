@@ -5,7 +5,7 @@ from modal import Image
 
 from runner.engines.vllm import VllmEngine, VllmParams
 from runner.shared.common import stub
-from shared.volumes import models_path
+from shared.volumes import models_path, models_volume
 
 _vllm_image = Image.from_registry(
     "nvcr.io/nvidia/pytorch:23.09-py3"
@@ -44,7 +44,7 @@ def _make_container(
     _VllmContainer.__name__ = name
 
     wrap = stub.cls(
-        volumes={str(models_path): stub.models_volume},
+        volumes={models_path: models_volume},
         image=_vllm_image,
         gpu=gpu,
         allow_concurrent_inputs=concurrent_inputs,
