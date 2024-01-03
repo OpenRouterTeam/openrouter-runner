@@ -1,23 +1,16 @@
 from fastapi import Depends, FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
-from modal import Image, Secret, asgi_app
+from modal import Secret, asgi_app
+from pydantic import BaseModel
 
 from runner.containers import all_models, all_models_lower
 from runner.endpoints.completion import completion
-from runner.endpoints.models import AddModelPayload, add_model
 from runner.shared.clean import clean_models_volume
 from runner.shared.common import config, stub
-from runner.shared.download import download_models
+from runner.shared.download import download_model
 from shared.protocol import CompletionPayload
 from shared.volumes import models_path, models_volume
-
-image = (
-    Image.debian_slim()
-    # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
-    .pip_install("huggingface_hub~=0.17.1")
-    .pip_install("hf-transfer~=0.1")
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
-)
 
 api_app = FastAPI()
 
@@ -30,17 +23,40 @@ async def post_completion(
     return completion(payload)
 
 
+class AddModelPayload(BaseModel):
+    name: str
+
+
 @api_app.post("/models")
 async def post_model(
     payload: AddModelPayload,
     _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
-    return add_model(payload)
+    remote_call = download_model.spawn(payload.name)
+    if not remote_call:
+        raise Exception("Failed to spawn remote call")
+
+    return {"job_id": remote_call.object_id}
+
+
+@api_app.get("/jobs/{job_id}")
+async def get_job(
+    job_id: str,
+    _token: HTTPAuthorizationCredentials = Depends(config.auth),
+):
+    from modal.functions import FunctionCall
+
+    function_call = FunctionCall.from_id(job_id)
+    try:
+        result = function_call.get(timeout=0)
+    except TimeoutError:
+        return JSONResponse(content="", status_code=202)
+
+    return result
 
 
 @stub.function(
-    image=image,
-    secrets=[Secret.from_name("ext-api-key"), Secret.from_name("huggingface")],
+    secret=Secret.from_name("ext-api-key"),
     timeout=60 * 15,
     allow_concurrent_inputs=100,
     volumes={models_path: models_volume},
@@ -50,21 +66,15 @@ def app():
     return api_app
 
 
-@stub.function(
-    image=image,
-    volumes={models_path: models_volume},
-    secret=Secret.from_name("huggingface"),
-    timeout=len(all_models) * 3600,  # 1 hour per model
-)
+@stub.function()
 def download():
-    download_models(all_models)
+    for model in all_models:
+        download_model.local(model)
+    print("ALL DONE!")
 
 
 @stub.function(
-    image=image,
     volumes={models_path: models_volume},
-    secret=Secret.from_name("huggingface"),
-    timeout=len(all_models) * 3600,  # 1 hours per model
 )
 def clean(all: bool = False, dry: bool = False):
     print(f"Cleaning models volume. ALL: {all}. DRY: {dry}")

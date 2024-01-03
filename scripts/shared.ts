@@ -10,21 +10,15 @@ const url = process.env.API_URL!;
 const key = process.env.RUNNER_API_KEY!;
 const defaultModel = process.env.MODEL;
 
-export async function postToApi(
-  path: string,
-  body: Record<string, unknown>,
-  { apiKey = key } = {}
-) {
-  const p = await fetch(`${url}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(body)
-  });
+export function getApiUrl(path: string) {
+  return `${url}${path}`;
+}
 
-  return p;
+export function getAuthHeaders(apiKey = key) {
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${apiKey}`
+  };
 }
 
 export async function completion(
@@ -50,7 +44,11 @@ export async function completion(
     stream
   };
 
-  const p = await postToApi('/', bodyPayload, apiKey);
+  const p = await fetch(getApiUrl(''), {
+    method: 'POST',
+    headers: getAuthHeaders(apiKey),
+    body: JSON.stringify(bodyPayload)
+  });
 
   const output = p.ok && !stream ? await p.json() : await p.text();
   if (!quiet) {
