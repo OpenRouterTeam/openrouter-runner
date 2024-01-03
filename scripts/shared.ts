@@ -17,14 +17,17 @@ export async function completion(
     max_tokens = 16,
     stream = false,
     stop = ['</s>'],
-    apiKey = key
+    apiKey = key,
+    quiet = false
   } = {}
 ) {
   if (!url || !apiKey) {
     throw new Error('Missing url or key');
   }
 
-  console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
+  if (!quiet) {
+    console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
+  }
 
   const bodyPayload: Record<string, unknown> = {
     id: Math.random().toString(36).substring(7),
@@ -43,11 +46,8 @@ export async function completion(
     body: JSON.stringify(bodyPayload)
   });
 
-  if (p.ok && !stream) {
-    const output = await p.json();
-    console.log(output);
-  } else {
-    const output = await p.text();
+  const output = p.ok && !stream ? await p.json() : await p.text();
+  if (!quiet) {
     console.log(output);
   }
 

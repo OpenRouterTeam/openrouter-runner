@@ -85,7 +85,8 @@ async function main() {
   await Promise.all(
     [...prompts, veryRandomPrompt].map((p) =>
       completion(p, {
-        max_tokens: 1000
+        max_tokens: 1000,
+        quiet: true
       })
     )
   );
