@@ -28,36 +28,29 @@ def download_model(model_name: str):
     model_path = get_model_path(model_name)
     model_path.mkdir(parents=True, exist_ok=True)
 
-    try:
-        # only download safetensors if available
-        has_safetensors = any(
-            fn.lower().endswith(".safetensors")
-            for fn in list_repo_files(
-                model_name,
-                repo_type="model",
-                token=env["HUGGINGFACE_TOKEN"],
-            )
+    # only download safetensors if available
+    has_safetensors = any(
+        fn.lower().endswith(".safetensors")
+        for fn in list_repo_files(
+            model_name,
+            repo_type="model",
+            token=env["HUGGINGFACE_TOKEN"],
         )
-        patterns = ["tokenizer.model", "*.json"]
-        if has_safetensors:
-            patterns.append("*.safetensors")
-        else:
-            patterns.append("*.bin")
+    )
+    patterns = ["tokenizer.model", "*.json"]
+    if has_safetensors:
+        patterns.append("*.safetensors")
+    else:
+        patterns.append("*.bin")
+    # TODO: Use these patterns?
 
-        snapshot_download(
-            model_name,
-            local_dir=model_path,
-            local_files_only=True,
-            cache_dir=cache_path,
-            token=env["HUGGINGFACE_TOKEN"],
-        )
-        print(f"Volume contains {model_name}")
-    except FileNotFoundError:
-        print(f"Downloading {model_name} ...")
-        snapshot_download(
-            model_name,
-            local_dir=model_path,
-            cache_dir=cache_path,
-            token=env["HUGGINGFACE_TOKEN"],
-        )
-        models_volume.commit()
+    # Clean doesn't remove the cache, so using `local_files_only` here returns the cache even when the local dir is empty.
+    print(f"Checking for {model_name}")
+    snapshot_download(
+        model_name,
+        local_dir=model_path,
+        cache_dir=cache_path,
+        token=env["HUGGINGFACE_TOKEN"],
+    )
+    print(f"Volume now contains {model_name}")
+    models_volume.commit()

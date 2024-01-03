@@ -66,10 +66,14 @@ def app():
     return api_app
 
 
-@stub.function()
+@stub.function(
+    timeout=3600,  # 1 hour
+)
 def download():
-    for model in all_models:
-        download_model.local(model)
+    print("Downloading all models...")
+    results = list(download_model.map(all_models))
+    if not results:
+        raise Exception("Failed to perform remote calls")
     print("ALL DONE!")
 
 
