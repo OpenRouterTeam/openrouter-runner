@@ -13,7 +13,7 @@ const defaultModel = process.env.MODEL;
 export async function postToApi(
   path: string,
   body: Record<string, unknown>,
-  apiKey: string = key
+  { apiKey = key } = {}
 ) {
   const p = await fetch(`${url}${path}`, {
     method: 'POST',

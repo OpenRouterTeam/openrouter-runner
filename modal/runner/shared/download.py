@@ -1,16 +1,6 @@
 from typing import List
 
-from modal import Image
-
 from shared.volumes import get_model_path, models_volume
-
-downloader_image = (
-    Image.debian_slim()
-    # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
-    .pip_install("huggingface_hub~=0.17.1")
-    .pip_install("hf-transfer~=0.1")
-    .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
-)
 
 
 def download_models(all_models: List[str]):
