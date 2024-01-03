@@ -24,7 +24,7 @@ vllm_mid_model_ids = [
     "PygmalionAI/mythalion-13b",
     "Gryphe/MythoMax-L2-13b",
     "Undi95/ReMM-SLERP-L2-13B",
-    "meta-llama/Llama-2-13b-chat-hf",
+    # "meta-llama/Llama-2-13b-chat-hf",
     "NousResearch/Nous-Hermes-Llama2-13b",
     "microsoft/Orca-2-13b",
     "jebcarter/Psyfighter-13B",
