@@ -4,7 +4,7 @@ from modal import method
 from pydantic import BaseModel
 
 from shared.protocol import (
-    Payload,
+    CompletionPayload,
     create_error_text,
     create_response_text,
     create_sse_data,
@@ -61,7 +61,7 @@ class VllmEngine(BaseEngine):
     #     return engine_model_config.max_model_len
 
     @method()
-    async def generate(self, payload: Payload, params):
+    async def generate(self, payload: CompletionPayload, params):
         try:
             import time
 

@@ -2,7 +2,7 @@ from modal import method
 from pydantic import BaseModel
 
 from shared.protocol import (
-    Payload,
+    CompletionPayload,
     create_error_text,
     create_sse_data,
 )
@@ -60,7 +60,7 @@ class LoreanEngine(BaseEngine):
     #     return self.max_model_len
 
     @method()
-    async def generate(self, payload: Payload, params, input_ids):
+    async def generate(self, payload: CompletionPayload, params, input_ids):
         try:
             # https://github.com/huggingface/transformers/blob/v4.34.1/src/transformers/generation/streamers.py#L182-L203
             import time

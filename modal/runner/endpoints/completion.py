@@ -1,19 +1,17 @@
-from fastapi import Depends, status
+from fastapi import status
 from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPAuthorizationCredentials
 
 from runner.containers import get_container
-from runner.shared.common import BACKLOG_THRESHOLD, config
+from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
 from shared.protocol import (
-    Payload,
+    CompletionPayload,
     create_error_response,
 )
 
 
 def completion(
-    payload: Payload,
-    _token: HTTPAuthorizationCredentials = Depends(config.auth),
+    payload: CompletionPayload,
 ):
     try:
         runner = get_container(payload.model)

@@ -24,7 +24,7 @@ class Params(BaseModel):
     skip_special_tokens: bool = True
 
 
-class Payload(BaseModel):
+class CompletionPayload(BaseModel):
     id: str
     prompt: str
     stream: bool = False
