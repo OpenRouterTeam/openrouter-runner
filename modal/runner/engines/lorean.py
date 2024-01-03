@@ -66,7 +66,7 @@ class LoreanEngine(BaseEngine):
             import time
             from threading import Thread
 
-            from peft import PeftModel
+            from peft.peft_model import PeftModel
             from transformers import TextIteratorStreamer
 
             finetune_id = "viggo-finetune"
