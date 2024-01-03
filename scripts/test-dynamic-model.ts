@@ -1,13 +1,14 @@
 import {
   awaitJob,
+  completion,
   enqueueAddModel,
-  getApiUrl,
-  getAuthHeaders,
   runIfCalledAsScript
 } from 'scripts/shared';
 
-async function main(model?: string) {
-  const modelName = model || process.env.MODEL!;
+async function main() {
+  const modelName = 'jondurbin/bagel-34b-v0.2';
+  const containerType = 'VllmContainerA100_160G_32K';
+
   console.log(`Test adding model ${modelName}`);
   const body = await enqueueAddModel(modelName);
   console.log('Successfully queued model to add', body);
@@ -18,18 +19,16 @@ async function main(model?: string) {
 
   console.log('Model added successfully');
 
-  console.log('Unauthorized request test');
-  const unauthedResp = await fetch(getApiUrl('/models'), {
-    method: 'POST',
-    headers: getAuthHeaders('BADKEY'),
-    body: JSON.stringify({
-      name: modelName
-    })
-  });
+  const prompt = `What was Project A119 and what were its objectives?`;
 
-  if (unauthedResp.ok || unauthedResp.status !== 401) {
-    throw new Error('Unauthorized request returned unexpected response');
-  }
+  console.log(`Testing prompt: ${prompt}`);
+  await completion(prompt, {
+    model: modelName,
+    max_tokens: 1024,
+    stop: ['</s>'],
+    stream: false,
+    container: containerType
+  });
 }
 
 runIfCalledAsScript(main, import.meta.url);

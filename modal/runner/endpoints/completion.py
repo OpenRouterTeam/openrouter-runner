@@ -1,29 +1,49 @@
 from fastapi import status
 from fastapi.responses import StreamingResponse
 
-from runner.containers import get_container
+from runner.containers import DEFAULT_CONTAINER_TYPES, get_container
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
 from shared.protocol import (
     CompletionPayload,
     create_error_response,
 )
+from shared.volumes import get_model_path, models_volume
 
 
 def completion(
     payload: CompletionPayload,
 ):
-    try:
-        runner = get_container(payload.model)
-        stats = runner.generate.get_current_stats()
-        print(stats)
-        if stats.backlog > BACKLOG_THRESHOLD:
+    model_path = get_model_path(payload.model)
+    if not model_path.exists():
+        models_volume.reload()
+        if not model_path.exists():
             return create_error_response(
-                status.HTTP_503_SERVICE_UNAVAILABLE,
-                f"Backlog is too high: {stats.backlog}",
+                status.HTTP_400_BAD_REQUEST,
+                f"Unable to locate model {payload.model}",
             )
-    except ValueError as e:
-        return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
+
+    container_type = (
+        payload.runner.container
+        if payload.runner
+        else DEFAULT_CONTAINER_TYPES.get(payload.model)
+    )
+
+    if not container_type:
+        return create_error_response(
+            status.HTTP_400_BAD_REQUEST,
+            f"Unable to locate container type for model {payload.model}",
+        )
+
+    runner = get_container(str(model_path), container_type)
+
+    stats = runner.generate.get_current_stats()
+    print(stats)
+    if stats.backlog > BACKLOG_THRESHOLD:
+        return create_error_response(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            f"Backlog is too high: {stats.backlog}",
+        )
 
     # max_model_len = runner.max_model_len.remote()
     # input_ids = runner.tokenize_prompt.remote(payload)

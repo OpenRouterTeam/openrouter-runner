@@ -1,4 +1,4 @@
-from shared.volumes import get_model_path
+from shared.protocol import ContainerType
 
 from .vllm_unified import (
     VllmContainer_7B,
@@ -7,101 +7,44 @@ from .vllm_unified import (
     VllmContainerA100_160G,
 )
 
-
-def _to_lower_list(l: list[str]):
-    return [x.lower() for x in l]
-
-
-vllm_7b_model_ids = [
-    "mistralai/Mistral-7B-Instruct-v0.1",
-    "HuggingFaceH4/zephyr-7b-beta",
-    "Intel/neural-chat-7b-v3-1",
-    "Undi95/Toppy-M-7B",
-]
-_vllm_7b_models_lower = _to_lower_list(vllm_7b_model_ids)
-
-vllm_mid_model_ids = [
-    "PygmalionAI/mythalion-13b",
-    "Gryphe/MythoMax-L2-13b",
-    "Undi95/ReMM-SLERP-L2-13B",
-    # "meta-llama/Llama-2-13b-chat-hf",
-    "NousResearch/Nous-Hermes-Llama2-13b",
-    "microsoft/Orca-2-13b",
-    "jebcarter/Psyfighter-13B",
-    "KoboldAI/LLaMA2-13B-Psyfighter2",
-]
-_vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
-
-vllm_top_model_ids = [
-    "NeverSleep/Noromaid-20b-v0.1.1",
-]
-_vllm_top_model_lower = _to_lower_list(vllm_top_model_ids)
-
-vllm_a100_80gb_128k_model_ids = [
-    "NousResearch/Yarn-Mistral-7b-128k",
-]
-_vllm_a100_80gb_128k_model_lower = _to_lower_list(vllm_a100_80gb_128k_model_ids)
-
-vllm_a100_80gb_32k_model_ids = [
-    "NousResearch/Nous-Capybara-34B",
-]
-_vllm_a100_80gb_32k_models_lower = _to_lower_list(vllm_a100_80gb_32k_model_ids)
-
-vllm_a100_160gb_8k_models = [
-    "cognitivecomputations/dolphin-2.6-mixtral-8x7b",
-    "cognitivecomputations/dolphin-2.7-mixtral-8x7b",
-    "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3",
-]
-_vllm_a100_160gb_8k_models_lower = _to_lower_list(vllm_a100_160gb_8k_models)
-
-vllm_a100_160gb_models = [
-    "eastwind/tinymix-8x1b-chat",
-]
-_vllm_a100_160gb_models_lower = _to_lower_list(vllm_a100_160gb_models)
+DEFAULT_CONTAINER_TYPES = {
+    "mistralai/Mistral-7B-Instruct-v0.1": ContainerType.VllmContainer_7B,
+    "HuggingFaceH4/zephyr-7b-beta": ContainerType.VllmContainer_7B,
+    "Intel/neural-chat-7b-v3-1": ContainerType.VllmContainer_7B,
+    "Undi95/Toppy-M-7B": ContainerType.VllmContainer_7B,
+    "PygmalionAI/mythalion-13b": ContainerType.VllmContainerA100_40G,
+    "Gryphe/MythoMax-L2-13b": ContainerType.VllmContainerA100_40G,
+    "Undi95/ReMM-SLERP-L2-13B": ContainerType.VllmContainerA100_40G,
+    "meta-llama/Llama-2-13b-chat-hf": ContainerType.VllmContainerA100_40G,
+    "NousResearch/Nous-Hermes-Llama2-13b": ContainerType.VllmContainerA100_40G,
+    "microsoft/Orca-2-13b": ContainerType.VllmContainerA100_40G,
+    "jebcarter/Psyfighter-13B": ContainerType.VllmContainerA100_40G,
+    "KoboldAI/LLaMA2-13B-Psyfighter2": ContainerType.VllmContainerA100_40G,
+    "NeverSleep/Noromaid-20b-v0.1.1": ContainerType.VllmContainerA100_80G,
+    "NousResearch/Nous-Capybara-34B": ContainerType.VllmContainerA100_80G_32K,
+    "NousResearch/Yarn-Mistral-7b-128k": ContainerType.VllmContainerA100_80G_128K,
+    # "eastwind/tinymix-8x1b-chat": ContainerType.VllmContainerA100_160G,
+    "cognitivecomputations/dolphin-2.6-mixtral-8x7b": ContainerType.VllmContainerA100_160G_8K,
+    "cognitivecomputations/dolphin-2.7-mixtral-8x7b": ContainerType.VllmContainerA100_160G_8K,
+    "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": ContainerType.VllmContainerA100_160G_8K,
+}
 
 
-all_models = [
-    *vllm_7b_model_ids,
-    *vllm_mid_model_ids,
-    *vllm_top_model_ids,
-    *vllm_a100_80gb_32k_model_ids,
-    *vllm_a100_80gb_128k_model_ids,
-    *vllm_a100_160gb_8k_models,
-    *vllm_a100_160gb_models,
-]
-all_models_lower = _to_lower_list(all_models)
-
-
-def get_container(model: str):
-    normalized_model_id = model.lower()
-    model_path = get_model_path(normalized_model_id)
-
-    # if normalized_model_id == "lorean":
-    #     return Lorean7BContainer(str(model_path))
-
-    if model_path.exists():
-        if normalized_model_id in _vllm_7b_models_lower:
-            return VllmContainer_7B(str(model_path))
-
-        if normalized_model_id in _vllm_a100_160gb_8k_models_lower:
-            return VllmContainerA100_160G(str(model_path), max_model_len=8_192)
-
-        if normalized_model_id in _vllm_a100_160gb_models_lower:
-            return VllmContainerA100_160G(str(model_path))
-
-        if normalized_model_id in _vllm_a100_80gb_32k_models_lower:
-            return VllmContainerA100_80G(str(model_path), max_model_len=32_000)
-
-        if normalized_model_id in _vllm_a100_80gb_128k_model_lower:
-            return VllmContainerA100_80G(str(model_path), max_model_len=128_000)
-
-        if normalized_model_id in _vllm_mid_models_lower:
-            return VllmContainerA100_40G(str(model_path))
-
-        if normalized_model_id in _vllm_top_model_lower:
-            return VllmContainerA100_80G(str(model_path))
-
-        # if normalized_model_id in _vllm_awq_models_lower:
-        #     return VllmAWQ(str(model_path))
-
-    raise ValueError(f"Invalid model: {model}")
+def get_container(name: str, container_type: ContainerType):
+    match container_type:
+        case ContainerType.VllmContainer_7B:
+            return VllmContainer_7B(name)
+        case ContainerType.VllmContainerA100_40G:
+            return VllmContainerA100_40G(name)
+        case ContainerType.VllmContainerA100_80G:
+            return VllmContainerA100_80G(name)
+        case ContainerType.VllmContainerA100_80G_32K:
+            return VllmContainerA100_80G(name, max_model_len=32_000)
+        case ContainerType.VllmContainerA100_80G_128K:
+            return VllmContainerA100_80G(name, max_model_len=128_000)
+        case ContainerType.VllmContainerA100_160G:
+            return VllmContainerA100_160G(name)
+        case ContainerType.VllmContainerA100_160G_8K:
+            return VllmContainerA100_160G(name, max_model_len=8_192)
+        case ContainerType.VllmContainerA100_160G_32K:
+            return VllmContainerA100_160G(name, max_model_len=32_000)

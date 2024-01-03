@@ -50,6 +50,7 @@ def download_model(model_name: str):
         model_name,
         local_dir=model_path,
         cache_dir=cache_path,
+        local_dir_use_symlinks=False,
         token=env["HUGGINGFACE_TOKEN"],
     )
     print(f"Volume now contains {model_name}")

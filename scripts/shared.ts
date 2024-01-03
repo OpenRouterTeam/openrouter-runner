@@ -9,6 +9,7 @@ config({ path: envFile });
 const url = process.env.API_URL!;
 const key = process.env.RUNNER_API_KEY!;
 const defaultModel = process.env.MODEL;
+const defaultContainer = process.env.CONTAINER_TYPE;
 
 export function getApiUrl(path: string) {
   return `${url}${path}`;
@@ -29,20 +30,25 @@ export async function completion(
     stream = false,
     stop = ['</s>'],
     apiKey = key,
-    quiet = false
+    quiet = false,
+    container = defaultContainer
   } = {}
 ) {
   if (!quiet) {
     console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
   }
 
-  const bodyPayload: Record<string, unknown> = {
+  let bodyPayload: Record<string, unknown> = {
     id: Math.random().toString(36).substring(7),
     prompt,
     model,
     params: { max_tokens, stop },
     stream
   };
+
+  if (container) {
+    bodyPayload['runner'] = { container };
+  }
 
   const p = await fetch(getApiUrl(''), {
     method: 'POST',
@@ -56,6 +62,45 @@ export async function completion(
   }
 
   return p;
+}
+
+export async function enqueueAddModel(modelName: string) {
+  const payload = {
+    name: modelName
+  };
+
+  const response = await fetch(getApiUrl('/models'), {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to post model: ' + response.status);
+  }
+
+  return await response.json();
+}
+
+export async function awaitJob(jobId: string, timeoutMs: number) {
+  const start = Date.now();
+  const end = start + timeoutMs;
+  while (Date.now() < end) {
+    const statusResponse = await fetch(getApiUrl(`/jobs/${jobId}`), {
+      headers: getAuthHeaders()
+    });
+    if (statusResponse.status === 200) {
+      console.log('Job completed successfully');
+      break;
+    }
+    if (statusResponse.status != 202) {
+      throw new Error('Failed to process job: ' + statusResponse.status);
+    }
+
+    console.log('Job still in progress...');
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+  }
 }
 
 export function isEntryFile(url: string) {

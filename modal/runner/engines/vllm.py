@@ -9,6 +9,7 @@ from shared.protocol import (
     create_response_text,
     create_sse_data,
 )
+from shared.volumes import models_volume
 
 from .base import BaseEngine
 
@@ -62,6 +63,8 @@ class VllmEngine(BaseEngine):
 
     @method()
     async def generate(self, payload: CompletionPayload, params):
+        models_volume.reload()
+
         try:
             import time
 

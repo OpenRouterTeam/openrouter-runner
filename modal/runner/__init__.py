@@ -4,7 +4,9 @@ from fastapi.security import HTTPAuthorizationCredentials
 from modal import Secret, asgi_app
 from pydantic import BaseModel
 
-from runner.containers import all_models, all_models_lower
+from runner.containers import (
+    DEFAULT_CONTAINER_TYPES,
+)
 from runner.endpoints.completion import completion
 from runner.shared.clean import clean_models_volume
 from runner.shared.common import config, stub
@@ -71,7 +73,7 @@ def app():
 )
 def download():
     print("Downloading all models...")
-    results = list(download_model.map(all_models))
+    results = list(download_model.map(DEFAULT_CONTAINER_TYPES.keys()))
     if not results:
         raise Exception("Failed to perform remote calls")
     print("ALL DONE!")
@@ -82,5 +84,7 @@ def download():
 )
 def clean(all: bool = False, dry: bool = False):
     print(f"Cleaning models volume. ALL: {all}. DRY: {dry}")
-    remaining_models = [] if all else all_models_lower
+    remaining_models = (
+        [] if all else [m.lower() for m in DEFAULT_CONTAINER_TYPES]
+    )
     clean_models_volume(remaining_models, dry)

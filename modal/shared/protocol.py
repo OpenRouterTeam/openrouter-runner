@@ -1,7 +1,22 @@
+from enum import Enum
 from typing import List, Optional, Union
 
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
+
+
+class ContainerType(Enum):
+    VllmContainer_7B = "VllmContainer_7B"
+
+    VllmContainerA100_40G = "VllmContainerA100_40G"
+
+    VllmContainerA100_80G = "VllmContainerA100_80G"
+    VllmContainerA100_80G_32K = "VllmContainerA100_80G_32K"
+    VllmContainerA100_80G_128K = "VllmContainerA100_80G_128K"
+
+    VllmContainerA100_160G = "VllmContainerA100_160G"
+    VllmContainerA100_160G_8K = "VllmContainerA100_160G_8K"
+    VllmContainerA100_160G_32K = "VllmContainerA100_160G_32K"
 
 
 # https://github.com/vllm-project/vllm/blob/320a622ec4d098f2da5d097930f4031517e7327b/vllm/sampling_params.py#L7-L52
@@ -24,12 +39,17 @@ class Params(BaseModel):
     skip_special_tokens: bool = True
 
 
+class RunnerConfiguration(BaseModel):
+    container: ContainerType
+
+
 class CompletionPayload(BaseModel):
     id: str
     prompt: str
     stream: bool = False
     params: Params
     model: str
+    runner: RunnerConfiguration | None = None
 
 
 class ResponseBody(BaseModel):
