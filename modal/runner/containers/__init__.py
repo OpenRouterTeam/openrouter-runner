@@ -54,6 +54,11 @@ vllm_a100_160gb_8k_models = [
 ]
 _vllm_a100_160gb_8k_models_lower = _to_lower_list(vllm_a100_160gb_8k_models)
 
+vllm_a100_160gb_models = [
+    "eastwind/tinymix-8x1b-chat",
+]
+_vllm_a100_160gb_models_lower = _to_lower_list(vllm_a100_160gb_models)
+
 
 all_models = [
     *vllm_7b_model_ids,
@@ -62,6 +67,7 @@ all_models = [
     *vllm_a100_80gb_32k_model_ids,
     *vllm_a100_80gb_128k_model_ids,
     *vllm_a100_160gb_8k_models,
+    *vllm_a100_160gb_models,
 ]
 all_models_lower = _to_lower_list(all_models)
 
@@ -79,6 +85,9 @@ def get_container(model: str):
 
         if normalized_model_id in _vllm_a100_160gb_8k_models_lower:
             return VllmContainerA100_160G(str(model_path), max_model_len=8_192)
+
+        if normalized_model_id in _vllm_a100_160gb_models_lower:
+            return VllmContainerA100_160G(str(model_path))
 
         if normalized_model_id in _vllm_a100_80gb_32k_models_lower:
             return VllmContainerA100_80G(str(model_path), max_model_len=32_000)
