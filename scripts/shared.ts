@@ -38,7 +38,7 @@ export async function completion(
     console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
   }
 
-  let bodyPayload: Record<string, unknown> = {
+  const bodyPayload: Record<string, unknown> = {
     id: Math.random().toString(36).substring(7),
     prompt,
     model,
@@ -82,7 +82,11 @@ export async function enqueueAddModel(modelName: string) {
   return await response.json();
 }
 
-export async function awaitJob(jobId: string, timeoutMs: number) {
+export async function awaitJob(
+  jobId: string,
+  timeoutMs: number,
+  pollingIntervalMs = 5000
+) {
   const start = Date.now();
   const end = start + timeoutMs;
   while (Date.now() < end) {
@@ -93,13 +97,13 @@ export async function awaitJob(jobId: string, timeoutMs: number) {
       console.log('Job completed successfully');
       break;
     }
-    if (statusResponse.status != 202) {
+    if (statusResponse.status !== 202) {
       throw new Error('Failed to process job: ' + statusResponse.status);
     }
 
     console.log('Job still in progress...');
 
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, pollingIntervalMs));
   }
 }
 
