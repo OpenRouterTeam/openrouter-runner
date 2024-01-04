@@ -8,14 +8,10 @@ from runner.shared.common import stub
 from shared.volumes import models_path
 
 _vllm_image = Image.from_registry(
-    "nvcr.io/nvidia/pytorch:23.09-py3"
+    "nvidia/cuda:12.1.0-base-ubuntu22.04",
+    add_python="3.10",
 ).pip_install(
-    "torch",
-    "torchvision",
-    "torchaudio",
-    "transformers @ git+https://github.com/huggingface/transformers.git",
     "vllm==0.2.6",
-    "flash-attn",
 )
 
 
@@ -32,10 +28,13 @@ def _make_container(
             model_path: str,
             max_model_len: Optional[int] = None,
         ):
-            import ray
+            if num_gpus > 1:
+                # Patch issue from https://github.com/vllm-project/vllm/issues/1116
+                import ray
 
-            ray.shutdown()
-            ray.init(num_gpus=num_gpus)
+                ray.shutdown()
+                ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
+
             super().__init__(
                 VllmParams(
                     model=model_path,
