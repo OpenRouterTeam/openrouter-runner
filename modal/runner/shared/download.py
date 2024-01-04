@@ -11,6 +11,8 @@ downloader_image = (
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
     .pip_install(
         "huggingface_hub==0.19.4",
+    )
+    .pip_install(
         "hf-transfer==0.1.4",
     )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
@@ -41,14 +43,18 @@ def download_models(all_models: List[str]):
             if has_safetensors:
                 ignore_patterns.append("*.pt")  # Using safetensors
 
+            print(f"Checking for {model_name}")
             snapshot_download(
                 model_name,
                 local_dir=model_path,
                 cache_dir=cache_path,
+                # local_files_only=True,
+                local_dir_use_symlinks=False,
                 ignore_patterns=ignore_patterns,
                 token=env["HUGGINGFACE_TOKEN"],
             )
-            print(f"Volume contains {model_name}")
+            print(f"Volume now contains {model_name}")
+            stub.models_volume.commit()
         except FileNotFoundError:
             print(f"Downloading {model_name} ...")
             snapshot_download(
