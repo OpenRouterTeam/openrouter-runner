@@ -10,8 +10,11 @@ from shared.volumes import models_path
 _vllm_image = Image.from_registry(
     "nvcr.io/nvidia/pytorch:23.09-py3"
 ).pip_install(
+    "torch",
+    "torchvision",
+    "torchaudio",
     "transformers @ git+https://github.com/huggingface/transformers.git",
-    "vllm @ git+https://github.com/vllm-project/vllm.git",
+    "vllm==0.2.6",
     "flash-attn",
 )
 
@@ -41,6 +44,13 @@ def _make_container(
                 )
             )
 
+            # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
+            if num_gpus > 1:
+                import subprocess
+
+                RAY_CORE_PIN_OVERRIDE = "cpuid=0 ; for pid in $(ps xo '%p %c' | grep ray:: | awk '{print $1;}') ; do taskset -cp $cpuid $pid ; cpuid=$(($cpuid + 1)) ; done"
+                subprocess.call(RAY_CORE_PIN_OVERRIDE, shell=True)
+
     _VllmContainer.__name__ = name
 
     wrap = stub.cls(
@@ -64,5 +74,5 @@ VllmContainerA100_80G = _make_container(
     "VllmContainerA100_80G", num_gpus=1, memory=80
 )
 VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=2
+    "VllmContainerA100_160G", num_gpus=2, memory=80
 )

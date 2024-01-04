@@ -46,7 +46,7 @@ export async function completion(
     body: JSON.stringify(bodyPayload)
   });
 
-  const output = p.ok && !stream ? await p.json() : await p.text();
+  const output = await p.text();
   if (!quiet) {
     console.log(output);
   }

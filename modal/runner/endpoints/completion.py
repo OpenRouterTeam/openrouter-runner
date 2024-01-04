@@ -57,7 +57,13 @@ def completion(
     except ValueError as e:
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
+    async def generate():
+        async for text in runner.generate.remote_gen.aio(
+            payload, sampling_params
+        ):
+            yield text
+
     return StreamingResponse(
-        runner.generate.remote_gen(payload, sampling_params),
+        generate(),
         media_type="text/event-stream",
     )
