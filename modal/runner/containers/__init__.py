@@ -13,20 +13,12 @@ def _to_lower_list(l: list[str]):
 
 
 vllm_7b_model_ids = [
-    "mistralai/Mistral-7B-Instruct-v0.1",
-    "HuggingFaceH4/zephyr-7b-beta",
     "Intel/neural-chat-7b-v3-1",
-    "Undi95/Toppy-M-7B",
 ]
 _vllm_7b_models_lower = _to_lower_list(vllm_7b_model_ids)
 
 vllm_mid_model_ids = [
     "PygmalionAI/mythalion-13b",
-    "Gryphe/MythoMax-L2-13b",
-    "Undi95/ReMM-SLERP-L2-13B",
-    "meta-llama/Llama-2-13b-chat-hf",
-    "NousResearch/Nous-Hermes-Llama2-13b",
-    "microsoft/Orca-2-13b",
     "jebcarter/Psyfighter-13B",
     "KoboldAI/LLaMA2-13B-Psyfighter2",
 ]
@@ -42,9 +34,7 @@ vllm_a100_80gb_128k_model_ids = [
 ]
 _vllm_a100_80gb_128k_model_lower = _to_lower_list(vllm_a100_80gb_128k_model_ids)
 
-vllm_a100_80gb_32k_model_ids = [
-    "NousResearch/Nous-Capybara-34B",
-]
+vllm_a100_80gb_32k_model_ids = []
 _vllm_a100_80gb_32k_models_lower = _to_lower_list(vllm_a100_80gb_32k_model_ids)
 
 vllm_a100_160gb_8k_models = [
