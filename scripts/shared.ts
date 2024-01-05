@@ -39,7 +39,6 @@ export async function completion(
 
   const p = await fetch(url, {
     method: 'POST',
-    keepalive: true,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`
@@ -49,7 +48,7 @@ export async function completion(
 
   const output = await p.text();
   if (!quiet) {
-    console.log(output);
+    console.log(output.trim());
   }
 
   return p;

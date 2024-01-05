@@ -65,5 +65,6 @@ def completion(
 
     return StreamingResponse(
         generate(),
+        # runner.generate.remote_gen(payload, sampling_params),
         media_type="text/event-stream",
     )
