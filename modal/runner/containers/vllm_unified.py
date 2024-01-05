@@ -8,11 +8,10 @@ from runner.shared.common import stub
 from shared.volumes import models_path
 
 _vllm_image = Image.from_registry(
-    "nvcr.io/nvidia/pytorch:23.09-py3"
+    "nvidia/cuda:12.1.0-base-ubuntu22.04",
+    add_python="3.10",
 ).pip_install(
-    "transformers @ git+https://github.com/huggingface/transformers.git",
-    "vllm @ git+https://github.com/vllm-project/vllm.git",
-    "flash-attn",
+    "vllm==0.2.6",
 )
 
 
@@ -29,10 +28,13 @@ def _make_container(
             model_path: str,
             max_model_len: Optional[int] = None,
         ):
-            import ray
+            if num_gpus > 1:
+                # Patch issue from https://github.com/vllm-project/vllm/issues/1116
+                import ray
 
-            ray.shutdown()
-            ray.init(num_gpus=num_gpus)
+                ray.shutdown()
+                ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
+
             super().__init__(
                 VllmParams(
                     model=model_path,
@@ -40,6 +42,13 @@ def _make_container(
                     max_model_len=max_model_len,
                 )
             )
+
+            # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
+            if num_gpus > 1:
+                import subprocess
+
+                RAY_CORE_PIN_OVERRIDE = "cpuid=0 ; for pid in $(ps xo '%p %c' | grep ray:: | awk '{print $1;}') ; do taskset -cp $cpuid $pid ; cpuid=$(($cpuid + 1)) ; done"
+                subprocess.call(RAY_CORE_PIN_OVERRIDE, shell=True)
 
     _VllmContainer.__name__ = name
 
@@ -64,5 +73,5 @@ VllmContainerA100_80G = _make_container(
     "VllmContainerA100_80G", num_gpus=1, memory=80
 )
 VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=2
+    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
 )

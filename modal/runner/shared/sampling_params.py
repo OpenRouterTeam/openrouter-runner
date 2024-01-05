@@ -1,12 +1,7 @@
-# Copied from: https://github.com/vllm-project/vllm/blob/bc0644574ca12d754a031596bdcfe8e1f0e6ab39/vllm/sampling_params.py
-
-# The main reason we copy it here is to keep our CPU endpoint container lean - since all we need from vllm is this params validator and not the whole package
 """Sampling parameters for text generation."""
 from enum import IntEnum
 from functools import cached_property
 from typing import List, Optional, Union
-
-# import torch
 
 _SAMPLING_EPS = 1e-5
 
@@ -73,7 +68,9 @@ class SamplingParams:
             The returned output will not contain the stop strings.
         stop_token_ids: List of tokens that stop the generation when they are
             generated. The returned output will contain the stop tokens unless
-            the stop tokens are sepcial tokens.
+            the stop tokens are special tokens.
+        include_stop_str_in_output: Whether to include the stop strings in output
+            text. Defaults to False.
         ignore_eos: Whether to ignore the EOS token and continue generating
             tokens after the EOS token is generated.
         max_tokens: Maximum number of tokens to generate per output sequence.
@@ -107,6 +104,7 @@ class SamplingParams:
         early_stopping: Union[bool, str] = False,
         stop: Optional[Union[str, List[str]]] = None,
         stop_token_ids: Optional[List[int]] = None,
+        include_stop_str_in_output: bool = False,
         ignore_eos: bool = False,
         max_tokens: int = 16,
         logprobs: Optional[int] = None,
@@ -144,6 +142,7 @@ class SamplingParams:
         self.skip_special_tokens = skip_special_tokens
         self.spaces_between_special_tokens = spaces_between_special_tokens
         self.logits_processors = logits_processors
+        self.include_stop_str_in_output = include_stop_str_in_output
         self._verify_args()
         if self.use_beam_search:
             self._verify_beam_search()
@@ -153,6 +152,7 @@ class SamplingParams:
                 # Zero temperature means greedy sampling.
                 self.top_p = 1.0
                 self.top_k = -1
+                self.min_p = 0.0
                 self._verify_greedy_sampling()
 
     def _verify_args(self) -> None:
@@ -269,6 +269,7 @@ class SamplingParams:
             f"early_stopping={self.early_stopping}, "
             f"stop={self.stop}, "
             f"stop_token_ids={self.stop_token_ids}, "
+            f"include_stop_str_in_output={self.include_stop_str_in_output}, "
             f"ignore_eos={self.ignore_eos}, "
             f"max_tokens={self.max_tokens}, "
             f"logprobs={self.logprobs}, "
