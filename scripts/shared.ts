@@ -48,7 +48,7 @@ export async function completion(
 
   const output = await p.text();
   if (!quiet) {
-    console.log(output);
+    console.log(output.trim());
   }
 
   return p;

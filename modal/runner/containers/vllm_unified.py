@@ -73,5 +73,5 @@ VllmContainerA100_80G = _make_container(
     "VllmContainerA100_80G", num_gpus=1, memory=80
 )
 VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80
+    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
 )

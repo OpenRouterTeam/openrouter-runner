@@ -1,24 +1,25 @@
 import { getWordsFromFile } from 'scripts/get-words';
 import { completion, runIfCalledAsScript } from 'scripts/shared';
 
-const batchSize = 4;
-const context = 5_000;
-const inputSize = (context * 3) / 4;
-const maxTokens = context - inputSize;
+const batchSize = 8;
+// const context = 8_000;
+const wordsCount = 4_000;
+const maxTokens = 2_000;
 
 async function main() {
   const inputs = await Promise.all(
     [...Array(batchSize)].map(() =>
       getWordsFromFile({
-        wordsCount: inputSize,
+        wordsCount,
         startLine: Math.floor(Math.random() * 500)
       })
     )
   );
 
-  await Promise.all(
+  await Promise.allSettled(
     inputs.map((prompt) =>
       completion(prompt, {
+        stream: true,
         max_tokens: maxTokens
       })
     )

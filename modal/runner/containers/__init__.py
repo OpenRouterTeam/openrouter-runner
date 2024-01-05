@@ -63,7 +63,7 @@ def get_container(model: str):
             return VllmContainer_7B(str(model_path))
 
         if normalized_model_id in _vllm_a100_160gb_8k_models_lower:
-            return VllmContainerA100_160G(str(model_path), max_model_len=8_192)
+            return VllmContainerA100_160G(str(model_path))
 
         if normalized_model_id in _vllm_a100_80gb_32k_models_lower:
             return VllmContainerA100_80G(str(model_path), max_model_len=32_000)

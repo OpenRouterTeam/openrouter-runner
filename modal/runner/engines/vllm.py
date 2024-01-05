@@ -89,6 +89,7 @@ class VllmEngine(BaseEngine):
                 final_output = None
                 async for request_output in results_generator:
                     final_output = request_output
+                    yield " "
 
                 output = final_output.outputs[0].text
 
