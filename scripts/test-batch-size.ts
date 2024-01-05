@@ -1,7 +1,7 @@
 import { getWordsFromFile } from 'scripts/get-words';
 import { completion, runIfCalledAsScript } from 'scripts/shared';
 
-const batchSize = 4;
+const batchSize = 8;
 const context = 5_000;
 const inputSize = (context * 3) / 4;
 const maxTokens = context - inputSize;

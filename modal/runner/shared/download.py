@@ -65,4 +65,5 @@ def download_models(all_models: List[str]):
                 token=env["HUGGINGFACE_TOKEN"],
             )
             stub.models_volume.commit()
+
     print("ALL DONE!")

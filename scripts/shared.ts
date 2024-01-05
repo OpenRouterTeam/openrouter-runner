@@ -39,6 +39,7 @@ export async function completion(
 
   const p = await fetch(url, {
     method: 'POST',
+    keepalive: true,
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`
