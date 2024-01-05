@@ -1,6 +1,9 @@
 from typing import List
+
 from modal import Image
-from shared.volumes import get_model_path, get_repo_id, get_model_revision
+
+from shared.volumes import get_model_path, get_model_revision, get_repo_id
+
 from .common import stub
 
 downloader_image = (
