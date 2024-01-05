@@ -1,7 +1,8 @@
+from os import environ
 from typing import Optional
 
 import modal.gpu
-from modal import Image
+from modal import Image, Secret
 
 from runner.engines.vllm import VllmEngine, VllmParams
 from runner.shared.common import stub
@@ -10,9 +11,7 @@ from shared.volumes import models_path
 _vllm_image = Image.from_registry(
     "nvidia/cuda:12.1.0-base-ubuntu22.04",
     add_python="3.10",
-).pip_install(
-    "vllm==0.2.6",
-)
+).pip_install("vllm==0.2.6", "sentry-sdk==1.39.1")
 
 
 def _make_container(
@@ -28,27 +27,39 @@ def _make_container(
             model_path: str,
             max_model_len: Optional[int] = None,
         ):
-            if num_gpus > 1:
-                # Patch issue from https://github.com/vllm-project/vllm/issues/1116
-                import ray
+            import sentry_sdk
 
-                ray.shutdown()
-                ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
-
-            super().__init__(
-                VllmParams(
-                    model=model_path,
-                    tensor_parallel_size=num_gpus,
-                    max_model_len=max_model_len,
-                )
+            sentry_sdk.init(
+                dsn=environ.get("SENTRY_DSN"),
+                environment=environ.get("SENTRY_ENVIRONMENT") or "development",
             )
 
-            # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
-            if num_gpus > 1:
-                import subprocess
+            try:
+                if num_gpus > 1:
+                    # Patch issue from https://github.com/vllm-project/vllm/issues/1116
+                    import ray
 
-                RAY_CORE_PIN_OVERRIDE = "cpuid=0 ; for pid in $(ps xo '%p %c' | grep ray:: | awk '{print $1;}') ; do taskset -cp $cpuid $pid ; cpuid=$(($cpuid + 1)) ; done"
-                subprocess.call(RAY_CORE_PIN_OVERRIDE, shell=True)
+                    ray.shutdown()
+                    ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
+
+                super().__init__(
+                    VllmParams(
+                        model=model_path,
+                        tensor_parallel_size=num_gpus,
+                        max_model_len=max_model_len,
+                    )
+                )
+
+                # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
+                if num_gpus > 1:
+                    import subprocess
+
+                    RAY_CORE_PIN_OVERRIDE = "cpuid=0 ; for pid in $(ps xo '%p %c' | grep ray:: | awk '{print $1;}') ; do taskset -cp $cpuid $pid ; cpuid=$(($cpuid + 1)) ; done"
+                    subprocess.call(RAY_CORE_PIN_OVERRIDE, shell=True)
+            except Exception as e:
+                # We have to manually capture and re-raise because Modal catches the exception upstream
+                sentry_sdk.capture_exception(e)
+                raise e
 
     _VllmContainer.__name__ = name
 
@@ -59,6 +70,7 @@ def _make_container(
         allow_concurrent_inputs=concurrent_inputs,
         container_idle_timeout=20 * 60,
         timeout=10 * 60,
+        secret=Secret.from_name("sentry"),
     )
     return wrap(_VllmContainer)
 
