@@ -20,3 +20,12 @@ async def test_completion():
 
     output = await completion(prompt)
     assert output is not None
+
+
+@pytest.mark.integration
+@pytest.mark.asyncio
+async def test_completion_streaming():
+    prompt = "USER: What was Project A119 and what were its objectives?\n\n ASSISTANT:"
+
+    output = await completion(prompt, stream=True)
+    assert output is not None
