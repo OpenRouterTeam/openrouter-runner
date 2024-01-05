@@ -1,17 +1,84 @@
 # OpenRouter Runner
 
-OpenRouter Runner is a monolith inference engine, built with [Modal](https://modal.com/), used for lots of the open source models hosted in a fallback capacity on [openrouter.ai](https://openrouter.ai).
+OpenRouter Runner is a monolith inference engine, built with [Modal](https://modal.com/). It serves as a robust solution for the deployment of tons of open source models that are hosted in a fallback capacity on [openrouter.ai](https://openrouter.ai).
 
-## Engines
+> ✨ If you can make the Runner run faster and cheaper, we'll route to your services!
 
-- vLLM
-- HF Transformers
+## Runner Structure
+
+![OpenRouter Runner Structure](https://i.imgur.com/taN5BbH.png)
+
+The OpenRouter Runner consists of three main components that can be scaled out and customized.
+- **Containers** 
+- **Engines**
+- **Endpoints** 
+
+The types of AI models that are available to be used in the Runner are dictated by the defined Containers and Engines. If you are interested in adding to the runner please read our [contributing guide](./.github/CONTRIBUTING.md) and follow our [code of conduct](./.github/CODE_OF_CONDUCT.md).
+
+### Containers
+
+[Containers](https://cloud.google.com/learn/what-are-containers) are at the core of the OpenRouter Runner, prepared for deployment on [Modal](https://modal.com/), a cloud platform for running scalable containerized jobs. They enable efficient use of various inference engines.
+
+- **Flexible Environments**: Designed to support various container bases with the necessary libraries for diverse AI models.
+
+- **Configurable Resources**: Allows for tailored GPU and memory settings to match engine demands.
+
+- **High Throughput**: Engineered for concurrent processing, ensuring multiple requests are handled swiftly.
+
+- **Distributed Efficiency**: Integrates with Modal's distributed computing to scale across GPUs seamlessly.
+
+- **Cloud-Native Deployment**: Simplified deployment process, making it accessible through a command or web interface.
+
+For deployment instructions and engine integration on Modal, visit our [deployment guide](./modal/runner/README.md).
+
+
+### Engines
+
+[Engines](https://www.autoblocks.ai/glossary/inference-engine) in the OpenRouter Runner are responsible for executing model inference, which is the process of deriving predictions or decisions from a trained machine learning model. OpenRouter Runner supports a variety of engines, each optimized for different types of models or tasks.
+
+- **vLLM (Very Large Language Models)**: These engines are designed to handle the most advanced and sizeable language models, providing the computational power necessary to process extensive natural language data at scale.
+
+- **HF Transformers**: Built on the widely-used Hugging Face Transformers library, these engines provide a seamless experience for deploying transformer-based models, which are essential for a wide range of NLP tasks from text classification to question answering.
+
+- **Custom Engines**: OpenRouter Runner is engineered to be extensible, allowing developers to integrate other engines for other models that they would like to see in the router. Whether you have a specialized use case or require unique processing capabilities, our system is designed to accommodate your needs.
+
+For instructions on how to deploy an additional engine to the Runner, check out our [contributing guide](./.github/CONTRIBUTING.md).
+
+### Endpoints
+
+In OpenRouter Runner, **Endpoints** are the gateways through which users interact with the various AI models and engines. They are the accessible URLs or URIs that accept input (like text) and return the AI-generated results. Here's how endpoints can diversify the capabilities of OpenRouter Runner:
+
+- **Completion Endpoint**: Currently, we have a completion endpoint that handles text-based requests and returns generated text completions. It's ideal for applications like chatbots, text completion, and creative writing assistance.
+
+- **Custom Endpoints**: OpenRouter Runner is designed with extensibility in mind. Developers can create custom endpoints for other models that include items like Image Generation, Text-to-speech, and more.
+
+As we continue to develop and expand the OpenRouter Runner, new endpoints will be added to meet the evolving needs of our users. Stay tuned for updates, and if you have suggestions please let us know in the [OpenRouter Discord](https://discord.com/channels/1091220969173028894/1107397803266818229).
+
 
 ## Getting Started
 
-1. `cd modal`
-2. Select a modal app, like the [runner](./modal/runner/README.md)
-3. Follow the steps in the project README.
+If you're interested in building on top of the OpenRouter Runner follow the instructions below to get started.
+
+### Pre-Requisites
+
+Before diving into OpenRouter Runner, ensure you have the following set up and ready:
+
+- **Modal Account**: Sign up at [Modal](https://modal.com/) to deploy and manage containers. Understanding how Modal works will greatly help in deploying and scaling your models.
+  
+- **Hugging Face Account**: For access to a vast repository of pre-trained models and libraries. Get an account at [Hugging Face](https://huggingface.co/).
+  
+- **Python Knowledge**: Familiarity with Python as it's the primary language used for interacting with the inference engines and the Modal API.
+  
+- **Understanding of Containers**: Knowledge of containerization technology (like Docker) and how containers work is crucial, especially for customizing environments.
+  
+- **Familiarity with AI and ML Concepts**: An understanding of basic AI and machine learning concepts, particularly around model inference, will be very beneficial.
+
+### Start Building
+
+1. Fork this repository
+2. In your code editor of choice go to the modal folder
+    `cd modal`
+3. Follow the detailed instructions in the [Runner ReadMe](./modal/runner/README.md) to get started developing.
 
 ## Contributions
 

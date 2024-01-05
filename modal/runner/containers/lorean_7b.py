@@ -1,12 +1,11 @@
-from runner.engines.lorean import LoreanEngine, LoreanParams
-
 # Each container comprises of:
 # 1. An image
 # 2. A stub class wrapping an engine
+from modal import Image, gpu
 
-from modal import gpu, Image
-from shared.volumes import models_path, loras_path
+from runner.engines.lorean import LoreanEngine, LoreanParams
 from runner.shared.common import stub
+from shared.volumes import loras_path, models_path
 
 # TODO: Swap to lower-end GPU on prod
 _gpu = gpu.A100(count=1, memory=80)

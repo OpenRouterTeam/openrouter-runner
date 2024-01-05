@@ -1,13 +1,14 @@
-from typing import List, Optional
+from typing import Optional
+
 from modal import method
+from pydantic import BaseModel
 
 from shared.protocol import (
     Payload,
-    create_sse_data,
-    create_response_text,
     create_error_text,
+    create_response_text,
+    create_sse_data,
 )
-from pydantic import BaseModel
 
 from .base import BaseEngine
 
@@ -17,7 +18,7 @@ class VllmParams(BaseModel):
     model: str
     tokenizer: Optional[str] = None
     tokenizer_mode: str = "auto"
-    trust_remote_code: bool = False
+    trust_remote_code: bool = True
     download_dir: Optional[str] = None
     load_format: str = "auto"
     dtype: str = "auto"
@@ -28,7 +29,7 @@ class VllmParams(BaseModel):
     tensor_parallel_size: int = 1
     block_size: int = 16
     swap_space: int = 4  # GiB
-    gpu_memory_utilization: float = 0.95
+    gpu_memory_utilization: float = 0.90
     max_num_batched_tokens: Optional[int] = None
     max_num_seqs: int = 256
     # max_paddings: int = 256
@@ -69,35 +70,42 @@ class VllmEngine(BaseEngine):
             )
 
             t0 = time.time()
-            index, completion_tokens = 0, 0
-            output = ""
-            async for request_output in results_generator:
-                # Skipping invalid UTF8 tokens:
-                if (
-                    request_output.outputs[0].text
-                    and "\ufffd" == request_output.outputs[0].text[-1]
-                ):
-                    continue
-                token = request_output.outputs[0].text[index:]
-                if payload.stream:
+            if payload.stream:
+                index = 0
+
+                async for request_output in results_generator:
+                    # Skipping invalid UTF8 tokens:
+                    if (
+                        request_output.outputs[0].text
+                        and request_output.outputs[0].text[-1] == "\ufffd"
+                    ):
+                        continue
+                    token = request_output.outputs[0].text[index:]
+                    index = len(request_output.outputs[0].text)
                     yield create_sse_data(token)
-                else:
-                    output += token
-                index = len(request_output.outputs[0].text)
-                # Token accounting
+
+                output = ""
+            else:
+                final_output = None
+                async for request_output in results_generator:
+                    final_output = request_output
+                    yield " "
+
+                output = final_output.outputs[0].text
 
             prompt_tokens = len(request_output.prompt_token_ids)
             completion_tokens = len(request_output.outputs[0].token_ids)
-            if not payload.stream:
-                yield create_response_text(
-                    output,
+
+            if payload.stream:
+                yield create_sse_data(
+                    "",
                     prompt_tokens,
                     completion_tokens,
                     done=True,
                 )
             else:
-                yield create_sse_data(
-                    "",
+                yield create_response_text(
+                    output,
                     prompt_tokens,
                     completion_tokens,
                     done=True,
@@ -106,9 +114,6 @@ class VllmEngine(BaseEngine):
             throughput = completion_tokens / (time.time() - t0)
             print(f"Tokens count: {completion_tokens} tokens")
             print(f"Request completed: {throughput:.4f} tokens/s")
-
-            # yield "[DONE]"
-            # print(request_output.outputs[0].text)
         except Exception as err:
             e = create_error_text(err)
             print(e)

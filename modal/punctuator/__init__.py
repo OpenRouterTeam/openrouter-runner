@@ -1,19 +1,17 @@
-from modal import Secret, web_endpoint, Stub, gpu, Image, method
+import os
 
-from runner.shared.common import stub
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.responses import StreamingResponse
-
+from fastapi.security import HTTPAuthorizationCredentials
+from modal import Image, Secret, gpu, method, web_endpoint
 from pydantic import BaseModel
 
+from runner.shared.common import stub
 from shared.config import Config
 from shared.protocol import (
-    create_response_text,
     create_error_text,
+    create_response_text,
 )
-
-import os
 
 
 class Payload(BaseModel):
@@ -54,10 +52,6 @@ config = Config(
     name="punctuator",
     api_key_id="RUNNER_API_KEY",
 )
-
-stub = Stub(config.name)
-
-auth_scheme = HTTPBearer()
 
 
 @stub.cls(
@@ -113,17 +107,9 @@ class Punctuator:
 )
 @web_endpoint(method="POST")
 def punct(
-    payload: Payload, token: HTTPAuthorizationCredentials = Depends(auth_scheme)
+    payload: Payload,
+    _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
-    import os
-
-    if token.credentials != os.environ[config.api_key_id]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     p = Punctuator()
 
     return StreamingResponse(

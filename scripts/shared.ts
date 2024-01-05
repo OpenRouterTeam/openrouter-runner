@@ -16,11 +16,17 @@ export async function completion(
     model = defaultModel,
     max_tokens = 16,
     stream = false,
-    stop = ['</s>']
+    stop = ['</s>'],
+    apiKey = key,
+    quiet = false
   } = {}
 ) {
-  if (!url || !key) {
+  if (!url || !apiKey) {
     throw new Error('Missing url or key');
+  }
+
+  if (!quiet) {
+    console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
   }
 
   const bodyPayload: Record<string, unknown> = {
@@ -35,18 +41,17 @@ export async function completion(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${key}`
+      Authorization: `Bearer ${apiKey}`
     },
     body: JSON.stringify(bodyPayload)
   });
 
-  if (p.ok && !stream) {
-    const output = await p.json();
-    console.log(output);
-  } else {
-    const output = await p.text();
-    console.log(output);
+  const output = await p.text();
+  if (!quiet) {
+    console.log(output.trim());
   }
+
+  return p;
 }
 
 export function isEntryFile(url: string) {

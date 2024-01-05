@@ -1,33 +1,20 @@
-import os
-
-from fastapi import Depends, HTTPException, status
-
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, status
 from fastapi.responses import StreamingResponse
+from fastapi.security import HTTPAuthorizationCredentials
 
+from runner.containers import get_container
+from runner.shared.common import BACKLOG_THRESHOLD, config
 from runner.shared.sampling_params import SamplingParams
 from shared.protocol import (
-    create_error_response,
     Payload,
+    create_error_response,
 )
-
-from runner.shared.common import config, BACKLOG_THRESHOLD
-from runner.containers import get_container
-
-auth_scheme = HTTPBearer()
 
 
 def completion(
     payload: Payload,
-    token: HTTPAuthorizationCredentials = Depends(auth_scheme),
+    _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
-    if token.credentials != os.environ[config.api_key_id]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect bearer token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     try:
         runner = get_container(payload.model)
         stats = runner.generate.get_current_stats()
@@ -70,7 +57,14 @@ def completion(
     except ValueError as e:
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
+    async def generate():
+        async for text in runner.generate.remote_gen.aio(
+            payload, sampling_params
+        ):
+            yield text
+
     return StreamingResponse(
-        runner.generate.remote_gen(payload, sampling_params),
+        generate(),
+        # runner.generate.remote_gen(payload, sampling_params),
         media_type="text/event-stream",
     )

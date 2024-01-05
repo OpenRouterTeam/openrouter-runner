@@ -2,17 +2,16 @@
 # 1. An image
 # 2. A stub class wrapping an engine
 
-from modal import gpu, Image, method, Secret
+from modal import Image, Secret, gpu, method
 
-from tuner.shared.common import stub
+from shared.protocol import create_error_text, create_sse_data
 from shared.volumes import (
-    loras_path,
     get_lora_path,
-    models_path,
     get_model_path,
+    loras_path,
+    models_path,
 )
-
-from shared.protocol import create_sse_data, create_error_text
+from tuner.shared.common import stub
 
 # TODO: Swap to lower-end GPU on prod
 _gpu = gpu.A100(count=1, memory=80)
@@ -74,8 +73,8 @@ class Mistral7BLoraContainer:
 
         import torch
         from transformers import (
-            AutoTokenizer,
             AutoModelForCausalLM,
+            AutoTokenizer,
             BitsAndBytesConfig,
         )
 
@@ -115,7 +114,7 @@ class Mistral7BLoraContainer:
                 project="tuner",
             )
 
-            from accelerate import FullyShardedDataParallelPlugin, Accelerator
+            from accelerate import Accelerator, FullyShardedDataParallelPlugin
             from torch.distributed.fsdp.fully_sharded_data_parallel import (
                 FullOptimStateDictConfig,
                 FullStateDictConfig,
@@ -177,9 +176,9 @@ class Mistral7BLoraContainer:
             )
 
             from peft import (
-                prepare_model_for_kbit_training,
                 LoraConfig,
                 get_peft_model,
+                prepare_model_for_kbit_training,
             )
 
             yield create_sse_data("Prepare model...")
@@ -218,12 +217,13 @@ class Mistral7BLoraContainer:
                 model.is_parallelizable = True
                 model.model_parallel = True
 
+            from datetime import datetime
+
             from transformers import (
+                DataCollatorForLanguageModeling,
                 Trainer,
                 TrainingArguments,
-                DataCollatorForLanguageModeling,
             )
-            from datetime import datetime
 
             # TODO: Move to generator params
             finetune_id = "viggo-finetune"
