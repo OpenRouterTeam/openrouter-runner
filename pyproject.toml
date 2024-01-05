@@ -21,7 +21,9 @@ wandb = "^0.15.12"
 ruff = "^0.1.9"
 pre-commit = "^3.6.0"
 pytest = "^7.4.3"
+pytest-asyncio = "^0.23.3"
 httpx = "^0.26.0"
+pydantic-settings = "^2.1.0"
 
 [build-system]
 requires = ["poetry-core"]
