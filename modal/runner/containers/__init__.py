@@ -21,6 +21,7 @@ vllm_mid_model_ids = [
     "PygmalionAI/mythalion-13b",
     "jebcarter/Psyfighter-13B",
     "KoboldAI/LLaMA2-13B-Psyfighter2",
+    "Austism/chronos-hermes-13b-v2",
 ]
 _vllm_mid_models_lower = _to_lower_list(vllm_mid_model_ids)
 
@@ -35,6 +36,7 @@ _vllm_a100_80gb_32k_models_lower = _to_lower_list(vllm_a100_80gb_32k_model_ids)
 vllm_a100_160gb_8k_models = [
     "cognitivecomputations/dolphin-2.6-mixtral-8x7b",
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3",
+    "jondurbin/bagel-34b-v0.2",
 ]
 _vllm_a100_160gb_8k_models_lower = _to_lower_list(vllm_a100_160gb_8k_models)
 
