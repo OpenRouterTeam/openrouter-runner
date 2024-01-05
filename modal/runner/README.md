@@ -56,6 +56,12 @@ Before you start working with the OpenRouter Runner, it's crucial to set up your
       ```shell
       modal secret create ext-api-key RUNNER_API_KEY=<generate a random key>
       ```
+    
+    - **Sentry Configuration**:
+      Create another secret group for the Sentry error tracking storage. Replace `<optional SENTRY_DSN>` with your DSN from sentry.io or leave it blank to disable Sentry (e.g. `SENTRY_DSN=`). You can also add an environment by adding `SENTRY_ENVIRONMENT=<environment name>` to the command.
+      ```shell
+      modal secret create sentry SENTRY_DSN=<optional SENTRY_DSN>
+      ```
 
  Now if you go to your dashboard on [Modal](https://modal.com/) and click on the secrets tab you should be able to see your keys deployed there.
 
