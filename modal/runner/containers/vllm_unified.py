@@ -87,3 +87,11 @@ VllmContainerA100_80G = _make_container(
 VllmContainerA100_160G = _make_container(
     "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
 )
+
+# Allow new models to be tested on the isolated container
+VllmContainerA100_160G_Isolated = _make_container(
+    "VllmContainerA100_160G_Isolated",
+    num_gpus=2,
+    memory=80,
+    concurrent_inputs=4,
+)
