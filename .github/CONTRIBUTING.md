@@ -154,8 +154,6 @@ By following these detailed steps, contributors will have a clearer understandin
 
 ### Adding a new container
 
-TODO: Update the following section to reflect the new container structure.
-
 Adding a new container is necessary when your model requires a different environment, software, or hardware configuration. Follow these steps to create and integrate a new container:
 
 1. **Copy an Existing Container**:
