@@ -18,6 +18,7 @@ downloader_image = (
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
 
+
 def download_models(all_models: List[str]):
     from os import environ as env
 
@@ -25,7 +26,6 @@ def download_models(all_models: List[str]):
 
     cache_path = get_model_path("__cache__")
     for model_name in all_models:
-
         model_path = get_model_path(model_name)
         model_path.mkdir(parents=True, exist_ok=True)
 
