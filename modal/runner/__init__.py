@@ -1,4 +1,4 @@
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 from modal import Secret, asgi_app
@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from runner.containers import (
     DEFAULT_CONTAINER_TYPES,
 )
-from runner.endpoints.completion import completion
+from runner.endpoints.completion import completion as completion_endpoint
 from runner.shared.clean import clean_models_volume
 from runner.shared.common import config, stub
 from runner.shared.download import download_model
@@ -17,12 +17,23 @@ from shared.volumes import models_path, models_volume
 api_app = FastAPI()
 
 
-@api_app.post("/")
+@api_app.middleware("http")
+async def log_errors(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code == 404:
+        print(
+            f"Request: {request.method} {request.url}, Response: {response.status_code}"
+        )
+    return response
+
+
+@api_app.post("/")  # for backwards compatibility with the Modal URL
+@api_app.post("/completion")
 async def post_completion(
     payload: CompletionPayload,
     _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
-    return completion(payload)
+    return completion_endpoint(payload)
 
 
 class AddModelPayload(BaseModel):
@@ -62,10 +73,9 @@ async def get_job(
     timeout=60 * 15,
     allow_concurrent_inputs=100,
     volumes={models_path: models_volume},
-    name="completion",  # for backwards compatibility with the Modal URL
 )
 @asgi_app()
-def app():
+def completion():  # named for backwards compatibility with the Modal URL
     return api_app
 
 

@@ -6,8 +6,8 @@ import {
 } from 'scripts/shared';
 
 async function main() {
-  const modelName = 'jondurbin/bagel-34b-v0.2';
-  const containerType = 'VllmContainerA100_160G_32K';
+  const modelName = 'microsoft/Orca-2-13b';
+  const containerType = 'VllmContainerA100_40G';
 
   console.log(`Test adding model ${modelName}`);
   const body = await enqueueAddModel(modelName);
