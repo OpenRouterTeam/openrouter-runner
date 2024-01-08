@@ -62,6 +62,7 @@ async def get_job(
     timeout=60 * 15,
     allow_concurrent_inputs=100,
     volumes={models_path: models_volume},
+    name="completion",  # for backwards compatibility with the Modal URL
 )
 @asgi_app()
 def app():
