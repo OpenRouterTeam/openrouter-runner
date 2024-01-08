@@ -12,11 +12,9 @@ class ContainerType(Enum):
 
     VllmContainerA100_80G = "VllmContainerA100_80G"
     VllmContainerA100_80G_32K = "VllmContainerA100_80G_32K"
-    VllmContainerA100_80G_128K = "VllmContainerA100_80G_128K"
 
     VllmContainerA100_160G = "VllmContainerA100_160G"
-    VllmContainerA100_160G_8K = "VllmContainerA100_160G_8K"
-    VllmContainerA100_160G_32K = "VllmContainerA100_160G_32K"
+    VllmContainerA100_160G_Isolated = "VllmContainerA100_160G_Isolated"
 
 
 # https://github.com/vllm-project/vllm/blob/320a622ec4d098f2da5d097930f4031517e7327b/vllm/sampling_params.py#L7-L52

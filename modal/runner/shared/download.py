@@ -10,8 +10,8 @@ cache_path = get_model_path("__cache__")
 downloader_image = (
     Image.debian_slim()
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
-    .pip_install("huggingface_hub~=0.17.1")
-    .pip_install("hf-transfer~=0.1")
+    .pip_install("huggingface_hub==0.19.4")
+    .pip_install("hf-transfer==0.1.4")
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
 
@@ -37,12 +37,9 @@ def download_model(model_name: str):
             token=env["HUGGINGFACE_TOKEN"],
         )
     )
-    patterns = ["tokenizer.model", "*.json"]
+    ignore_patterns = []
     if has_safetensors:
-        patterns.append("*.safetensors")
-    else:
-        patterns.append("*.bin")
-    # TODO: Use these patterns?
+        ignore_patterns.append("*.pt")
 
     # Clean doesn't remove the cache, so using `local_files_only` here returns the cache even when the local dir is empty.
     print(f"Checking for {model_name}")
@@ -51,6 +48,7 @@ def download_model(model_name: str):
         local_dir=model_path,
         cache_dir=cache_path,
         local_dir_use_symlinks=False,
+        ignore_patterns=ignore_patterns,
         token=env["HUGGINGFACE_TOKEN"],
     )
     print(f"Volume now contains {model_name}")

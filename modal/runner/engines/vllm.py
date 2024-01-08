@@ -19,7 +19,7 @@ class VllmParams(BaseModel):
     model: str
     tokenizer: Optional[str] = None
     tokenizer_mode: str = "auto"
-    trust_remote_code: bool = False
+    trust_remote_code: bool = True
     download_dir: Optional[str] = None
     load_format: str = "auto"
     dtype: str = "auto"
@@ -30,7 +30,7 @@ class VllmParams(BaseModel):
     tensor_parallel_size: int = 1
     block_size: int = 16
     swap_space: int = 4  # GiB
-    gpu_memory_utilization: float = 0.95
+    gpu_memory_utilization: float = 0.90
     max_num_batched_tokens: Optional[int] = None
     max_num_seqs: int = 256
     # max_paddings: int = 256
@@ -92,6 +92,7 @@ class VllmEngine(BaseEngine):
                 final_output = None
                 async for request_output in results_generator:
                     final_output = request_output
+                    yield " "
 
                 output = final_output.outputs[0].text
 

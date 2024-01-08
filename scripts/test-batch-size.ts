@@ -1,11 +1,10 @@
 import { getWordsFromFile } from 'scripts/get-words';
 import { completion, runIfCalledAsScript } from 'scripts/shared';
 
-const batchSize = 4;
-const context = 16_000;
-const inputSize = 12_000;
-const wordsCount = Math.ceil((inputSize * 2) / 4);
-const maxTokens = Math.floor(((context - inputSize) * 95) / 100);
+const batchSize = 8;
+// const context = 8_000;
+const wordsCount = 4_000;
+const maxTokens = 2_000;
 
 async function main() {
   const inputs = await Promise.all(
@@ -17,9 +16,10 @@ async function main() {
     )
   );
 
-  await Promise.all(
+  await Promise.allSettled(
     inputs.map((prompt) =>
       completion(prompt, {
+        stream: true,
         max_tokens: maxTokens
       })
     )
