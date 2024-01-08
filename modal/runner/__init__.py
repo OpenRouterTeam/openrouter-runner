@@ -12,6 +12,8 @@ stub.function(
     timeout=60 * 15,
     allow_concurrent_inputs=100,
     volumes={str(models_path): stub.models_volume},
+    cpu=2,
+    memory=1024,
 )(web_endpoint(method="POST")(completion))
 
 
