@@ -77,20 +77,17 @@ Adding new models to OpenRouter Runner is straightforward, especially when using
 
 1. **Find and Copy the Model ID**: Browse [Hugging Face](https://huggingface.co/models) for the model you wish to deploy. For example, let's use `"mistralai/Mistral-7B-Instruct-v0.2"`.
 
-2. **Update Model List**: Open the `runner/containers/__init__.py` file. Locate the list of model IDs for the container you're using (e.g., `vllm_7b_model_ids` for a vLLM 7B model container). Add your new model ID to the list:
+2. **Update Model List**: Open the `runner/containers/__init__.py` file. Add your new model ID to the `DEFAULT_CONTAINER_TYPES` dictionary, using the container definition you want to use:
     ```python
-    vllm_7b_model_ids = [
-        "mistralai/Mistral-7B-Instruct-v0.1",
-        "HuggingFaceH4/zephyr-7b-beta",
-        "Intel/neural-chat-7b-v3-1",
-        "Undi95/Toppy-M-7B",
-        "mistralai/Mistral-7B-Instruct-v0.2" # New model added adhering to parameters
-    ]
+    DEFAULT_CONTAINER_TYPES = {
+        "Intel/neural-chat-7b-v3-1": ContainerType.VllmContainer_7B,
+        "mistralai/Mistral-7B-Instruct-v0.2": ContainerType.VllmContainer_7B,
+        ...
+    }
     ```
-    This simple step registers the new model to be run with the existing container.
 
 
-3. **Handle Access Permissions**: If you plan to deploy a model like `"meta-llama/Llama-2-13b-chat-hf"` which is included in the codebase, and you don't yet have access, visit [here](https://huggingface.co/meta-llama/Llama-2-13b-chat-hf) for instructions on how to request access. Temporarily, you can comment out this model in the list to proceed with deployment.
+3. **Handle Access Permissions**: If you plan to deploy a model like `"meta-llama/Llama-2-13b-chat-hf"`, and you don't yet have access, visit [here](https://huggingface.co/meta-llama/Llama-2-13b-chat-hf) for instructions on how to request access. Temporarily, you can comment out this model in the list to proceed with deployment.
 
 4. **Download and Prepare Models**: Use the CLI to execute the `runner::download` function within your application. This command is designed to download and prepare the required models for your containerized app.
     ```shell
@@ -123,13 +120,7 @@ Sometimes the model you want to deploy requires an environment or configurations
     ]
     ```
 
-5. **Associate Models**: In the same `__init__.py` file, make sure the `all_models` list includes your new list of model IDs, so they are recognized and downloaded by the system.
-    ```python
-    all_models = [
-        *new_model_ids,
-        # Include other model lists as necessary.
-    ]
-    ```
+5. **Associate Models**: Add a `ContainerType` for your model in `modal/shared/protocol.py` and define how to build it in `get_container(model_path: Path, container_type: ContainerType)` in `modal/runner/containers/__init__.py`.
 
 6. **Download and Prepare Models**: Use the CLI to execute the `runner::download` function within your application. This command is designed to download and prepare the required models for your containerized app.
     ```shell
