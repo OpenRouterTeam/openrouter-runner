@@ -1,4 +1,5 @@
 from os import environ
+from pathlib import Path
 from typing import Optional
 
 import modal.gpu
@@ -6,7 +7,7 @@ from modal import Image, Secret
 
 from runner.engines.vllm import VllmEngine, VllmParams
 from runner.shared.common import stub
-from shared.volumes import models_path, models_volume
+from shared.volumes import does_model_exist, models_path, models_volume
 
 _vllm_image = Image.from_registry(
     "nvidia/cuda:12.1.0-base-ubuntu22.04",
@@ -24,7 +25,7 @@ def _make_container(
     class _VllmContainer(VllmEngine):
         def __init__(
             self,
-            model_path: str,
+            model_path: Path,
             max_model_len: Optional[int] = None,
         ):
             import sentry_sdk
@@ -35,6 +36,9 @@ def _make_container(
             )
 
             try:
+                if not does_model_exist(model_path):
+                    raise Exception("Unable to locate model {}", model_path)
+
                 if num_gpus > 1:
                     # Patch issue from https://github.com/vllm-project/vllm/issues/1116
                     import ray
@@ -44,7 +48,7 @@ def _make_container(
 
                 super().__init__(
                     VllmParams(
-                        model=model_path,
+                        model=str(model_path),
                         tensor_parallel_size=num_gpus,
                         max_model_len=max_model_len,
                     )

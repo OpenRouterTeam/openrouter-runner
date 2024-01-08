@@ -37,9 +37,10 @@ def download_model(model_name: str):
             token=env["HUGGINGFACE_TOKEN"],
         )
     )
-    ignore_patterns = []
+    ignore_patterns: list[str] = []
     if has_safetensors:
         ignore_patterns.append("*.pt")
+        ignore_patterns.append("*.bin")
 
     # Clean doesn't remove the cache, so using `local_files_only` here returns the cache even when the local dir is empty.
     print(f"Checking for {model_name}")

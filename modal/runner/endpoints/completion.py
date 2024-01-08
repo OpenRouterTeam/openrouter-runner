@@ -8,20 +8,18 @@ from shared.protocol import (
     CompletionPayload,
     create_error_response,
 )
-from shared.volumes import get_model_path, models_volume
+from shared.volumes import does_model_exist, get_model_path
 
 
 def completion(
     payload: CompletionPayload,
 ):
     model_path = get_model_path(payload.model)
-    if not model_path.exists():
-        models_volume.reload()
-        if not model_path.exists():
-            return create_error_response(
-                status.HTTP_400_BAD_REQUEST,
-                f"Unable to locate model {payload.model}",
-            )
+    if not does_model_exist(model_path):
+        return create_error_response(
+            status.HTTP_400_BAD_REQUEST,
+            f"Unable to locate model {payload.model}",
+        )
 
     container_type = (
         payload.runner.container
@@ -35,7 +33,7 @@ def completion(
             f"Unable to locate container type for model {payload.model}",
         )
 
-    runner = get_container(str(model_path), container_type)
+    runner = get_container(model_path, container_type)
 
     stats = runner.generate.get_current_stats()
     print(stats)

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from shared.protocol import ContainerType
 
 from .vllm_unified import (
@@ -21,19 +23,19 @@ DEFAULT_CONTAINER_TYPES = {
 }
 
 
-def get_container(name: str, container_type: ContainerType):
+def get_container(model_path: Path, container_type: ContainerType):
     match container_type:
         case ContainerType.VllmContainer_7B:
-            return VllmContainer_7B(name)
+            return VllmContainer_7B(model_path)
         case ContainerType.VllmContainerA100_40G:
-            return VllmContainerA100_40G(name)
+            return VllmContainerA100_40G(model_path)
         case ContainerType.VllmContainerA100_80G:
-            return VllmContainerA100_80G(name)
+            return VllmContainerA100_80G(model_path)
         case ContainerType.VllmContainerA100_80G_32K:
-            return VllmContainerA100_80G(name, max_model_len=32_000)
+            return VllmContainerA100_80G(model_path, max_model_len=32_000)
         case ContainerType.VllmContainerA100_160G:
-            return VllmContainerA100_160G(name)
+            return VllmContainerA100_160G(model_path)
         case ContainerType.VllmContainerA100_160G:
-            return VllmContainerA100_160G(name)
+            return VllmContainerA100_160G(model_path)
         case ContainerType.VllmContainerA100_160G_Isolated:
-            return VllmContainerA100_160G_Isolated(name)
+            return VllmContainerA100_160G_Isolated(model_path)
