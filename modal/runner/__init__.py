@@ -20,7 +20,8 @@ api_app = FastAPI()
 @api_app.middleware("http")
 async def log_errors(request: Request, call_next):
     response = await call_next(request)
-    if response.status_code == 404:
+    if response.status_code >= 400:
+        # Log full request URL for easier debugging
         print(
             f"Request: {request.method} {request.url}, Response: {response.status_code}"
         )
