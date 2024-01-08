@@ -2,7 +2,7 @@ from typing import List
 
 from modal import Image
 
-from shared.volumes import get_model_path
+from shared.volumes import get_model_path, get_model_revision, get_repo_id
 
 from .common import stub
 
@@ -18,7 +18,6 @@ downloader_image = (
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
 
-
 def download_models(all_models: List[str]):
     from os import environ as env
 
@@ -26,6 +25,7 @@ def download_models(all_models: List[str]):
 
     cache_path = get_model_path("__cache__")
     for model_name in all_models:
+
         model_path = get_model_path(model_name)
         model_path.mkdir(parents=True, exist_ok=True)
 
@@ -34,7 +34,8 @@ def download_models(all_models: List[str]):
             has_safetensors = any(
                 fn.lower().endswith(".safetensors")
                 for fn in list_repo_files(
-                    model_name,
+                    repo_id=get_repo_id(model_name),
+                    revision=get_model_revision(model_name),
                     repo_type="model",
                     token=env["HUGGINGFACE_TOKEN"],
                 )
@@ -45,7 +46,8 @@ def download_models(all_models: List[str]):
 
             print(f"Checking for {model_name}")
             snapshot_download(
-                model_name,
+                repo_id=get_repo_id(model_name),
+                revision=get_model_revision(model_name),
                 local_dir=model_path,
                 cache_dir=cache_path,
                 local_files_only=True,
@@ -58,7 +60,8 @@ def download_models(all_models: List[str]):
         except FileNotFoundError:
             print(f"Downloading {model_name} ...")
             snapshot_download(
-                model_name,
+                repo_id=get_repo_id(model_name),
+                revision=get_model_revision(model_name),
                 local_dir=model_path,
                 cache_dir=cache_path,
                 ignore_patterns=ignore_patterns,
