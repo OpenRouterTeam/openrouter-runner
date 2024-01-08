@@ -50,7 +50,7 @@ def download_models(all_models: List[str]):
                 revision=get_model_revision(model_name),
                 local_dir=model_path,
                 cache_dir=cache_path,
-                # local_files_only=True,
+                local_files_only=True,
                 local_dir_use_symlinks=False,
                 ignore_patterns=ignore_patterns,
                 token=env["HUGGINGFACE_TOKEN"],

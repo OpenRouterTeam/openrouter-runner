@@ -5,6 +5,7 @@ from .vllm_unified import (
     VllmContainerA100_40G,
     VllmContainerA100_80G,
     VllmContainerA100_160G,
+    VllmContainerA100_160G_Isolated,
 )
 
 
@@ -36,9 +37,15 @@ _vllm_a100_80gb_32k_models_lower = _to_lower_list(vllm_a100_80gb_32k_model_ids)
 vllm_a100_160gb_8k_models = [
     "cognitivecomputations/dolphin-2.6-mixtral-8x7b",
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3",
-    "jondurbin/bagel-34b-v0.2",
 ]
 _vllm_a100_160gb_8k_models_lower = _to_lower_list(vllm_a100_160gb_8k_models)
+
+vllm_a100_160gb_isolated_models = [
+    "jondurbin/bagel-34b-v0.2",
+]
+_vllm_a100_160gb_isolated_models_lower = _to_lower_list(
+    vllm_a100_160gb_isolated_models
+)
 
 
 all_models = [
@@ -47,6 +54,7 @@ all_models = [
     *vllm_top_model_ids,
     *vllm_a100_80gb_32k_model_ids,
     *vllm_a100_160gb_8k_models,
+    *vllm_a100_160gb_isolated_models,
 ]
 all_models_lower = _to_lower_list(all_models)
 
@@ -64,6 +72,9 @@ def get_container(model: str):
 
         if normalized_model_id in _vllm_a100_160gb_8k_models_lower:
             return VllmContainerA100_160G(str(model_path))
+
+        if normalized_model_id in _vllm_a100_160gb_isolated_models_lower:
+            return VllmContainerA100_160G_Isolated(str(model_path))
 
         if normalized_model_id in _vllm_a100_80gb_32k_models_lower:
             return VllmContainerA100_80G(str(model_path), max_model_len=32_000)
