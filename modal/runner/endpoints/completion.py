@@ -11,7 +11,7 @@ from shared.protocol import (
 )
 
 
-def completion(
+async def completion(
     payload: Payload,
     _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
