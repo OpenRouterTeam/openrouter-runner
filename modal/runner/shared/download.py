@@ -3,7 +3,13 @@ from os import environ as env
 from modal import Image, Secret
 
 from runner.shared.common import stub
-from shared.volumes import get_model_path, models_path, models_volume
+from shared.volumes import (
+    get_model_path,
+    get_model_revision,
+    get_repo_id,
+    models_path,
+    models_volume,
+)
 
 cache_path = get_model_path("__cache__")
 
@@ -28,11 +34,15 @@ def download_model(model_name: str):
     model_path = get_model_path(model_name)
     model_path.mkdir(parents=True, exist_ok=True)
 
+    repo_id = get_repo_id(model_name)
+    revision = get_model_revision(model_name)
+
     # only download safetensors if available
     has_safetensors = any(
         fn.lower().endswith(".safetensors")
         for fn in list_repo_files(
-            model_name,
+            repo_id=repo_id,
+            revision=revision,
             repo_type="model",
             token=env["HUGGINGFACE_TOKEN"],
         )
@@ -45,7 +55,8 @@ def download_model(model_name: str):
     # Clean doesn't remove the cache, so using `local_files_only` here returns the cache even when the local dir is empty.
     print(f"Checking for {model_name}")
     snapshot_download(
-        model_name,
+        repo_id=repo_id,
+        revision=revision,
         local_dir=model_path,
         cache_dir=cache_path,
         ignore_patterns=ignore_patterns,
