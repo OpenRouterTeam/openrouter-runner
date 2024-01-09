@@ -82,7 +82,7 @@ export async function enqueueAddModel(modelName: string) {
   return await response.json();
 }
 
-export async function awaitJob(
+export async function pollForJobCompletion(
   jobId: string,
   timeoutMs: number,
   pollingIntervalMs = 5000

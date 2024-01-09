@@ -1,7 +1,7 @@
 import {
-  awaitJob,
   completion,
   enqueueAddModel,
+  pollForJobCompletion,
   runIfCalledAsScript
 } from 'scripts/shared';
 
@@ -15,7 +15,7 @@ async function main() {
 
   // fetch job success or failure for up to the timeout of 1 hour
   const timeoutMs = 60 * 60 * 1000;
-  await awaitJob(body.job_id, timeoutMs);
+  await pollForJobCompletion(body.job_id, timeoutMs);
 
   console.log('Model added successfully');
 
