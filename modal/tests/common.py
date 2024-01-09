@@ -4,7 +4,7 @@ import string
 import httpx
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from shared.protocol import Params, Payload
+from shared.protocol import CompletionPayload, Params
 
 
 class TestConfig(BaseSettings):
@@ -32,7 +32,7 @@ async def completion(
     if not api_key:
         raise ValueError("API key is required")
 
-    payload = Payload(
+    payload = CompletionPayload(
         id="".join(
             random.choices(string.ascii_lowercase + string.digits, k=10)
         ),
