@@ -10,7 +10,9 @@ def get_model_path(model_name: str):
     return models_path / model_name.lower()
 
 
-def does_model_exist(model_path: Path):
+# gets passed a str in some circumstances despite being typed as Path
+def does_model_exist(model_path: Path | str):
+    model_path = Path(model_path)
     if not model_path.exists():
         models_volume.reload()
     return model_path.exists()
