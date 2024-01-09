@@ -1,4 +1,5 @@
 import {
+  defaultModel,
   enqueueAddModel,
   getApiUrl,
   getAuthHeaders,
@@ -6,8 +7,7 @@ import {
   runIfCalledAsScript
 } from 'scripts/shared';
 
-async function main(model?: string) {
-  const modelName = model || process.env.MODEL!;
+async function main(modelName = defaultModel) {
   console.log(`Test adding model ${modelName}`);
   const body = await enqueueAddModel(modelName);
   console.log('Successfully queued model to add', body);

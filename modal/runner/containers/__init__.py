@@ -11,6 +11,7 @@ from .vllm_unified import (
 )
 
 DEFAULT_CONTAINER_TYPES = {
+    "microsoft/phi-2": ContainerType.VllmContainer_7B,
     "Intel/neural-chat-7b-v3-1": ContainerType.VllmContainer_7B,
     "PygmalionAI/mythalion-13b": ContainerType.VllmContainerA100_40G,
     "jebcarter/Psyfighter-13B": ContainerType.VllmContainerA100_40G,

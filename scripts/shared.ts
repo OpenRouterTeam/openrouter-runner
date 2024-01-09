@@ -6,16 +6,24 @@ const envFile = `.env.dev`;
 
 config({ path: envFile });
 
-const url = process.env.API_URL!;
-const key = process.env.RUNNER_API_KEY!;
-const defaultModel = process.env.MODEL;
-const defaultContainer = process.env.CONTAINER_TYPE;
+export const defaultModel = process.env.MODEL || 'microsoft/phi-2';
+export const defaultContainer =
+  process.env.CONTAINER_TYPE || 'VllmContainerA100_40G';
 
 export function getApiUrl(path: string) {
+  const url = process.env.API_URL;
+  if (!url) {
+    throw new Error('Missing API_URL');
+  }
+
   return `${url}${path}`;
 }
 
-export function getAuthHeaders(apiKey = key) {
+export function getAuthHeaders(apiKey = process.env.RUNNER_API_KEY) {
+  if (!apiKey) {
+    throw new Error('Missing RUNNER_API_KEY');
+  }
+
   return {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${apiKey}`
@@ -29,13 +37,14 @@ export async function completion(
     max_tokens = 16,
     stream = false,
     stop = ['</s>'],
-    apiKey = key,
+    apiKey = '',
     quiet = false,
     container = defaultContainer
   } = {}
 ) {
+  const apiUrl = getApiUrl('');
   if (!quiet) {
-    console.info(`Calling ${url} with model ${model}, stream: ${stream}`);
+    console.info(`Calling ${apiUrl} with model ${model}, stream: ${stream}`);
   }
 
   const bodyPayload: Record<string, unknown> = {
@@ -50,7 +59,7 @@ export async function completion(
     bodyPayload['runner'] = { container };
   }
 
-  const p = await fetch(getApiUrl(''), {
+  const p = await fetch(apiUrl, {
     method: 'POST',
     headers: getAuthHeaders(apiKey),
     body: JSON.stringify(bodyPayload)
@@ -89,9 +98,11 @@ export async function pollForJobCompletion(
 ) {
   const start = Date.now();
   const end = start + timeoutMs;
+  const url = getApiUrl(`/jobs/${jobId}`);
+  const headers = getAuthHeaders();
   while (Date.now() < end) {
-    const statusResponse = await fetch(getApiUrl(`/jobs/${jobId}`), {
-      headers: getAuthHeaders()
+    const statusResponse = await fetch(url, {
+      headers
     });
     if (statusResponse.status === 200) {
       console.log('Job completed successfully');

@@ -1,14 +1,16 @@
 import {
   completion,
+  defaultContainer,
+  defaultModel,
   enqueueAddModel,
   pollForJobCompletion,
   runIfCalledAsScript
 } from 'scripts/shared';
 
-async function main() {
-  const modelName = 'microsoft/Orca-2-13b';
-  const containerType = 'VllmContainerA100_40G';
-
+async function main(
+  modelName = defaultModel,
+  containerType = defaultContainer
+) {
   console.log(`Test adding model ${modelName}`);
   const body = await enqueueAddModel(modelName);
   console.log('Successfully queued model to add', body);

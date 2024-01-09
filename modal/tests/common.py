@@ -20,7 +20,7 @@ class TestConfig(BaseSettings):
 
 async def completion(
     prompt: str,
-    model: str = "Intel/neural-chat-7b-v3-1",
+    model: str = "microsoft/phi-2",
     max_tokens: int = 1024,
     stop: list = None,
     stream: bool = False,
