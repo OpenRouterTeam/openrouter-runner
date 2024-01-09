@@ -1,31 +1,47 @@
-from fastapi import Depends, status
+from fastapi import status
 from fastapi.responses import StreamingResponse
-from fastapi.security import HTTPAuthorizationCredentials
 
-from runner.containers import get_container
-from runner.shared.common import BACKLOG_THRESHOLD, config
+from runner.containers import DEFAULT_CONTAINER_TYPES, get_container
+from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
 from shared.protocol import (
-    Payload,
+    CompletionPayload,
     create_error_response,
 )
+from shared.volumes import does_model_exist, get_model_path
 
 
 def completion(
-    payload: Payload,
-    _token: HTTPAuthorizationCredentials = Depends(config.auth),
+    payload: CompletionPayload,
 ):
-    try:
-        runner = get_container(payload.model)
-        stats = runner.generate.get_current_stats()
-        print(stats)
-        if stats.backlog > BACKLOG_THRESHOLD:
-            return create_error_response(
-                status.HTTP_503_SERVICE_UNAVAILABLE,
-                f"Backlog is too high: {stats.backlog}",
-            )
-    except ValueError as e:
-        return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
+    model_path = get_model_path(payload.model)
+    if not does_model_exist(model_path):
+        return create_error_response(
+            status.HTTP_400_BAD_REQUEST,
+            f"Unable to locate model {payload.model}",
+        )
+
+    container_type = (
+        payload.runner.container
+        if payload.runner
+        else DEFAULT_CONTAINER_TYPES.get(payload.model)
+    )
+
+    if not container_type:
+        return create_error_response(
+            status.HTTP_400_BAD_REQUEST,
+            f"Unable to locate container type for model {payload.model}",
+        )
+
+    runner = get_container(model_path, container_type)
+
+    stats = runner.generate.get_current_stats()
+    print(stats)
+    if stats.backlog > BACKLOG_THRESHOLD:
+        return create_error_response(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            f"Backlog is too high: {stats.backlog}",
+        )
 
     # max_model_len = runner.max_model_len.remote()
     # input_ids = runner.tokenize_prompt.remote(payload)
