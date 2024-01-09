@@ -37,7 +37,7 @@ export async function completion(
     max_tokens = 16,
     stream = false,
     stop = ['</s>'],
-    apiKey = '',
+    apiKey = undefined as string | undefined,
     quiet = false,
     container = defaultContainer
   } = {}
