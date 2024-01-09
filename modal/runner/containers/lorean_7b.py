@@ -5,7 +5,7 @@ from modal import Image, gpu
 
 from runner.engines.lorean import LoreanEngine, LoreanParams
 from runner.shared.common import stub
-from shared.volumes import loras_path, models_path
+from shared.volumes import loras_path, loras_volume, models_path, models_volume
 
 # TODO: Swap to lower-end GPU on prod
 _gpu = gpu.A100(count=1, memory=80)
@@ -26,8 +26,8 @@ _image = Image.from_registry(
 
 @stub.cls(
     volumes={
-        str(loras_path): stub.loras_volume,
-        str(models_path): stub.models_volume,
+        loras_path: loras_volume,
+        models_path: models_volume,
     },
     image=_image,
     gpu=_gpu,
