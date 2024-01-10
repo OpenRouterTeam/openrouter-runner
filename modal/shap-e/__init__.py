@@ -26,7 +26,7 @@ class Generation(BaseModel):
 
 
 class ResponseBody(BaseModel):
-    outputs: List[Generation]
+    generations: List[Generation]
 
 
 def download_models():
@@ -139,7 +139,7 @@ class Model:
                         )
                     )
 
-                output[0] = ResponseBody(outputs=outputs).json(
+                output[0] = ResponseBody(generations=outputs).json(
                     ensure_ascii=False
                 )
 
