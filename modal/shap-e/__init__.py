@@ -3,10 +3,9 @@ from typing import List, Optional
 from fastapi import Depends
 from fastapi.responses import StreamingResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from modal import Image, Secret, gpu, method, web_endpoint
+from modal import Image, Secret, Stub, gpu, method, web_endpoint
 from pydantic import BaseModel
 
-from runner.shared.common import stub
 from shared.config import Config
 from shared.protocol import (
     create_error_text,
@@ -61,6 +60,8 @@ config = Config(
 )
 
 auth_scheme = HTTPBearer()
+
+stub = Stub(config.name)
 
 
 @stub.cls(
