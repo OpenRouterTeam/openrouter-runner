@@ -18,14 +18,6 @@ def does_model_exist(model_path: Path | str):
     return model_path.exists()
 
 
-loras_volume = Volume.persisted("loras-volume")
-loras_path = Path("/loras")
-
-
-def get_lora_path(user_name: str, lora_name: str):
-    return loras_path / user_name.lower() / lora_name.lower()
-
-
 # get the model revision, if one is specified by a colon
 # if there is no model revision, it returns None (which will select the main revision)
 # example: TheBloke/Llama-2-70B-GPTQ:gptq-3bit--1g-actorder_True
