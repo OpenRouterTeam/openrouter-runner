@@ -1,6 +1,6 @@
 from typing import Optional
 
-from modal import method
+from modal import enter, method
 from pydantic import BaseModel
 
 from shared.protocol import (
@@ -44,12 +44,17 @@ class VllmEngine(BaseEngine):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
 
-        engine_args = AsyncEngineArgs(
+        self.engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,
         )
+        self.engine: AsyncLLMEngine | None = None
 
-        self.engine = AsyncLLMEngine.from_engine_args(engine_args)
+    @enter()
+    def start(self):
+        from vllm.engine.async_llm_engine import AsyncLLMEngine
+
+        self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
 
     # @method()
     # async def tokenize_prompt(self, payload: Payload) -> List[int]:
@@ -62,6 +67,8 @@ class VllmEngine(BaseEngine):
 
     @method()
     async def generate(self, payload: CompletionPayload, params):
+        assert self.engine is not None, "Engine not initialized"
+
         try:
             import time
 
