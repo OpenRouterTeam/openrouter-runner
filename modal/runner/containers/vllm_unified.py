@@ -12,7 +12,7 @@ from shared.volumes import does_model_exist, models_path, models_volume
 _vllm_image = Image.from_registry(
     "nvidia/cuda:12.1.0-base-ubuntu22.04",
     add_python="3.10",
-).pip_install("vllm==0.2.6", "sentry-sdk==1.39.1")
+).pip_install("vllm==0.2.7", "sentry-sdk==1.39.1")
 
 
 def _make_container(
