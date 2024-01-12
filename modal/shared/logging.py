@@ -9,12 +9,6 @@ from datadog_api_client.v2.model.content_encoding import ContentEncoding
 from datadog_api_client.v2.model.http_log import HTTPLog
 from datadog_api_client.v2.model.http_log_item import HTTPLogItem
 
-config = Configuration()
-config.api_key["apiKeyAuth"] = os.environ["DD_API_KEY"]
-config.server_variables["site"] = os.environ["DD_SITE"]
-
-api_client = ApiClient(configuration=config)
-
 
 def get_logger(name: str):
     return logging.getLogger(name)
@@ -31,6 +25,8 @@ class DatadogHandler(logging.Handler):
         # Ignore debug messages
         if record.levelno == logging.DEBUG:
             return
+
+        environment_name = os.getenv("DD_ENV") or "development"
 
         log_payload = {
             "python-logging": {
@@ -56,7 +52,7 @@ class DatadogHandler(logging.Handler):
                 "py-module": record.module,
             },
             "message": record.getMessage(),
-            "environment": os.getenv("DD_ENV") or "",
+            "environment": environment_name,
             "source": record.name,
             "model": record.__dict__.get("model"),
             "modal": {
@@ -74,7 +70,7 @@ class DatadogHandler(logging.Handler):
                 [
                     HTTPLogItem(
                         ddsource="Python",
-                        ddtags="env:{}".format(os.getenv("DD_ENV")),
+                        ddtags=f"env:{environment_name}",
                         hostname=os.getenv("MODAL_TASK_ID") or "",
                         message=json.dumps(log_payload),
                         service="openrouter-runner",
@@ -94,8 +90,18 @@ class DatadogHandler(logging.Handler):
             print(f"Error sending log to Datadog: {e}")
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout), DatadogHandler(api_client)],
-)
+if "DD_API_KEY" in os.environ:
+    config = Configuration()
+    config.api_key["apiKeyAuth"] = os.environ["DD_API_KEY"]
+    config.server_variables["site"] = os.environ["DD_SITE"]
+
+    api_client = ApiClient(configuration=config)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
+        handlers=[
+            logging.StreamHandler(sys.stdout),
+            DatadogHandler(api_client),
+        ],
+    )
