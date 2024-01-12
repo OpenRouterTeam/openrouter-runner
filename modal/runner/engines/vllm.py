@@ -47,12 +47,12 @@ class VllmEngine(BaseEngine):
         from vllm.engine.arg_utils import AsyncEngineArgs
         from vllm.engine.async_llm_engine import AsyncLLMEngine
 
-        engine_args = AsyncEngineArgs(
+        self.engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,
         )
 
-        self.engine = AsyncLLMEngine.from_engine_args(engine_args)
+        self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
 
     # @method()
     # async def tokenize_prompt(self, payload: Payload) -> List[int]:
@@ -119,7 +119,9 @@ class VllmEngine(BaseEngine):
             logger.info(f"Request completed: {throughput:.4f} tokens/s")
         except Exception as err:
             e = create_error_text(err)
-            logger.error(e)
+            logger.exception(
+                "Failed generation", extra={"model": self.engine_args.model}
+            )
             if payload.stream:
                 yield create_sse_data(e)
             else:
