@@ -9,15 +9,24 @@ from datadog_api_client.v2.model.content_encoding import ContentEncoding
 from datadog_api_client.v2.model.http_log import HTTPLog
 from datadog_api_client.v2.model.http_log_item import HTTPLogItem
 
+config = Configuration()
+config.api_key["apiKeyAuth"] = os.environ["DD_API_KEY"]
+config.server_variables["site"] = os.environ["DD_SITE"]
+
+api_client = ApiClient(configuration=config)
+
 
 def get_logger(name: str):
-    logger = logging.getLogger(name)
-    logger.addHandler(DatadogHandler())
-    return logger
+    return logging.getLogger(name)
 
 
 # Define a custom logging handler that sends logs to Datadog
 class DatadogHandler(logging.Handler):
+    def __init__(self, api_client: ApiClient):
+        self.api_client = api_client
+
+        super().__init__()
+
     def emit(self, record):
         # Ignore debug messages
         if record.levelno == logging.DEBUG:
@@ -75,29 +84,19 @@ class DatadogHandler(logging.Handler):
                 ]
             )
 
-            config = Configuration()
-            config.api_key["apiKeyAuth"] = os.environ["DD_API_KEY"]
-            config.server_variables["site"] = os.environ["DD_SITE"]
+            logs = LogsApi(api_client)
 
-            with ApiClient(configuration=config) as api_client:
-                logs = LogsApi(api_client)
-
-                logs.submit_log(
-                    content_encoding=ContentEncoding.DEFLATE,
-                    body=body,  # type: ignore
-                )
-            # print(response)
+            logs.submit_log(
+                content_encoding=ContentEncoding.DEFLATE,
+                body=body,  # type: ignore
+            )
 
         except Exception as e:
             print(f"Error sending log to Datadog: {e}")
-            raise e
 
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
-    handlers=[
-        # logging.FileHandler(filename="./app.log", mode="w"),
-        logging.StreamHandler(sys.stdout),
-    ],
+    handlers=[logging.StreamHandler(sys.stdout), DatadogHandler(api_client)],
 )

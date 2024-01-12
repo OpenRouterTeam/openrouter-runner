@@ -65,7 +65,6 @@ def download_model(model_name: str):
         local_dir=model_path,
         cache_dir=cache_path,
         ignore_patterns=ignore_patterns,
-        local_dir_use_symlinks=False,
         token=env["HUGGINGFACE_TOKEN"],
     )
     logger.info(f"Volume now contains {model_name}")
