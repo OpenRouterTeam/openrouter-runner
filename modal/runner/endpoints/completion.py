@@ -18,7 +18,12 @@ def completion(
     payload: CompletionPayload,
 ):
     model_path = get_model_path(payload.model)
+    logger.info(
+        "Received completion request", extra={"model": str(model_path)}
+    )  # use path to match runner
     if not does_model_exist(model_path):
+        message = f"Unable to locate model {payload.model}"
+        logger.error(message)
         return create_error_response(
             status.HTTP_400_BAD_REQUEST,
             f"Unable to locate model {payload.model}",

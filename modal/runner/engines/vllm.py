@@ -115,8 +115,10 @@ class VllmEngine(BaseEngine):
                 )
 
             throughput = completion_tokens / (time.time() - t0)
-            logger.info(f"Tokens count: {completion_tokens} tokens")
-            logger.info(f"Request completed: {throughput:.4f} tokens/s")
+            logger.info(
+                f"Completed generation. Tokens count: {completion_tokens} tokens | Token rate {throughput:.4f} tokens/s",
+                extra={"model": self.engine_args.model},
+            )
         except Exception as err:
             e = create_error_text(err)
             logger.exception(
