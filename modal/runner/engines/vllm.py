@@ -3,6 +3,7 @@ from typing import Optional
 from modal import method
 from pydantic import BaseModel
 
+from shared.logging import get_logger
 from shared.protocol import (
     CompletionPayload,
     create_error_text,
@@ -11,6 +12,8 @@ from shared.protocol import (
 )
 
 from .base import BaseEngine
+
+logger = get_logger(__name__)
 
 
 # Adapted from: https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py#L192
@@ -112,11 +115,11 @@ class VllmEngine(BaseEngine):
                 )
 
             throughput = completion_tokens / (time.time() - t0)
-            print(f"Tokens count: {completion_tokens} tokens")
-            print(f"Request completed: {throughput:.4f} tokens/s")
+            logger.info(f"Tokens count: {completion_tokens} tokens")
+            logger.info(f"Request completed: {throughput:.4f} tokens/s")
         except Exception as err:
             e = create_error_text(err)
-            print(e)
+            logger.error(e)
             if payload.stream:
                 yield create_sse_data(e)
             else:

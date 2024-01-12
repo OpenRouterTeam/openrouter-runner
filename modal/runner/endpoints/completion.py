@@ -4,11 +4,14 @@ from fastapi.responses import StreamingResponse
 from runner.containers import DEFAULT_CONTAINER_TYPES, get_container
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
+from shared.logging import get_logger
 from shared.protocol import (
     CompletionPayload,
     create_error_response,
 )
 from shared.volumes import does_model_exist, get_model_path
+
+logger = get_logger(__name__)
 
 
 def completion(
@@ -28,6 +31,8 @@ def completion(
     )
 
     if not container_type:
+        message = f"Unable to locate container type for model {payload.model}"
+        logger.error(message)
         return create_error_response(
             status.HTTP_400_BAD_REQUEST,
             f"Unable to locate container type for model {payload.model}",
@@ -36,8 +41,10 @@ def completion(
     runner = get_container(model_path, container_type)
 
     stats = runner.generate.get_current_stats()
-    print(stats)
+    logger.info(stats)
     if stats.backlog > BACKLOG_THRESHOLD:
+        message = f"Backlog is too high: {stats.backlog}"
+        logger.warning(message)
         return create_error_response(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             f"Backlog is too high: {stats.backlog}",
@@ -71,6 +78,7 @@ def completion(
             **payload.params.dict(),
         )
     except ValueError as e:
+        logger.exception("Invalid sampling params")
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     async def generate():

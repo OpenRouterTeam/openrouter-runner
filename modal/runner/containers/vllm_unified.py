@@ -7,12 +7,15 @@ from modal import Image, Secret
 
 from runner.engines.vllm import VllmEngine, VllmParams
 from runner.shared.common import stub
+from shared.images import add_datadog
 from shared.volumes import does_model_exist, models_path, models_volume
 
-_vllm_image = Image.from_registry(
-    "nvidia/cuda:12.1.0-base-ubuntu22.04",
-    add_python="3.10",
-).pip_install("vllm==0.2.6", "sentry-sdk==1.39.1")
+_vllm_image = add_datadog(
+    Image.from_registry(
+        "nvidia/cuda:12.1.0-base-ubuntu22.04",
+        add_python="3.10",
+    ).pip_install("vllm==0.2.6", "sentry-sdk==1.39.1")
+)
 
 
 def _make_container(
@@ -74,7 +77,10 @@ def _make_container(
         allow_concurrent_inputs=concurrent_inputs,
         container_idle_timeout=20 * 60,
         timeout=10 * 60,
-        secret=Secret.from_name("sentry"),
+        secrets=[
+            Secret.from_name("sentry"),
+            Secret.from_name("datadog"),
+        ],
     )
     return wrap(_VllmContainer)
 

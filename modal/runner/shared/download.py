@@ -1,8 +1,10 @@
 from os import environ as env
 
-from modal import Image, Secret
+from modal import Secret
 
 from runner.shared.common import stub
+from shared.images import BASE_IMAGE
+from shared.logging import get_logger
 from shared.volumes import (
     get_model_path,
     get_model_revision,
@@ -11,13 +13,16 @@ from shared.volumes import (
     models_volume,
 )
 
+logger = get_logger(__name__)
+
 cache_path = get_model_path("__cache__")
 
 downloader_image = (
-    Image.debian_slim()
+    BASE_IMAGE
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
     .pip_install("huggingface_hub==0.19.4")
     .pip_install("hf-transfer==0.1.4")
+    .pip_install("ddtrace==2.4.0")
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
 
@@ -53,14 +58,15 @@ def download_model(model_name: str):
         ignore_patterns.append("*.bin")
 
     # Clean doesn't remove the cache, so using `local_files_only` here returns the cache even when the local dir is empty.
-    print(f"Checking for {model_name}")
+    logger.info(f"Checking for {model_name}")
     snapshot_download(
         repo_id=repo_id,
         revision=revision,
         local_dir=model_path,
         cache_dir=cache_path,
         ignore_patterns=ignore_patterns,
+        local_dir_use_symlinks=False,
         token=env["HUGGINGFACE_TOKEN"],
     )
-    print(f"Volume now contains {model_name}")
+    logger.info(f"Volume now contains {model_name}")
     models_volume.commit()
