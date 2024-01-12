@@ -1,7 +1,9 @@
+import os
+
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
-from modal import Secret, asgi_app
+from modal import Image, Secret, asgi_app
 from pydantic import BaseModel
 
 from runner.containers import (
@@ -70,7 +72,13 @@ async def get_job(
 
 
 @stub.function(
-    secret=Secret.from_name("ext-api-key"),
+    image=Image.debian_slim(python_version="3.10").pip_install(
+        "sentry-sdk[fastapi]==1.39.1"
+    ),
+    secrets=[
+        Secret.from_name("ext-api-key"),
+        Secret.from_name("sentry"),
+    ],
     timeout=60 * 15,
     allow_concurrent_inputs=100,
     volumes={models_path: models_volume},
@@ -79,6 +87,12 @@ async def get_job(
 )
 @asgi_app()
 def completion():  # named for backwards compatibility with the Modal URL
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=os.environ.get("SENTRY_DSN"),
+        environment=os.environ.get("SENTRY_ENVIRONMENT") or "development",
+    )
     return api_app
 
 

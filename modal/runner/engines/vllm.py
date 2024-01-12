@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 from modal import enter, method
@@ -123,7 +124,9 @@ class VllmEngine(BaseEngine):
             print(f"Request completed: {throughput:.4f} tokens/s")
         except Exception as err:
             e = create_error_text(err)
-            print(e)
+            logging.exception(
+                "Failed generation", extra={"model": self.engine_args.model}
+            )
             if payload.stream:
                 yield create_sse_data(e)
             else:
