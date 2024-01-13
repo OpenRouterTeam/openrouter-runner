@@ -1,5 +1,6 @@
 from os import environ as env
 
+import sentry_sdk
 from modal import Secret
 
 from runner.shared.common import stub
@@ -35,36 +36,41 @@ downloader_image = (
 def download_model(model_name: str):
     from huggingface_hub import list_repo_files, snapshot_download
 
-    model_path = get_model_path(model_name)
-    model_path.mkdir(parents=True, exist_ok=True)
+    try:
+        model_path = get_model_path(model_name)
+        model_path.mkdir(parents=True, exist_ok=True)
 
-    repo_id = get_repo_id(model_name)
-    revision = get_model_revision(model_name)
+        repo_id = get_repo_id(model_name)
+        revision = get_model_revision(model_name)
 
-    # only download safetensors if available
-    has_safetensors = any(
-        fn.lower().endswith(".safetensors")
-        for fn in list_repo_files(
+        # only download safetensors if available
+        has_safetensors = any(
+            fn.lower().endswith(".safetensors")
+            for fn in list_repo_files(
+                repo_id=repo_id,
+                revision=revision,
+                repo_type="model",
+                token=env["HUGGINGFACE_TOKEN"],
+            )
+        )
+        ignore_patterns: list[str] = []
+        if has_safetensors:
+            ignore_patterns.append("*.pt")
+            ignore_patterns.append("*.bin")
+
+        # Clean doesn't remove the cache, so using `local_files_only` here returns the cache even when the local dir is empty.
+        logger.info(f"Checking for {model_name}")
+        snapshot_download(
             repo_id=repo_id,
             revision=revision,
-            repo_type="model",
+            local_dir=model_path,
+            cache_dir=cache_path,
+            ignore_patterns=ignore_patterns,
             token=env["HUGGINGFACE_TOKEN"],
         )
-    )
-    ignore_patterns: list[str] = []
-    if has_safetensors:
-        ignore_patterns.append("*.pt")
-        ignore_patterns.append("*.bin")
-
-    # Clean doesn't remove the cache, so using `local_files_only` here returns the cache even when the local dir is empty.
-    logger.info(f"Checking for {model_name}")
-    snapshot_download(
-        repo_id=repo_id,
-        revision=revision,
-        local_dir=model_path,
-        cache_dir=cache_path,
-        ignore_patterns=ignore_patterns,
-        token=env["HUGGINGFACE_TOKEN"],
-    )
-    logger.info(f"Volume now contains {model_name}")
-    models_volume.commit()
+        logger.info(f"Volume now contains {model_name}")
+        models_volume.commit()
+    except Exception:
+        logger.exception(f"Failed to download {model_name}")
+        sentry_sdk.capture_exception()
+        raise

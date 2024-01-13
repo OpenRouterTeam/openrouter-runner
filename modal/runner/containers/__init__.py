@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import modal
+
 from shared.protocol import ContainerType
 
 from .vllm_unified import (
@@ -24,7 +26,9 @@ DEFAULT_CONTAINER_TYPES = {
 }
 
 
-def get_container(model_path: Path, container_type: ContainerType):
+def get_container(
+    model_path: Path, container_type: ContainerType
+) -> modal.cls.Obj:
     match container_type:
         case ContainerType.VllmContainer_7B:
             return VllmContainer_7B(model_path)

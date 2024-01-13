@@ -50,7 +50,6 @@ class DatadogHandler(logging.Handler):
                 "py-message": record.getMessage(),
                 "py-status": record.levelname.lower(),
                 "py-logger": record.name,
-                "py-stacktrace": record.exc_info,
                 "py-exception": record.exc_text,
                 "py-line": record.lineno,
                 "py-file": record.filename,

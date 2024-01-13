@@ -1,3 +1,4 @@
+import modal
 from fastapi import Depends, FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
@@ -61,5 +62,19 @@ async def get_job(
         result = function_call.get(timeout=0)
     except TimeoutError:
         return JSONResponse(content="", status_code=202)
+    except modal.exception.ExecutionError as err:
+        logger.warning(
+            f"Error calling remote function: {err}"
+        )  # skip sentry since it'll be logged by the underlying container
+        return JSONResponse(
+            content={"error": f"{err}"},
+            status_code=500,
+        )
+    except Exception as err:
+        logger.exception(err)
+        return JSONResponse(
+            content={"error": f"{err}"},
+            status_code=500,
+        )
 
     return result
