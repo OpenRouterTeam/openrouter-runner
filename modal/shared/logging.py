@@ -3,18 +3,34 @@ import logging
 import os
 import sys
 
+import sentry_sdk
 from datadog_api_client import ApiClient, Configuration
 from datadog_api_client.v2.api.logs_api import LogsApi
 from datadog_api_client.v2.model.content_encoding import ContentEncoding
 from datadog_api_client.v2.model.http_log import HTTPLog
 from datadog_api_client.v2.model.http_log_item import HTTPLogItem
+from modal import Image, Secret
+
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+    environment=os.environ.get("SENTRY_ENVIRONMENT") or "development",
+)
 
 
 def get_logger(name: str):
     return logging.getLogger(name)
 
 
-# Define a custom logging handler that sends logs to Datadog
+def get_observability_secrets():
+    return [Secret.from_name("sentry"), Secret.from_name("datadog")]
+
+
+def add_observability(image: Image):
+    return image.pip_install("datadog-api-client==2.21.0").pip_install(
+        "sentry-sdk[fastapi]==1.39.1"
+    )
+
+
 class DatadogHandler(logging.Handler):
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
@@ -88,7 +104,12 @@ class DatadogHandler(logging.Handler):
 
         except Exception as e:
             print(f"Error sending log to Datadog: {e}")
+            sentry_sdk.capture_exception(e)
 
+
+handlers: list[logging.Handler] = [
+    logging.StreamHandler(sys.stdout),
+]
 
 if os.environ.get("DD_API_KEY") is not None:
     config = Configuration()
@@ -96,12 +117,10 @@ if os.environ.get("DD_API_KEY") is not None:
     config.server_variables["site"] = os.environ["DD_SITE"]
 
     api_client = ApiClient(configuration=config)
+    handlers.append(DatadogHandler(api_client))
 
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            DatadogHandler(api_client),
-        ],
-    )
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(process)d] [%(levelname)s] %(message)s",
+    handlers=handlers,
+)

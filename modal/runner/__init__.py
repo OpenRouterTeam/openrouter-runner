@@ -1,5 +1,3 @@
-import os
-
 from modal import Secret, asgi_app
 
 from runner.containers import (
@@ -9,7 +7,7 @@ from runner.shared.clean import clean_models_volume
 from runner.shared.common import stub
 from runner.shared.download import download_model
 from shared.images import BASE_IMAGE
-from shared.logging import get_logger
+from shared.logging import get_logger, get_observability_secrets
 from shared.volumes import models_path, models_volume
 
 
@@ -17,8 +15,7 @@ from shared.volumes import models_path, models_volume
     image=BASE_IMAGE,
     secrets=[
         Secret.from_name("ext-api-key"),
-        Secret.from_name("sentry"),
-        Secret.from_name("datadog"),
+        *get_observability_secrets(),
     ],
     timeout=60 * 15,
     allow_concurrent_inputs=100,
@@ -28,13 +25,6 @@ from shared.volumes import models_path, models_volume
 )
 @asgi_app()
 def completion():  # named for backwards compatibility with the Modal URL
-    import sentry_sdk
-
-    sentry_sdk.init(
-        dsn=os.environ.get("SENTRY_DSN"),
-        environment=os.environ.get("SENTRY_ENVIRONMENT") or "development",
-    )
-
     from .api import api_app
 
     return api_app
@@ -44,7 +34,7 @@ def completion():  # named for backwards compatibility with the Modal URL
     image=BASE_IMAGE,
     timeout=3600,  # 1 hour
     secrets=[
-        Secret.from_name("datadog"),
+        *get_observability_secrets(),
     ],
 )
 def download():
@@ -60,7 +50,7 @@ def download():
     image=BASE_IMAGE,
     volumes={models_path: models_volume},
     secrets=[
-        Secret.from_name("datadog"),
+        *get_observability_secrets(),
     ],
 )
 def clean(all: bool = False, dry: bool = False):

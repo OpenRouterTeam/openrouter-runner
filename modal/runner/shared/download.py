@@ -4,7 +4,7 @@ from modal import Secret
 
 from runner.shared.common import stub
 from shared.images import BASE_IMAGE
-from shared.logging import get_logger
+from shared.logging import get_logger, get_observability_secrets
 from shared.volumes import (
     get_model_path,
     get_model_revision,
@@ -29,7 +29,7 @@ downloader_image = (
 @stub.function(
     image=downloader_image,
     volumes={models_path: models_volume},
-    secret=Secret.from_name("huggingface"),
+    secrets=[Secret.from_name("huggingface"), *get_observability_secrets()],
     timeout=3600,  # 1 hour per model
 )
 def download_model(model_name: str):

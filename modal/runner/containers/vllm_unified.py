@@ -1,13 +1,17 @@
-from os import environ
 from pathlib import Path
 from typing import Optional
 
 import modal.gpu
-from modal import Image, Secret
+import sentry_sdk
+from modal import Image
 
 from runner.engines.vllm import VllmEngine, VllmParams
 from runner.shared.common import stub
-from shared.images import add_observability
+from shared.logging import (
+    add_observability,
+    get_logger,
+    get_observability_secrets,
+)
 from shared.volumes import does_model_exist, models_path, models_volume
 
 _vllm_image = add_observability(
@@ -31,13 +35,7 @@ def _make_container(
             model_path: Path,
             max_model_len: Optional[int] = None,
         ):
-            import sentry_sdk
-
-            sentry_sdk.init(
-                dsn=environ.get("SENTRY_DSN"),
-                environment=environ.get("SENTRY_ENVIRONMENT") or "development",
-            )
-
+            logger = get_logger(name)
             try:
                 if not does_model_exist(model_path):
                     raise Exception("Unable to locate model {}", model_path)
@@ -66,6 +64,7 @@ def _make_container(
             except Exception as e:
                 # We have to manually capture and re-raise because Modal catches the exception upstream
                 sentry_sdk.capture_exception(e)
+                logger.exception("Failed to initialize VLLM engine")
                 raise e
 
     _VllmContainer.__name__ = name
@@ -77,10 +76,7 @@ def _make_container(
         allow_concurrent_inputs=concurrent_inputs,
         container_idle_timeout=20 * 60,
         timeout=10 * 60,
-        secrets=[
-            Secret.from_name("sentry"),
-            Secret.from_name("datadog"),
-        ],
+        secrets=[*get_observability_secrets()],
     )
     return wrap(_VllmContainer)
 
