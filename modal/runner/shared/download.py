@@ -22,7 +22,6 @@ downloader_image = (
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
     .pip_install("huggingface_hub==0.19.4")
     .pip_install("hf-transfer==0.1.4")
-    .pip_install("ddtrace==2.4.0")
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
 )
 
