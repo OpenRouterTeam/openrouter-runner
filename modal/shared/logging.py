@@ -90,7 +90,7 @@ class DatadogHandler(logging.Handler):
             print(f"Error sending log to Datadog: {e}")
 
 
-if "DD_API_KEY" in os.environ:
+if os.environ.get("DD_API_KEY") is not None:
     config = Configuration()
     config.api_key["apiKeyAuth"] = os.environ["DD_API_KEY"]
     config.server_variables["site"] = os.environ["DD_SITE"]
