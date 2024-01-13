@@ -30,7 +30,7 @@ class DatadogHandler(logging.Handler):
 
         log_payload = {
             "python-logging": {
-                "py-env": "development",
+                "py-env": environment_name,
                 "py-message": record.getMessage(),
                 "py-status": record.levelname.lower(),
                 "py-logger": record.name,
@@ -79,7 +79,7 @@ class DatadogHandler(logging.Handler):
                 ]
             )
 
-            logs = LogsApi(api_client)
+            logs = LogsApi(self.api_client)
 
             logs.submit_log(
                 content_encoding=ContentEncoding.DEFLATE,

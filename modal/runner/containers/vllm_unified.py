@@ -7,10 +7,10 @@ from modal import Image, Secret
 
 from runner.engines.vllm import VllmEngine, VllmParams
 from runner.shared.common import stub
-from shared.images import add_datadog
+from shared.images import add_observability
 from shared.volumes import does_model_exist, models_path, models_volume
 
-_vllm_image = add_datadog(
+_vllm_image = add_observability(
     Image.from_registry(
         "nvidia/cuda:12.1.0-base-ubuntu22.04",
         add_python="3.10",
