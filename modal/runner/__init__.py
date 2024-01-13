@@ -14,7 +14,7 @@ from shared.volumes import models_path, models_volume
 
 
 @stub.function(
-    image=BASE_IMAGE.pip_install("sentry-sdk[fastapi]==1.39.1"),
+    image=BASE_IMAGE,
     secrets=[
         Secret.from_name("ext-api-key"),
         Secret.from_name("sentry"),
