@@ -44,20 +44,64 @@ def timer(action: str, tags: dict[str, str | int] = None) -> None:
     logging.info(f"{action} execution profiled", extra=extra)
 
 
+# skip natural LogRecord attributes
+# http://docs.python.org/library/logging.html#logrecord-attributes
+RESERVED_ATTRS: set[str] = {
+    "args",
+    "asctime",
+    "created",
+    "exc_info",
+    "exc_text",
+    "filename",
+    "funcName",
+    "levelname",
+    "levelno",
+    "lineno",
+    "module",
+    "msecs",
+    "message",
+    "msg",
+    "name",
+    "pathname",
+    "process",
+    "processName",
+    "relativeCreated",
+    "stack_info",
+    "thread",
+    "threadName",
+}
+
+
+def get_record_extras(record: logging.LogRecord) -> dict:
+    """
+    Extracts extra attributes from LogRecord object.
+
+    Adapted from: https://github.com/madzak/python-json-logger/blob/master/src/pythonjsonlogger/jsonlogger.py#L47
+    """
+    extra = {}
+    for key, value in record.__dict__.items():
+        # this allows to have numeric keys
+        if key not in RESERVED_ATTRS and not (
+            hasattr(key, "startswith") and key.startswith("_")
+        ):
+            extra[key] = value
+    return extra
+
+
 class DatadogHandler(logging.Handler):
     def __init__(self, api_client: ApiClient):
         self.api_client = api_client
 
         super().__init__()
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord):
         # Ignore debug messages
         if record.levelno == logging.DEBUG:
             return
 
         environment_name = os.getenv("DD_ENV") or "development"
 
-        log_payload = {
+        log_payload = get_record_extras(record) | {
             "python-logging": {
                 "py-env": environment_name,
                 "py-message": record.getMessage(),
@@ -82,7 +126,6 @@ class DatadogHandler(logging.Handler):
             "message": record.getMessage(),
             "environment": environment_name,
             "source": record.name,
-            "model": record.__dict__.get("model"),
             "modal": {
                 "cloudProvider": os.getenv("MODAL_CLOUD_PROVIDER") or "",
                 "environment": os.getenv("MODAL_ENVIRONMENT") or "",
