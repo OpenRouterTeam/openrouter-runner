@@ -64,7 +64,10 @@ def _make_container(
             except Exception as e:
                 # We have to manually capture and re-raise because Modal catches the exception upstream
                 sentry_sdk.capture_exception(e)
-                logger.exception("Failed to initialize VLLM engine")
+                logger.exception(
+                    "Failed to initialize VLLM engine",
+                    extra={"model": str(model_path)},
+                )
                 raise e
 
     _VllmContainer.__name__ = name
