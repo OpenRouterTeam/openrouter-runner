@@ -23,16 +23,21 @@ class Params(BaseModel):
     # early_stopping: Union[bool, str] = False
     # length_penalty: float = 1.0
     best_of: Optional[int] = None
-    frequency_penalty: float = 0.0
     ignore_eos: bool = False
     logprobs: Optional[int] = None
     max_tokens: Optional[int] = 42
     n: int = 1
-    presence_penalty: float = 0.0
+
     stop: Union[None, str, List[str]] = None
     temperature: float = 1.0
     top_k: int = -1
     top_p: float = 1.0
+
+    min_p: int = 0.0
+    repetition_penalty: float = 1.0
+    frequency_penalty: float = 0.0
+    presence_penalty: float = 0.0
+
     use_beam_search: bool = False
     skip_special_tokens: bool = True
 
