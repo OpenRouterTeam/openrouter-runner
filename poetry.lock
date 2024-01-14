@@ -384,6 +384,29 @@ files = [
 ]
 
 [[package]]
+name = "datadog-api-client"
+version = "2.21.0"
+description = "Collection of all Datadog Public endpoints"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "datadog-api-client-2.21.0.tar.gz", hash = "sha256:168eb9f2d9d11cc23e52e7ab12a11454f87ff1039943534de5d6b84eb6093027"},
+    {file = "datadog_api_client-2.21.0-py3-none-any.whl", hash = "sha256:cb0e104ab4ac7d7b3fc769a62a7854afd49f8ea373928b1cf25cc8c7f2f8941f"},
+]
+
+[package.dependencies]
+certifi = "*"
+python-dateutil = "*"
+typing-extensions = ">=4.0.0"
+urllib3 = ">=1.15"
+
+[package.extras]
+apm = ["ddtrace (>=1.15.0)"]
+async = ["aiosonic (==0.15.1)"]
+tests = ["aiosonic (==0.15.1)", "glom", "jinja2", "mypy", "pytest", "pytest-asyncio", "pytest-bdd (==6.0.1)", "pytest-randomly", "pytest-recording", "python-dateutil", "types-python-dateutil", "zstandard"]
+zstandard = ["zstandard"]
+
+[[package]]
 name = "distlib"
 version = "0.3.8"
 description = "Distribution utilities"
@@ -1339,6 +1362,20 @@ docs = ["sphinx (>=5.3)", "sphinx-rtd-theme (>=1.0)"]
 testing = ["coverage (>=6.2)", "hypothesis (>=5.7.1)"]
 
 [[package]]
+name = "python-dateutil"
+version = "2.8.2"
+description = "Extensions to the standard Python datetime module"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
+files = [
+    {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
+    {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
+]
+
+[package.dependencies]
+six = ">=1.5"
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -1776,6 +1813,17 @@ test = ["coverage", "mock", "repeated-test (>=2.2.1)", "sphinx"]
 tests = ["coverage", "mock", "repeated-test (>=2.2.1)", "sphinx"]
 
 [[package]]
+name = "six"
+version = "1.16.0"
+description = "Python 2 and 3 compatibility utilities"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+files = [
+    {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
+    {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
+]
+
+[[package]]
 name = "sniffio"
 version = "1.3.0"
 description = "Sniff out which async library your code is running under"
@@ -2152,4 +2200,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.12"
-content-hash = "dd21cfd5388a2b1cf114db882a5fb4cee77aa0fb2dcd18aeba73d17db5274653"
+content-hash = "e7fa012f35e23caf3aaef94d839b150095f7a82de9e57764d1778c6735dbaed3"

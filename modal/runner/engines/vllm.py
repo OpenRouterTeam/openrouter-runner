@@ -1,4 +1,3 @@
-import logging
 import time
 from contextlib import contextmanager
 from typing import Optional
@@ -6,6 +5,7 @@ from typing import Optional
 from modal import method
 from pydantic import BaseModel
 
+from shared.logging import get_logger
 from shared.protocol import (
     CompletionPayload,
     create_error_text,
@@ -14,6 +14,8 @@ from shared.protocol import (
 )
 
 from .base import BaseEngine
+
+logger = get_logger(__name__)
 
 
 @contextmanager
@@ -24,7 +26,7 @@ def timer(action: str, tags: dict[str, str | int] = None) -> None:
     elapsed = time.perf_counter() - start
 
     extra = tags or {} | {"duration": elapsed}
-    logging.info(f"{action} execution profiled", extra=extra)
+    logger.info(f"{action} execution profiled", extra=extra)
 
 
 # Adapted from: https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py#L192
@@ -128,11 +130,13 @@ class VllmEngine(BaseEngine):
                 )
 
             throughput = completion_tokens / (time.time() - t0)
-            print(f"Tokens count: {completion_tokens} tokens")
-            print(f"Request completed: {throughput:.4f} tokens/s")
+            logger.info(
+                f"Completed generation. Tokens count: {completion_tokens} tokens | Token rate {throughput:.4f} tokens/s",
+                extra={"model": self.engine_args.model},
+            )
         except Exception as err:
             e = create_error_text(err)
-            logging.exception(
+            logger.exception(
                 "Failed generation", extra={"model": self.engine_args.model}
             )
             if payload.stream:

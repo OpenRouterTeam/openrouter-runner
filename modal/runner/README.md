@@ -47,20 +47,26 @@ Before you start working with the OpenRouter Runner, it's crucial to set up your
 4. **Create Modal Secrets**:
     Securely store your API keys as secrets in Modal, which will be used by your application to access necessary resources and services.
     - **HuggingFace Token**:
-      Create a modal secret group with your Hugging Face token. Replace `<your huggingface token>` with the actual token.
+      Create a Modal secret group with your Hugging Face token. Replace `<your huggingface token>` with the actual token.
       ```shell
       modal secret create huggingface HUGGINGFACE_TOKEN=<your huggingface token>
       ```
     - **Runner API Key**:
-      Create another secret group for the runner API key. Replace `<generate a random key>` with a strong, random key you've generated. Be sure to save this key somewhere as we'll need it for later!
+      Create a Modal secret group for the runner API key. Replace `<generate a random key>` with a strong, random key you've generated. Be sure to save this key somewhere as we'll need it for later!
       ```shell
       modal secret create ext-api-key RUNNER_API_KEY=<generate a random key>
       ```
     
     - **Sentry Configuration**:
-      Create another secret group for the Sentry error tracking storage. Replace `<optional SENTRY_DSN>` with your DSN from sentry.io or leave it blank to disable Sentry (e.g. `SENTRY_DSN=`). You can also add an environment by adding `SENTRY_ENVIRONMENT=<environment name>` to the command.
+      Create a Modal secret group for the Sentry error tracking storage. Replace `<optional SENTRY_DSN>` with your DSN from sentry.io or leave it blank to disable Sentry (e.g. `SENTRY_DSN=`). You can also add an environment by adding `SENTRY_ENVIRONMENT=<environment name>` to the command.
       ```shell
       modal secret create sentry SENTRY_DSN=<optional SENTRY_DSN>
+      ```
+    
+    - **Datadog Configuration**:
+      Create a Modal secret group for Datadog log persistence. Replace `<optional DD_API_KEY>` with your Datadog API Key or leave it blank to disable Datadog (e.g. `DD_API_KEY=`). You can also add an environment by adding `DD_ENV=<environment name>` to the command and a site by adding `DD_SITE=<site name>` to the command.
+      ```shell
+      modal secret create datadog DD_API_KEY=<optional DD_API_KEY>
       ```
 
  Now if you go to your dashboard on [Modal](https://modal.com/) and click on the secrets tab you should be able to see your keys deployed there.
