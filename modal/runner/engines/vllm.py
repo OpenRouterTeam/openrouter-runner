@@ -1,11 +1,9 @@
-import time
-from contextlib import contextmanager
 from typing import Optional
 
 from modal import method
 from pydantic import BaseModel
 
-from shared.logging import get_logger
+from shared.logging import get_logger, timer
 from shared.protocol import (
     CompletionPayload,
     create_error_text,
@@ -16,17 +14,6 @@ from shared.protocol import (
 from .base import BaseEngine
 
 logger = get_logger(__name__)
-
-
-@contextmanager
-def timer(action: str, tags: dict[str, str | int] = None) -> None:
-    """A simple timer context manager with structured logging for its output."""
-    start = time.perf_counter()
-    yield
-    elapsed = time.perf_counter() - start
-
-    extra = tags or {} | {"duration": elapsed}
-    logger.info(f"{action} execution profiled", extra=extra)
 
 
 # Adapted from: https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py#L192
