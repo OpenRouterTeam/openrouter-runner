@@ -40,7 +40,7 @@ def timer(action: str, tags: dict[str, str | int] = None) -> None:
     yield
     elapsed = time.perf_counter() - start
 
-    extra = tags or {} | {"duration": elapsed}
+    extra = (tags or {}) | {"duration": elapsed}
     logging.info(f"{action} execution profiled", extra=extra)
 
 
