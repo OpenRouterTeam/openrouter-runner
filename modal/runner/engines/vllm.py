@@ -76,7 +76,7 @@ class VllmEngine(BaseEngine):
                     payload.prompt, params, payload.id
                 )
 
-            t0 = time.time()
+            t0 = time.perf_counter()
             if payload.stream:
                 index = 0
 
@@ -118,10 +118,16 @@ class VllmEngine(BaseEngine):
                     done=True,
                 )
 
-            throughput = completion_tokens / (time.time() - t0)
+            elapsed = time.perf_counter() - t0
+            throughput = completion_tokens / elapsed
             logger.info(
-                f"Completed generation. Tokens count: {completion_tokens} tokens | Token rate {throughput:.4f} tokens/s",
-                extra={"model": self.engine_args.model},
+                "Completed generation",
+                extra={
+                    "model": self.engine_args.model,
+                    "tokens": completion_tokens,
+                    "tps": throughput,
+                    "duration": elapsed,
+                },
             )
         except Exception as err:
             e = create_error_text(err)
