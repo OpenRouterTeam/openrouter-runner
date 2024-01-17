@@ -26,7 +26,7 @@ jobs:
       - name: Deploy
         run: |
           cd modal
-          poetry run modal config set-environment main
+          poetry run modal config set-environment dev
 
           echo "Downloading models..."
           poetry run modal run runner::download
