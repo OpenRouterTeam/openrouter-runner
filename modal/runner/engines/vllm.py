@@ -1,6 +1,6 @@
 from typing import Optional
 
-from modal import enter, method
+from modal import method
 from pydantic import BaseModel
 
 from shared.logging import get_logger, timer
@@ -52,11 +52,6 @@ class VllmEngine(BaseEngine):
             **params.dict(),
             disable_log_requests=True,
         )
-        self.engine: AsyncLLMEngine | None = None
-
-    @enter()
-    def start(self):
-        from vllm.engine.async_llm_engine import AsyncLLMEngine
 
         with timer("engine init", tags={"model": self.engine_args.model}):
             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
