@@ -3,7 +3,7 @@ name: Release (prod)
 on:
   push:
     branches: [main]
-    paths: ['modal/**']
+    paths: ['modal/**', 'pyproject.toml', 'poetry.lock']
 
 jobs:
   release:
