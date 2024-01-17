@@ -38,7 +38,7 @@ downloader_image = (
     secrets=[Secret.from_name("huggingface"), *get_observability_secrets()],
     timeout=3600,  # 1 hour per model
 )
-def download_model(model_name: str):
+def download_model(model_name: str, force: bool = False):
     from huggingface_hub import HfApi
 
     hf = HfApi(token=env["HUGGINGFACE_TOKEN"])
@@ -71,8 +71,8 @@ def download_model(model_name: str):
             revision=revision,
             local_dir=model_path,
             cache_dir=cache_path,
+            force_download=force,
             ignore_patterns=ignore_patterns,
-            token=env["HUGGINGFACE_TOKEN"],
         )
         logger.info(f"Volume now contains {model_name}")
         models_volume.commit()
