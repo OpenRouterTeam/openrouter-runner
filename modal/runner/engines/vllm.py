@@ -1,9 +1,9 @@
 from typing import Optional
 
-from modal import method
+from modal import enter, method
 from pydantic import BaseModel
 
-from shared.logging import get_logger
+from shared.logging import get_logger, timer
 from shared.protocol import (
     CompletionPayload,
     create_error_text,
@@ -44,15 +44,22 @@ class VllmParams(BaseModel):
 
 class VllmEngine(BaseEngine):
     def __init__(self, params: VllmParams):
-        from vllm.engine.arg_utils import AsyncEngineArgs
-        from vllm.engine.async_llm_engine import AsyncLLMEngine
+        with timer("imports"):
+            from vllm.engine.arg_utils import AsyncEngineArgs
+            from vllm.engine.async_llm_engine import AsyncLLMEngine
 
         self.engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,
         )
+        self.engine: AsyncLLMEngine | None = None
 
-        self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
+    @enter()
+    def start(self):
+        from vllm.engine.async_llm_engine import AsyncLLMEngine
+
+        with timer("engine init", tags={"model": self.engine_args.model}):
+            self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
 
     # @method()
     # async def tokenize_prompt(self, payload: Payload) -> List[int]:
@@ -65,14 +72,18 @@ class VllmEngine(BaseEngine):
 
     @method()
     async def generate(self, payload: CompletionPayload, params):
+        assert self.engine is not None, "Engine not initialized"
+
         try:
             import time
 
-            results_generator = self.engine.generate(
-                payload.prompt, params, payload.id
-            )
+            tags = {"model": self.engine_args.model}
+            with timer("engine.generate()", tags=tags):
+                results_generator = self.engine.generate(
+                    payload.prompt, params, payload.id
+                )
 
-            t0 = time.time()
+            t0 = time.perf_counter()
             if payload.stream:
                 index = 0
 
@@ -114,10 +125,16 @@ class VllmEngine(BaseEngine):
                     done=True,
                 )
 
-            throughput = completion_tokens / (time.time() - t0)
+            elapsed = time.perf_counter() - t0
+            throughput = completion_tokens / elapsed
             logger.info(
-                f"Completed generation. Tokens count: {completion_tokens} tokens | Token rate {throughput:.4f} tokens/s",
-                extra={"model": self.engine_args.model},
+                "Completed generation",
+                extra={
+                    "model": self.engine_args.model,
+                    "tokens": completion_tokens,
+                    "tps": throughput,
+                    "duration": elapsed,
+                },
             )
         except Exception as err:
             e = create_error_text(err)

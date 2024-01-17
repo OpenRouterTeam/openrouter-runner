@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import sys
+import time
+from contextlib import contextmanager
 
 import sentry_sdk
 from datadog_api_client import ApiClient, Configuration
@@ -29,6 +31,17 @@ def add_observability(image: Image):
     return image.pip_install("datadog-api-client==2.21.0").pip_install(
         "sentry-sdk[fastapi]==1.39.1"
     )
+
+
+@contextmanager
+def timer(action: str, tags: dict[str, str | int] = None) -> None:
+    """A simple timer context manager with structured logging for its output."""
+    start = time.perf_counter()
+    yield
+    elapsed = time.perf_counter() - start
+
+    extra = (tags or {}) | {"duration": elapsed}
+    logging.info(f"{action} execution profiled", extra=extra)
 
 
 # skip natural LogRecord attributes
