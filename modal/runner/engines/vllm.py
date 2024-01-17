@@ -77,11 +77,9 @@ class VllmEngine(BaseEngine):
         try:
             import time
 
-            tags = {"model": self.engine_args.model}
-            with timer("engine.generate()", tags=tags):
-                results_generator = self.engine.generate(
-                    payload.prompt, params, payload.id
-                )
+            results_generator = self.engine.generate(
+                payload.prompt, params, payload.id
+            )
 
             t0 = time.perf_counter()
             if payload.stream:
