@@ -1,9 +1,9 @@
-import logging
 from typing import Optional
 
 from modal import enter, method
 from pydantic import BaseModel
 
+from shared.logging import get_logger
 from shared.protocol import (
     CompletionPayload,
     create_error_text,
@@ -12,6 +12,8 @@ from shared.protocol import (
 )
 
 from .base import BaseEngine
+
+logger = get_logger(__name__)
 
 
 # Adapted from: https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py#L192
@@ -120,11 +122,13 @@ class VllmEngine(BaseEngine):
                 )
 
             throughput = completion_tokens / (time.time() - t0)
-            print(f"Tokens count: {completion_tokens} tokens")
-            print(f"Request completed: {throughput:.4f} tokens/s")
+            logger.info(
+                f"Completed generation. Tokens count: {completion_tokens} tokens | Token rate {throughput:.4f} tokens/s",
+                extra={"model": self.engine_args.model},
+            )
         except Exception as err:
             e = create_error_text(err)
-            logging.exception(
+            logger.exception(
                 "Failed generation", extra={"model": self.engine_args.model}
             )
             if payload.stream:

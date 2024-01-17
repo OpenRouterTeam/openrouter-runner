@@ -13,6 +13,7 @@ scipy = "^1.11.3"
 fastapi = "^0.108.0"
 sentry-sdk = "1.39.1"
 ray = "^2.9.0"
+datadog-api-client = "2.21.0"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.1.9"
