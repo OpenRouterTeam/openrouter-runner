@@ -67,6 +67,8 @@ export async function completion(
 
   const output = await p.text();
   if (!quiet) {
+    console.log(`Response status: ${p.status}`);
+    console.log('Output -------------------');
     console.log(output.trim());
   }
 
