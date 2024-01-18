@@ -75,6 +75,9 @@ def _make_container(
     wrap = stub.cls(
         volumes={models_path: models_volume},
         image=_vllm_image,
+        # Default CPU memory is 128 on modal. Request more memory for larger
+        # windows of vLLM's batch loading weights into GPU memory.
+        memory=1024,
         gpu=gpu,
         allow_concurrent_inputs=concurrent_inputs,
         container_idle_timeout=20 * 60,
