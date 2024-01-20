@@ -1,9 +1,13 @@
 from typing import Optional
 
-from modal import method
+from modal import Image, method
 from pydantic import BaseModel
 
-from shared.logging import get_logger, timer
+from shared.logging import (
+    add_observability,
+    get_logger,
+    timer,
+)
 from shared.protocol import (
     CompletionPayload,
     create_error_text,
@@ -14,6 +18,18 @@ from shared.protocol import (
 from .base import BaseEngine
 
 logger = get_logger(__name__)
+
+
+vllm_image = add_observability(
+    Image.from_registry(
+        "nvidia/cuda:12.1.0-base-ubuntu22.04",
+        add_python="3.10",
+    ).pip_install("vllm==0.2.6", "sentry-sdk==1.39.1")
+)
+
+with vllm_image.imports():
+    from vllm.engine.arg_utils import AsyncEngineArgs
+    from vllm.engine.async_llm_engine import AsyncLLMEngine
 
 
 # Adapted from: https://github.com/vllm-project/vllm/blob/main/vllm/engine/arg_utils.py#L192
@@ -44,10 +60,6 @@ class VllmParams(BaseModel):
 
 class VllmEngine(BaseEngine):
     def __init__(self, params: VllmParams):
-        with timer("imports"):
-            from vllm.engine.arg_utils import AsyncEngineArgs
-            from vllm.engine.async_llm_engine import AsyncLLMEngine
-
         self.engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,

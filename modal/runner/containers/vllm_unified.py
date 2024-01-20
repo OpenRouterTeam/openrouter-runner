@@ -3,23 +3,14 @@ from typing import Optional
 
 import modal.gpu
 import sentry_sdk
-from modal import Image
 
-from runner.engines.vllm import VllmEngine, VllmParams
+from runner.engines.vllm import VllmEngine, VllmParams, vllm_image
 from runner.shared.common import stub
 from shared.logging import (
-    add_observability,
     get_logger,
     get_observability_secrets,
 )
 from shared.volumes import does_model_exist, models_path, models_volume
-
-_vllm_image = add_observability(
-    Image.from_registry(
-        "nvidia/cuda:12.1.0-base-ubuntu22.04",
-        add_python="3.10",
-    ).pip_install("vllm==0.2.6", "sentry-sdk==1.39.1")
-)
 
 
 def _make_container(
@@ -74,7 +65,7 @@ def _make_container(
 
     wrap = stub.cls(
         volumes={models_path: models_volume},
-        image=_vllm_image,
+        image=vllm_image,
         # Default CPU memory is 128 on modal. Request more memory for larger
         # windows of vLLM's batch loading weights into GPU memory.
         memory=1024,
