@@ -26,7 +26,7 @@ jobs:
       - name: Deploy
         run: |
           cd modal
-          poetry run modal config set-environment main
+          poetry run modal config set-environment dev
 
 # TODO: Re-enable when we're confident in the download action bug fix
 #
