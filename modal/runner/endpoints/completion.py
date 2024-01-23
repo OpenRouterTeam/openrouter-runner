@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from runner.containers import DEFAULT_CONTAINER_TYPES, get_container
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
-from shared.logging import get_logger
+from shared.logging import get_logger, timer
 from shared.protocol import (
     CompletionPayload,
     create_error_response,
@@ -35,7 +35,7 @@ def completion(
         else DEFAULT_CONTAINER_TYPES.get(payload.model)
     )
 
-    if not container_type:
+    if container_type is None:
         message = f"Unable to locate container type for model {payload.model}"
         logger.error(message)
         return create_error_response(
@@ -44,6 +44,7 @@ def completion(
         )
 
     runner = get_container(model_path, container_type)
+    tags = {"model": str(model_path), "container_type": container_type.value}
 
     stats = runner.generate.get_current_stats()
     logger.info(stats)
@@ -87,10 +88,11 @@ def completion(
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     async def generate():
-        async for text in runner.generate.remote_gen.aio(
-            payload, sampling_params
-        ):
-            yield text
+        with timer("runner.generate", tags=tags):
+            async for text in runner.generate.remote_gen.aio(
+                payload, sampling_params
+            ):
+                yield text
 
     return StreamingResponse(
         generate(),
