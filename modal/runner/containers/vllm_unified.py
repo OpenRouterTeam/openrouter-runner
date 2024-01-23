@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -32,6 +33,10 @@ def _make_container(
                     raise Exception("Unable to locate model {}", model_path)
 
                 if num_gpus > 1:
+                    # HACK[1-20-2024]: Yesterday, Modal started populating this env var
+                    # with GPU UUIDs. This breaks some assumption in Ray, so just unset
+                    os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+
                     # Patch issue from https://github.com/vllm-project/vllm/issues/1116
                     import ray
 
