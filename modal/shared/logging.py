@@ -52,17 +52,19 @@ def timer(
         tags: Any additional tags to include in the structured log
     """
     start = time.perf_counter()
-    yield
-    elapsed = time.perf_counter() - start
+    try:
+        yield
+    finally:
+        elapsed = time.perf_counter() - start
 
-    extra = (tags or {}) | {"duration": elapsed}
-    if model:
-        extra["model"] = model
-    if container_type:
-        extra["container_type"] = container_type.value
-        extra["gpu_cost"] = elapsed * container_type.gpu_cost_per_second
+        extra = (tags or {}) | {"duration": elapsed}
+        if model:
+            extra["model"] = model
+        if container_type:
+            extra["container_type"] = container_type.value
+            extra["gpu_cost"] = elapsed * container_type.gpu_cost_per_second
 
-    logging.info(f"{action} execution profiled", extra=extra)
+        logging.info(f"{action} execution profiled", extra=extra)
 
 
 # skip natural LogRecord attributes
