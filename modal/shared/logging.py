@@ -55,6 +55,10 @@ def timer(
     try:
         yield
     finally:
+        # FIXME: this block doesnt seem to execute when an async function
+        # is called from within the context manager. Look into making an
+        # async variant.
+
         elapsed = time.perf_counter() - start
 
         extra = (tags or {}) | {"duration": elapsed}
