@@ -44,7 +44,7 @@ class VllmParams(BaseModel):
 
 class VllmEngine(BaseEngine):
     def __init__(self, params: VllmParams):
-        with timer("imports"):
+        with timer("imports", model=params.model):
             from vllm.engine.arg_utils import AsyncEngineArgs
             from vllm.engine.async_llm_engine import AsyncLLMEngine
 
@@ -53,7 +53,7 @@ class VllmEngine(BaseEngine):
             disable_log_requests=True,
         )
 
-        with timer("engine init", tags={"model": self.engine_args.model}):
+        with timer("engine init", model=self.engine_args.model):
             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
 
     # @method()

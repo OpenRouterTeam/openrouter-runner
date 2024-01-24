@@ -44,7 +44,6 @@ def completion(
         )
 
     runner = get_container(model_path, container_type)
-    tags = {"model": str(model_path), "container_type": container_type.value}
 
     stats = runner.generate.get_current_stats()
     logger.info(stats)
@@ -88,7 +87,7 @@ def completion(
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     async def generate():
-        with timer("runner.generate", tags=tags):
+        with timer("runner.generate", str(model_path), container_type):
             async for text in runner.generate.remote_gen.aio(
                 payload, sampling_params
             ):
