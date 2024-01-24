@@ -1,8 +1,11 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import Final, List, Optional, Union
 
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
+
+A100_40G: Final[float] = 0.001036
+A100_80G: Final[float] = 0.001553
 
 
 class ContainerType(Enum):
@@ -15,6 +18,30 @@ class ContainerType(Enum):
 
     VllmContainerA100_160G = "VllmContainerA100_160G"
     VllmContainerA100_160G_Isolated = "VllmContainerA100_160G_Isolated"
+
+    @property
+    def gpu_cost_per_second(self) -> float:
+        """
+        Returns:
+            The quoted GPU compute cost per second for the container,
+            as found on https://modal.com/pricing
+        """
+
+        # TODO: might be better to put this on the container class itself,
+        #       but this is good enough(tm) for now
+        match self:
+            case ContainerType.VllmContainer_7B:
+                return A100_40G * 1
+            case ContainerType.VllmContainerA100_40G:
+                return A100_40G * 1
+            case ContainerType.VllmContainerA100_80G:
+                return A100_80G * 1
+            case ContainerType.VllmContainerA100_80G_32K:
+                return A100_80G * 1
+            case ContainerType.VllmContainerA100_160G:
+                return A100_80G * 2
+            case ContainerType.VllmContainerA100_160G_Isolated:
+                return A100_80G * 2
 
 
 # https://github.com/vllm-project/vllm/blob/320a622ec4d098f2da5d097930f4031517e7327b/vllm/sampling_params.py#L7-L52
