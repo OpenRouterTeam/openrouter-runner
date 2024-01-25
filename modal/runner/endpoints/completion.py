@@ -1,4 +1,4 @@
-from fastapi import status
+from fastapi import Request, status
 from fastapi.responses import StreamingResponse
 
 from runner.containers import DEFAULT_CONTAINER_TYPES, get_container
@@ -15,11 +15,20 @@ logger = get_logger(__name__)
 
 
 def completion(
+    request: Request,
     payload: CompletionPayload,
 ):
     model_path = get_model_path(payload.model)
     logger.info(
-        "Received completion request", extra={"model": str(model_path)}
+        "Received completion request",
+        extra={
+            "model": str(model_path),
+            "user-agent": request.headers.get("user-agent"),
+            "referer": request.headers.get("referer"),
+            "ip": request.headers.get("x-real-ip")
+            or request.headers.get("x-forwarded-for")
+            or request.client.host,
+        },
     )  # use path to match runner
     if not does_model_exist(model_path):
         message = f"Unable to locate model {payload.model}"
