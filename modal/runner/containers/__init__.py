@@ -40,7 +40,5 @@ def get_container(
             return VllmContainerA100_80G(model_path, max_model_len=32_000)
         case ContainerType.VllmContainerA100_160G:
             return VllmContainerA100_160G(model_path)
-        case ContainerType.VllmContainerA100_160G:
-            return VllmContainerA100_160G(model_path)
         case ContainerType.VllmContainerA100_160G_Isolated:
             return VllmContainerA100_160G_Isolated(model_path)
