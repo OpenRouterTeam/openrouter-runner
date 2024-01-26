@@ -9,6 +9,7 @@ _COST_PER_SECOND_A100_80G: Final[float] = 0.001553
 
 
 class ContainerType(Enum):
+    VllmContainer_3B = "VllmContainer_3B"
     VllmContainer_7B = "VllmContainer_7B"
 
     VllmContainerA100_40G = "VllmContainerA100_40G"
@@ -30,6 +31,8 @@ class ContainerType(Enum):
         # TODO: might be better to put this on the container class itself,
         #       but this is good enough(tm) for now
         match self:
+            case ContainerType.VllmContainer_3B:
+                return _COST_PER_SECOND_A100_40G * 1
             case ContainerType.VllmContainer_7B:
                 return _COST_PER_SECOND_A100_40G * 1
             case ContainerType.VllmContainerA100_40G:
