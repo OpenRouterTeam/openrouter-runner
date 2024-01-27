@@ -92,6 +92,10 @@ def _make_container(
     return wrap(_VllmContainer)
 
 
+VllmContainer_3B = _make_container(
+    "VllmContainer_3B", num_gpus=1, concurrent_inputs=120
+)
+
 VllmContainer_7B = _make_container(
     "VllmContainer_7B", num_gpus=1, concurrent_inputs=100
 )
