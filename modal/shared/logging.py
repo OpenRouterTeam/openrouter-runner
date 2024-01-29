@@ -12,12 +12,16 @@ from datadog_api_client.v2.model.content_encoding import ContentEncoding
 from datadog_api_client.v2.model.http_log import HTTPLog
 from datadog_api_client.v2.model.http_log_item import HTTPLogItem
 from modal import Image, Secret
+from sentry_sdk.scrubber import DEFAULT_DENYLIST, EventScrubber
 
 from shared.protocol import ContainerType
 
+_sentry_denylist = DEFAULT_DENYLIST + ["prompt"]
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
     environment=os.environ.get("SENTRY_ENVIRONMENT") or "development",
+    send_default_pii=False,
+    event_scrubber=EventScrubber(denylist=_sentry_denylist),
 )
 
 
