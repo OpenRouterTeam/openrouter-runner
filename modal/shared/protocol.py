@@ -94,7 +94,6 @@ class Usage(BaseModel):
 
     prompt_tokens: int
     completion_tokens: int
-    total_tokens: int
 
     # TODO: add these in after deprecating the old fields
     # duration: float
@@ -123,7 +122,6 @@ def create_response_text(
         usage=Usage(
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
-            total_tokens=prompt_tokens + completion_tokens,
         ),
         done=done,
     ).json(ensure_ascii=False)
