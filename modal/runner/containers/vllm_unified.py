@@ -24,7 +24,11 @@ _vllm_image = add_observability(
 
 
 def _make_container(
-    name: str, num_gpus: int = 1, memory: int = 0, concurrent_inputs: int = 8
+    name: str,
+    num_gpus: int = 1,
+    memory: int = 0,
+    concurrent_inputs: int = 8,
+    num_containers: Optional[int] = None,
 ):
     "Helper function to create a container with the given GPU configuration."
 
@@ -84,9 +88,14 @@ def _make_container(
         # windows of vLLM's batch loading weights into GPU memory.
         memory=1024,
         gpu=gpu,
+        retries=1,
         allow_concurrent_inputs=concurrent_inputs,
-        container_idle_timeout=20 * 60,
+        # Timeout for idle containers waiting for inputs to shut down (10 min)
+        container_idle_timeout=10 * 60,
+        # maximum execution time (10 min)
         timeout=10 * 60,
+        keep_warm=num_containers,
+        concurrency_limit=num_containers,
         secrets=[*get_observability_secrets()],
     )
     return wrap(_VllmContainer)
@@ -106,7 +115,11 @@ VllmContainerA100_80G = _make_container(
     "VllmContainerA100_80G", num_gpus=1, memory=80
 )
 VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
+    "VllmContainerA100_160G",
+    num_gpus=2,
+    memory=80,
+    concurrent_inputs=4,
+    num_containers=1,
 )
 
 # Allow new models to be tested on the isolated container
@@ -115,4 +128,5 @@ VllmContainerA100_160G_Isolated = _make_container(
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,
+    num_containers=1,
 )
