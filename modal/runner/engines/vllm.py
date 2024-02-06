@@ -7,6 +7,8 @@ from pydantic import BaseModel
 from shared.logging import get_logger, timer
 from shared.protocol import (
     CompletionPayload,
+    GPUType,
+    Usage,
     create_error_text,
     create_response_text,
     create_sse_data,
@@ -44,7 +46,13 @@ class VllmParams(BaseModel):
 
 
 class VllmEngine(BaseEngine):
-    def __init__(self, params: VllmParams):
+    def __init__(
+        self,
+        gpu_type: GPUType,
+        params: VllmParams,
+    ):
+        self.gpu_type = gpu_type
+
         with timer("imports", model=params.model):
             from vllm.engine.arg_utils import AsyncEngineArgs
             from vllm.engine.async_llm_engine import AsyncLLMEngine
@@ -56,6 +64,10 @@ class VllmEngine(BaseEngine):
 
         with timer("engine init", model=self.engine_args.model):
             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
+
+    @property
+    def gpu_count(self) -> int:
+        return self.engine_args.tensor_parallel_size
 
     # @method()
     # async def tokenize_prompt(self, payload: Payload) -> List[int]:
@@ -70,70 +82,56 @@ class VllmEngine(BaseEngine):
     async def generate(self, payload: CompletionPayload, params):
         assert self.engine is not None, "Engine not initialized"
 
+        # Track usage as a running total
+        # NOTE: This does NOT yet include cold-start GPU time
         t_start_inference = time.perf_counter()
+        usage = Usage(
+            prompt_tokens=0,
+            completion_tokens=0,
+            duration=0.0,
+            gpu_type=self.gpu_type,
+            gpu_count=self.gpu_count,
+        )
 
         try:
             results_generator = self.engine.generate(
                 payload.prompt, params, payload.id
             )
 
-            final_output = None
-            if payload.stream:
-                index = 0
+            output = ""
+            index = 0
+            async for current in results_generator:
+                output = current.outputs[0].text
+                usage.prompt_tokens = len(current.prompt_token_ids)
+                usage.completion_tokens = len(current.outputs[0].token_ids)
+                usage.duration = time.perf_counter() - t_start_inference
 
-                async for request_output in results_generator:
-                    # Skipping invalid UTF8 tokens:
-                    if (
-                        request_output.outputs[0].text
-                        and request_output.outputs[0].text[-1] == "\ufffd"
-                    ):
-                        continue
+                # Non-streaming requests continue generating w/o yielding intermediate results
+                if not payload.stream:
+                    yield " "  # QUESTION[sam]: why yield a single space for non-streaming?
+                    continue
 
-                    final_output = request_output
-                    token = final_output.outputs[0].text[index:]
-                    index = len(final_output.outputs[0].text)
-                    yield create_sse_data(
-                        token,
-                        prompt_tokens=len(final_output.prompt_token_ids),
-                        completion_tokens=len(
-                            final_output.outputs[0].token_ids
-                        ),
-                        done=False,
-                    )
+                # Skipping invalid UTF8 tokens:
+                if output and output[-1] == "\ufffd":
+                    continue
 
-                output = ""
-            else:
-                async for request_output in results_generator:
-                    final_output = request_output
-                    yield " "
+                # Streaming requests send SSE messages with each new generated part
+                token = output[index:]
+                index = len(output)
+                response = create_response_text(token, usage, done=False)
+                yield create_sse_data(response)
 
-                output = final_output.outputs[0].text
+            output = "" if payload.stream else output
+            response = create_response_text(output, usage, done=True)
+            yield create_sse_data(response) if payload.stream else response
 
-            prompt_tokens = len(final_output.prompt_token_ids)
-            completion_tokens = len(final_output.outputs[0].token_ids)
-            if payload.stream:
-                yield create_sse_data(
-                    "",
-                    prompt_tokens,
-                    completion_tokens,
-                    done=True,
-                )
-            else:
-                yield create_response_text(
-                    output,
-                    prompt_tokens,
-                    completion_tokens,
-                    done=True,
-                )
-
-            elapsed = time.perf_counter() - t_start_inference
             logger.info(
                 "Completed generation",
                 extra={
                     "model": self.engine_args.model,
-                    "tokens": completion_tokens,
-                    "tps": completion_tokens / elapsed,
-                    "duration": elapsed,
+                    "tokens": usage.completion_tokens,
+                    "tps": usage.completion_tokens / usage.duration,
+                    "duration": usage.duration,
                 },
             )
         except Exception as err:
@@ -142,6 +140,6 @@ class VllmEngine(BaseEngine):
                 "Failed generation", extra={"model": self.engine_args.model}
             )
             if payload.stream:
-                yield create_sse_data(e)
+                yield create_sse_data(create_response_text(e))
             else:
                 yield e
