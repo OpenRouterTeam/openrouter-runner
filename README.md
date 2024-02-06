@@ -5,7 +5,7 @@ OpenRouter Runner is a monolith inference engine, built with [Modal](https://mod
 > ✨ If you can make the Runner run faster and cheaper, we'll route to your services!
 
 #### Table of Contents
-- [Adding Models To OpenRouter (Video)](adding-models-to-openrouter)
+- [Adding Models To OpenRouter (Video)](#adding-models-to-openrouter)
 - [Prerequisites](#prerequisites)
 - [Quickstart](#quickstart)
 - [Adding New Models](#adding-new-models)
