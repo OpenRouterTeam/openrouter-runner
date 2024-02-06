@@ -53,7 +53,7 @@ For those familiar with the OpenRouter Runner and wanting to deploy it quickly. 
     code .
     ```
 
-2. **Create dev environment**
+3. **Create dev environment**
     
     ```shell Python
     modal environment create dev
@@ -69,7 +69,7 @@ For those familiar with the OpenRouter Runner and wanting to deploy it quickly. 
     > ⚠️ We are using our Dev environment right now. Switch to **main** when deploying to production.
 
 
-4. **Configure secret keys**
+5. **Configure secret keys**
 
     - **HuggingFace Token**:
       Create a Modal secret group with your Hugging Face token. Replace `<your huggingface token>` with the actual token.
@@ -94,13 +94,13 @@ For those familiar with the OpenRouter Runner and wanting to deploy it quickly. 
       modal secret create datadog DD_API_KEY=<optional DD_API_KEY> DD_SITE=<site name>
       ```
     
-  5. **Download Models**
+  6. **Download Models**
      
       ```shell Python
       modal run runner::download
       ```
 
-  6. **Deploy Runner**
+  7. **Deploy Runner**
 
       ```shell Python
       modal deploy runner
