@@ -578,12 +578,12 @@ tqdm = ["tqdm"]
 
 [[package]]
 name = "grpclib"
-version = "0.4.3"
+version = "0.4.7"
 description = "Pure-Python gRPC implementation for asyncio"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "grpclib-0.4.3.tar.gz", hash = "sha256:eadf2002fc5a25158b707c0338a6c0b96dd7fbdc6df66f7e515e7f041d56a940"},
+    {file = "grpclib-0.4.7.tar.gz", hash = "sha256:2988ef57c02b22b7a2e8e961792c41ccf97efc2ace91ae7a5b0de03c363823c3"},
 ]
 
 [package.dependencies]
@@ -591,7 +591,7 @@ h2 = ">=3.1.0,<5"
 multidict = "*"
 
 [package.extras]
-protobuf = ["protobuf (>=3.15.0)"]
+protobuf = ["protobuf (>=3.20.0)"]
 
 [[package]]
 name = "h11"
@@ -846,12 +846,12 @@ files = [
 
 [[package]]
 name = "modal"
-version = "0.56.4646"
+version = "0.56.4964"
 description = "Python client library for Modal"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "modal-0.56.4646-py3-none-any.whl", hash = "sha256:1eb7b0c8b37a9ca48bc70fb6c941a32c2e18256b7320e3d397a9a2c67d1ae156"},
+    {file = "modal-0.56.4964-py3-none-any.whl", hash = "sha256:0f0a264804420e40130cc4838274ece5ec0592109c1bfe9d1a16d01f6aeb9749"},
 ]
 
 [package.dependencies]
@@ -865,11 +865,11 @@ cloudpickle = [
     {version = ">=2.2.0,<2.3.0", markers = "python_version >= \"3.11\""},
 ]
 fastapi = "*"
-grpclib = "0.4.3"
+grpclib = "0.4.7"
 importlib-metadata = ">=3.6.0"
 protobuf = ">=3.19,<4.24.0 || >4.24.0,<5.0"
 rich = ">=12.0.0"
-synchronicity = ">=0.5.3,<0.6.0"
+synchronicity = ">=0.6.0,<0.7.0"
 tblib = ">=1.7.0"
 toml = "*"
 typer = ">=0.9.0,<0.10.0"
@@ -1862,16 +1862,17 @@ full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyam
 
 [[package]]
 name = "synchronicity"
-version = "0.5.3"
+version = "0.6.2"
 description = "Export blocking and async library versions from a single async implementation"
 optional = false
-python-versions = ">=3.7.9"
+python-versions = ">=3.8"
 files = [
-    {file = "synchronicity-0.5.3-py3-none-any.whl", hash = "sha256:d7ff3ec96d3002a4f1c21b99ad4f556557fda0ca1b0014071831e217affa2300"},
+    {file = "synchronicity-0.6.2-py3-none-any.whl", hash = "sha256:7b59fc367fd6235573e5b488537b6f90967a00422cfdf9c57438809211973863"},
 ]
 
 [package.dependencies]
 sigtools = "4.0.1"
+typing-extensions = ">=4.6"
 
 [[package]]
 name = "tblib"

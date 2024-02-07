@@ -11,6 +11,7 @@ from .vllm_unified import (
     VllmContainerA100_80G,
     VllmContainerA100_160G,
     VllmContainerA100_160G_Isolated,
+    VllmContainerH100_80G,
 )
 
 DEFAULT_CONTAINER_TYPES = {
@@ -23,7 +24,7 @@ DEFAULT_CONTAINER_TYPES = {
     # "NeverSleep/Noromaid-20b-v0.1.1": ContainerType.VllmContainerA100_80G,
     # "cognitivecomputations/dolphin-2.6-mixtral-8x7b": ContainerType.VllmContainerA100_160G,
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": ContainerType.VllmContainerA100_160G,
-    "jondurbin/bagel-34b-v0.2": ContainerType.VllmContainerA100_160G_Isolated,
+    "jondurbin/bagel-34b-v0.2": ContainerType.VllmContainerH100_80G,
 }
 
 
@@ -45,3 +46,5 @@ def get_container(
             return VllmContainerA100_160G(model_path)
         case ContainerType.VllmContainerA100_160G_Isolated:
             return VllmContainerA100_160G_Isolated(model_path)
+        case ContainerType.VllmContainerH100_80G:
+            return VllmContainerH100_80G(model_path)

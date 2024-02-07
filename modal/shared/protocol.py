@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 _COST_PER_SECOND_A100_40G: Final[float] = 0.001036
 _COST_PER_SECOND_A100_80G: Final[float] = 0.001553
+_COST_PER_SECOND_H100_80G: Final[float] = 0.002125
 
 
 class ContainerType(Enum):
@@ -19,6 +20,8 @@ class ContainerType(Enum):
 
     VllmContainerA100_160G = "VllmContainerA100_160G"
     VllmContainerA100_160G_Isolated = "VllmContainerA100_160G_Isolated"
+
+    VllmContainerH100_80G = "VllmContainerH100_80G"
 
     @property
     def gpu_cost_per_second(self) -> float:
@@ -45,6 +48,8 @@ class ContainerType(Enum):
                 return _COST_PER_SECOND_A100_80G * 2
             case ContainerType.VllmContainerA100_160G_Isolated:
                 return _COST_PER_SECOND_A100_80G * 2
+            case ContainerType.VllmContainerH100_80G:
+                return _COST_PER_SECOND_H100_80G * 1
 
 
 # https://github.com/vllm-project/vllm/blob/320a622ec4d098f2da5d097930f4031517e7327b/vllm/sampling_params.py#L7-L52

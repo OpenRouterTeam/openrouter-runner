@@ -24,11 +24,13 @@ _vllm_image = add_observability(
 
 
 def _make_container(
-    name: str, num_gpus: int = 1, memory: int = 0, concurrent_inputs: int = 8
+    name: str,
+    concurrent_inputs: int = 8,
+    gpu: modal.gpu = modal.gpu.A100(count=1, memory=40),
 ):
     "Helper function to create a container with the given GPU configuration."
 
-    gpu = modal.gpu.A100(count=num_gpus, memory=memory)
+    num_gpus = gpu.count
 
     class _VllmContainer(VllmEngine):
         def __init__(
@@ -93,26 +95,39 @@ def _make_container(
 
 
 VllmContainer_3B = _make_container(
-    "VllmContainer_3B", num_gpus=1, concurrent_inputs=120
+    "VllmContainer_3B",
+    gpu=modal.gpu.A100(count=1, memory=40),
+    concurrent_inputs=120,
 )
 
 VllmContainer_7B = _make_container(
-    "VllmContainer_7B", num_gpus=1, concurrent_inputs=100
+    "VllmContainer_7B",
+    gpu=modal.gpu.A100(count=1, memory=40),
+    concurrent_inputs=100,
 )
 VllmContainerA100_40G = _make_container(
-    "VllmContainerA100_40G", num_gpus=1, concurrent_inputs=32
+    "VllmContainerA100_40G",
+    gpu=modal.gpu.A100(count=1, memory=40),
+    concurrent_inputs=32,
 )
 VllmContainerA100_80G = _make_container(
-    "VllmContainerA100_80G", num_gpus=1, memory=80
+    "VllmContainerA100_80G", gpu=modal.gpu.A100(count=1, memory=80)
 )
 VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
+    "VllmContainerA100_160G",
+    gpu=modal.gpu.A100(count=2, memory=80),
+    concurrent_inputs=4,
 )
 
 # Allow new models to be tested on the isolated container
 VllmContainerA100_160G_Isolated = _make_container(
     "VllmContainerA100_160G_Isolated",
-    num_gpus=2,
-    memory=80,
+    gpu=modal.gpu.A100(count=2, memory=80),
+    concurrent_inputs=4,
+)
+
+VllmContainerH100_80G = _make_container(
+    "VllmContainerH100_80G",
+    gpu=modal.gpu.H100(count=1),
     concurrent_inputs=4,
 )
