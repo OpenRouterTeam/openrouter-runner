@@ -85,10 +85,27 @@ class CompletionPayload(BaseModel):
     runner: RunnerConfiguration | None = None
 
 
-class ResponseBody(BaseModel):
-    text: str
+class Usage(BaseModel):
+    """
+    An OpenAI-style usage struct, containing the expected
+    token counts as well as additional data about the GPU
+    usage of the request.
+    """
+
     prompt_tokens: int
     completion_tokens: int
+
+    # TODO: add these in after deprecating the old fields
+    # duration: float
+    # gpu_type: GPUType
+    # gpu_count: int
+
+
+class ResponseBody(BaseModel):
+    text: str
+    prompt_tokens: int  # TODO: deprecate
+    completion_tokens: int  # TODO: deprecate
+    usage: Usage
     done: bool
 
 
@@ -102,6 +119,10 @@ def create_response_text(
         text=text,
         prompt_tokens=prompt_tokens,
         completion_tokens=completion_tokens,
+        usage=Usage(
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+        ),
         done=done,
     ).json(ensure_ascii=False)
 
