@@ -1,3 +1,4 @@
+import time
 from typing import Optional
 
 from modal import method
@@ -69,14 +70,14 @@ class VllmEngine(BaseEngine):
     async def generate(self, payload: CompletionPayload, params):
         assert self.engine is not None, "Engine not initialized"
 
-        try:
-            import time
+        t_start_inference = time.perf_counter()
 
+        try:
             results_generator = self.engine.generate(
                 payload.prompt, params, payload.id
             )
 
-            t0 = time.perf_counter()
+            final_output = None
             if payload.stream:
                 index = 0
 
@@ -87,22 +88,29 @@ class VllmEngine(BaseEngine):
                         and request_output.outputs[0].text[-1] == "\ufffd"
                     ):
                         continue
-                    token = request_output.outputs[0].text[index:]
-                    index = len(request_output.outputs[0].text)
-                    yield create_sse_data(token)
+
+                    final_output = request_output
+                    token = final_output.outputs[0].text[index:]
+                    index = len(final_output.outputs[0].text)
+                    yield create_sse_data(
+                        token,
+                        prompt_tokens=len(final_output.prompt_token_ids),
+                        completion_tokens=len(
+                            final_output.outputs[0].token_ids
+                        ),
+                        done=False,
+                    )
 
                 output = ""
             else:
-                final_output = None
                 async for request_output in results_generator:
                     final_output = request_output
                     yield " "
 
                 output = final_output.outputs[0].text
 
-            prompt_tokens = len(request_output.prompt_token_ids)
-            completion_tokens = len(request_output.outputs[0].token_ids)
-
+            prompt_tokens = len(final_output.prompt_token_ids)
+            completion_tokens = len(final_output.outputs[0].token_ids)
             if payload.stream:
                 yield create_sse_data(
                     "",
@@ -118,14 +126,13 @@ class VllmEngine(BaseEngine):
                     done=True,
                 )
 
-            elapsed = time.perf_counter() - t0
-            throughput = completion_tokens / elapsed
+            elapsed = time.perf_counter() - t_start_inference
             logger.info(
                 "Completed generation",
                 extra={
                     "model": self.engine_args.model,
                     "tokens": completion_tokens,
-                    "tps": throughput,
+                    "tps": completion_tokens / elapsed,
                     "duration": elapsed,
                 },
             )
