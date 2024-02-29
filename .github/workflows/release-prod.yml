@@ -30,8 +30,8 @@ jobs:
 
           # TODO: Re-enable when we're confident in the download action bug fix
           #
-          echo "Downloading models..."
-          poetry run modal run runner::download
+          # echo "Downloading models..."
+          # poetry run modal run runner::download
 
           echo "Deploying..."
           poetry run modal deploy runner
