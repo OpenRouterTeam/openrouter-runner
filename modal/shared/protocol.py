@@ -137,9 +137,7 @@ def create_sse_data(
     done: bool = False,
     finish_reason: str | None = None,
 ) -> str:
-    return f"data: {create_response_text(
-        text, prompt_tokens, completion_tokens, done, finish_reason
-    )}\n\n"
+    return f"data: {create_response_text(text, prompt_tokens, completion_tokens, done, finish_reason)}\n\n"
 
 
 class ErrorPayload(BaseModel):

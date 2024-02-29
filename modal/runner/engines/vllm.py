@@ -111,6 +111,7 @@ class VllmEngine(BaseEngine):
                     yield " "
 
                 output = final_output.outputs[0].text
+                finish_reason = final_output.outputs[0].finish_reason
 
             prompt_tokens = len(final_output.prompt_token_ids)
             completion_tokens = len(final_output.outputs[0].token_ids)
