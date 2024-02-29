@@ -106,6 +106,7 @@ class ResponseBody(BaseModel):
     prompt_tokens: int  # TODO: deprecate
     completion_tokens: int  # TODO: deprecate
     usage: Usage
+    finish_reason: str | None
     done: bool
 
 
@@ -114,6 +115,7 @@ def create_response_text(
     prompt_tokens: int = 0,
     completion_tokens: int = 0,
     done: bool = False,
+    finish_reason: str | None = None,
 ) -> str:
     return ResponseBody(
         text=text,
@@ -124,6 +126,7 @@ def create_response_text(
             completion_tokens=completion_tokens,
         ),
         done=done,
+        finish_reason=finish_reason,
     ).json(ensure_ascii=False)
 
 
@@ -132,8 +135,11 @@ def create_sse_data(
     prompt_tokens: int = 0,
     completion_tokens: int = 0,
     done: bool = False,
+    finish_reason: str | None = None,
 ) -> str:
-    return f"data: {create_response_text(text, prompt_tokens, completion_tokens, done)}\n\n"
+    return f"data: {create_response_text(
+        text, prompt_tokens, completion_tokens, done, finish_reason
+    )}\n\n"
 
 
 class ErrorPayload(BaseModel):

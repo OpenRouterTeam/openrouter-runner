@@ -78,6 +78,7 @@ class VllmEngine(BaseEngine):
             )
 
             final_output = None
+            finish_reason = None
             if payload.stream:
                 index = 0
 
@@ -92,6 +93,7 @@ class VllmEngine(BaseEngine):
                     final_output = request_output
                     token = final_output.outputs[0].text[index:]
                     index = len(final_output.outputs[0].text)
+                    finish_reason = final_output.outputs[0].finish_reason
                     yield create_sse_data(
                         token,
                         prompt_tokens=len(final_output.prompt_token_ids),
@@ -99,6 +101,7 @@ class VllmEngine(BaseEngine):
                             final_output.outputs[0].token_ids
                         ),
                         done=False,
+                        finish_reason=finish_reason,
                     )
 
                 output = ""
@@ -117,6 +120,7 @@ class VllmEngine(BaseEngine):
                     prompt_tokens,
                     completion_tokens,
                     done=True,
+                    finish_reason=finish_reason,
                 )
             else:
                 yield create_response_text(
@@ -124,6 +128,7 @@ class VllmEngine(BaseEngine):
                     prompt_tokens,
                     completion_tokens,
                     done=True,
+                    finish_reason=finish_reason,
                 )
 
             elapsed = time.perf_counter() - t_start_inference
