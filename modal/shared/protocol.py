@@ -108,6 +108,7 @@ class Usage(BaseModel):
 class ResponseBody(BaseModel):
     text: str
     usage: Usage
+    finish_reason: str | None
     done: bool
 
 
@@ -115,8 +116,11 @@ def create_response_text(
     text: str,
     usage: Usage,
     done: bool = False,
+    finish_reason: str | None = None,
 ) -> str:
-    r = ResponseBody(text=text, usage=usage, done=done)
+    r = ResponseBody(
+      text=text, usage=usage, done=done, finish_reason=finish_reason
+    )
     return r.json(ensure_ascii=False)
 
 
