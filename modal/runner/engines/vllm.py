@@ -8,10 +8,10 @@ from shared.logging import get_logger, timer
 from shared.protocol import (
     CompletionPayload,
     GPUType,
+    ResponseBody,
     Usage,
     create_error_text,
-    create_response_text,
-    create_sse_data,
+    sse,
 )
 
 from .base import BaseEngine
@@ -85,12 +85,15 @@ class VllmEngine(BaseEngine):
         # Track usage as a running total
         # NOTE: This does NOT yet include cold-start GPU time
         t_start_inference = time.perf_counter()
-        usage = Usage(
-            prompt_tokens=0,
-            completion_tokens=0,
-            duration=0.0,
-            gpu_type=self.gpu_type,
-            gpu_count=self.gpu_count,
+        resp = ResponseBody(
+            text="",
+            usage=Usage(
+                prompt_tokens=0,
+                completion_tokens=0,
+                duration=0.0,
+                gpu_type=self.gpu_type,
+                gpu_count=self.gpu_count,
+            ),
         )
 
         try:
@@ -104,9 +107,9 @@ class VllmEngine(BaseEngine):
             async for current in results_generator:
                 output = current.outputs[0].text
                 finish_reason = current.outputs[0].finish_reason
-                usage.prompt_tokens = len(current.prompt_token_ids)
-                usage.completion_tokens = len(current.outputs[0].token_ids)
-                usage.duration = time.perf_counter() - t_start_inference
+                resp.usage.prompt_tokens = len(current.prompt_token_ids)
+                resp.usage.completion_tokens = len(current.outputs[0].token_ids)
+                resp.usage.duration = time.perf_counter() - t_start_inference
 
                 # Non-streaming requests continue generating w/o yielding intermediate results
                 if not payload.stream:
@@ -120,24 +123,23 @@ class VllmEngine(BaseEngine):
                 # Streaming requests send SSE messages with each new generated part
                 token = output[index:]
                 index = len(output)
-                response = create_response_text(
-                    token, usage, done=False, finish_reason=finish_reason
-                )
-                yield create_sse_data(response)
+                resp.text = token
+                resp.finish_reason = finish_reason
+                yield sse(resp.json(ensure_ascii=False))
 
-            output = "" if payload.stream else output
-            response = create_response_text(
-                output, usage, done=True, finish_reason=finish_reason
-            )
-            yield create_sse_data(response) if payload.stream else response
+            resp.text = "" if payload.stream else output
+            resp.done = True
+            resp.finish_reason = finish_reason
+            data = resp.json(ensure_ascii=False)
+            yield sse(data) if payload.stream else data
 
             logger.info(
                 "Completed generation",
                 extra={
                     "model": self.engine_args.model,
-                    "tokens": usage.completion_tokens,
-                    "tps": usage.completion_tokens / usage.duration,
-                    "duration": usage.duration,
+                    "tokens": resp.usage.completion_tokens,
+                    "tps": resp.usage.completion_tokens / resp.usage.duration,
+                    "duration": resp.usage.duration,
                 },
             )
         except Exception as err:
@@ -145,7 +147,12 @@ class VllmEngine(BaseEngine):
             logger.exception(
                 "Failed generation", extra={"model": self.engine_args.model}
             )
-            if payload.stream:
-                yield create_sse_data(create_response_text(e))
-            else:
-                yield e
+            # TODO: Existing code prior to refactor was yielding error text
+            # in a ResponseBody model, with empty usage data. Non-streaming
+            # requests yielded only error text as a string. This behavior
+            # is preserved here, but should maybe be revisited.
+            resp.text = e
+            resp.usage.prompt_tokens = 0
+            resp.usage.completion_tokens = 0
+            data = resp.json(ensure_ascii=False)
+            yield sse(data) if payload.stream else e
