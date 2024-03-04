@@ -119,7 +119,7 @@ def create_response_text(
     finish_reason: str | None = None,
 ) -> str:
     r = ResponseBody(
-      text=text, usage=usage, done=done, finish_reason=finish_reason
+        text=text, usage=usage, done=done, finish_reason=finish_reason
     )
     return r.json(ensure_ascii=False)
 

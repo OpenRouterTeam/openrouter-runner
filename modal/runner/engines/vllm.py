@@ -120,11 +120,15 @@ class VllmEngine(BaseEngine):
                 # Streaming requests send SSE messages with each new generated part
                 token = output[index:]
                 index = len(output)
-                response = create_response_text(token, usage, done=False, finish_reason=finish_reason)
+                response = create_response_text(
+                    token, usage, done=False, finish_reason=finish_reason
+                )
                 yield create_sse_data(response)
 
             output = "" if payload.stream else output
-            response = create_response_text(output, usage, done=True, finish_reason=finish_reason)
+            response = create_response_text(
+                output, usage, done=True, finish_reason=finish_reason
+            )
             yield create_sse_data(response) if payload.stream else response
 
             logger.info(
