@@ -120,7 +120,7 @@ class VllmEngine(BaseEngine):
 
                 # Non-streaming requests continue generating w/o yielding intermediate results
                 if not payload.stream:
-                    yield " "  # QUESTION[sam]: why yield a single space for non-streaming?
+                    yield " "  # HACK: Keep the connection alive while generating
                     continue
 
                 # Skipping invalid UTF8 tokens:
