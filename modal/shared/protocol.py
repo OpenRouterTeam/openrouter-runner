@@ -8,6 +8,11 @@ _COST_PER_SECOND_A100_40G: Final[float] = 0.001036
 _COST_PER_SECOND_A100_80G: Final[float] = 0.001553
 
 
+class GPUType(Enum):
+    A100_40G = "A100_40G"
+    A100_80G = "A100_80G"
+
+
 class ContainerType(Enum):
     VllmContainer_3B = "VllmContainer_3B"
     VllmContainer_7B = "VllmContainer_7B"
@@ -95,49 +100,21 @@ class Usage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
 
-    # TODO: add these in after deprecating the old fields
-    # duration: float
-    # gpu_type: GPUType
-    # gpu_count: int
+    duration: float
+    gpu_type: GPUType
+    gpu_count: int
 
 
 class ResponseBody(BaseModel):
     text: str
-    prompt_tokens: int  # TODO: deprecate
-    completion_tokens: int  # TODO: deprecate
     usage: Usage
-    finish_reason: str | None
-    done: bool
+    finish_reason: str | None = None
+    done: bool = False
 
 
-def create_response_text(
-    text: str,
-    prompt_tokens: int = 0,
-    completion_tokens: int = 0,
-    done: bool = False,
-    finish_reason: str | None = None,
-) -> str:
-    return ResponseBody(
-        text=text,
-        prompt_tokens=prompt_tokens,
-        completion_tokens=completion_tokens,
-        usage=Usage(
-            prompt_tokens=prompt_tokens,
-            completion_tokens=completion_tokens,
-        ),
-        done=done,
-        finish_reason=finish_reason,
-    ).json(ensure_ascii=False)
-
-
-def create_sse_data(
-    text: str,
-    prompt_tokens: int = 0,
-    completion_tokens: int = 0,
-    done: bool = False,
-    finish_reason: str | None = None,
-) -> str:
-    return f"data: {create_response_text(text, prompt_tokens, completion_tokens, done, finish_reason)}\n\n"
+def sse(response: str) -> str:
+    """Wrap a given response string as an SSE message."""
+    return f"data: {response}\n\n"
 
 
 class ErrorPayload(BaseModel):

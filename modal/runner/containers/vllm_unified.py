@@ -13,6 +13,7 @@ from shared.logging import (
     get_logger,
     get_observability_secrets,
 )
+from shared.protocol import GPUType
 from shared.volumes import does_model_exist, models_path, models_volume
 
 _vllm_image = add_observability(
@@ -26,9 +27,11 @@ _vllm_image = add_observability(
 def _make_container(
     name: str, num_gpus: int = 1, memory: int = 0, concurrent_inputs: int = 8
 ):
-    "Helper function to create a container with the given GPU configuration."
+    """Helper function to create a container with the given GPU configuration."""
 
+    assert memory in {0, 40, 80}, "Modal only supports 40 & 80 GB"
     gpu = modal.gpu.A100(count=num_gpus, memory=memory)
+    gpu_type = GPUType.A100_80G if memory == 80 else GPUType.A100_40G
 
     class _VllmContainer(VllmEngine):
         def __init__(
@@ -53,11 +56,12 @@ def _make_container(
                     ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
 
                 super().__init__(
-                    VllmParams(
+                    gpu_type=gpu_type,
+                    params=VllmParams(
                         model=str(model_path),
                         tensor_parallel_size=num_gpus,
                         max_model_len=max_model_len,
-                    )
+                    ),
                 )
 
                 # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
