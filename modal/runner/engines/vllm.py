@@ -154,12 +154,4 @@ class VllmEngine(BaseEngine):
             logger.exception(
                 "Failed generation", extra={"model": self.engine_args.model}
             )
-            # TODO: Existing code prior to refactor was yielding error text
-            # in a ResponseBody model, with empty usage data. Non-streaming
-            # requests yielded only error text as a string. This behavior
-            # is preserved here, but should maybe be revisited.
-            resp.text = e
-            resp.usage.prompt_tokens = 0
-            resp.usage.completion_tokens = 0
-            data = resp.json(ensure_ascii=False)
-            yield sse(data) if payload.stream else e
+            yield sse(e) if payload.stream else e
