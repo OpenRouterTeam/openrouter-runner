@@ -7,8 +7,7 @@ const envFile = `.env.dev`;
 config({ path: envFile });
 
 export const defaultModel = process.env.MODEL || 'microsoft/phi-2';
-export const defaultContainer =
-  process.env.CONTAINER_TYPE || 'VllmContainerA100_40G';
+export const defaultContainer = process.env.CONTAINER_TYPE;
 
 export function getApiUrl(path: string) {
   const url = process.env.API_URL;
@@ -67,6 +66,8 @@ export async function completion(
 
   const output = await p.text();
   if (!quiet) {
+    console.log(`Response status: ${p.status}`);
+    console.log('Output -------------------');
     console.log(output.trim());
   }
 

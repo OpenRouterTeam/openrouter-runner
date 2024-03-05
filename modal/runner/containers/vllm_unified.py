@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -41,6 +42,10 @@ def _make_container(
                     raise Exception("Unable to locate model {}", model_path)
 
                 if num_gpus > 1:
+                    # HACK[1-20-2024]: Yesterday, Modal started populating this env var
+                    # with GPU UUIDs. This breaks some assumption in Ray, so just unset
+                    os.environ.pop("CUDA_VISIBLE_DEVICES", None)
+
                     # Patch issue from https://github.com/vllm-project/vllm/issues/1116
                     import ray
 
@@ -75,6 +80,9 @@ def _make_container(
     wrap = stub.cls(
         volumes={models_path: models_volume},
         image=_vllm_image,
+        # Default CPU memory is 128 on modal. Request more memory for larger
+        # windows of vLLM's batch loading weights into GPU memory.
+        memory=1024,
         gpu=gpu,
         allow_concurrent_inputs=concurrent_inputs,
         container_idle_timeout=20 * 60,
@@ -83,6 +91,10 @@ def _make_container(
     )
     return wrap(_VllmContainer)
 
+
+VllmContainer_3B = _make_container(
+    "VllmContainer_3B", num_gpus=1, concurrent_inputs=120
+)
 
 VllmContainer_7B = _make_container(
     "VllmContainer_7B", num_gpus=1, concurrent_inputs=100

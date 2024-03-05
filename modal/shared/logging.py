@@ -2,6 +2,8 @@ import json
 import logging
 import os
 import sys
+import time
+from contextlib import contextmanager
 
 import sentry_sdk
 from datadog_api_client import ApiClient, Configuration
@@ -10,10 +12,16 @@ from datadog_api_client.v2.model.content_encoding import ContentEncoding
 from datadog_api_client.v2.model.http_log import HTTPLog
 from datadog_api_client.v2.model.http_log_item import HTTPLogItem
 from modal import Image, Secret
+from sentry_sdk.scrubber import DEFAULT_DENYLIST, EventScrubber
 
+from shared.protocol import ContainerType
+
+_sentry_denylist = DEFAULT_DENYLIST + ["prompt"]
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
     environment=os.environ.get("SENTRY_ENVIRONMENT") or "development",
+    send_default_pii=False,
+    event_scrubber=EventScrubber(denylist=_sentry_denylist),
 )
 
 
@@ -29,6 +37,42 @@ def add_observability(image: Image):
     return image.pip_install("datadog-api-client==2.21.0").pip_install(
         "sentry-sdk[fastapi]==1.39.1"
     )
+
+
+@contextmanager
+def timer(
+    action: str,
+    model: str = None,
+    container_type: ContainerType = None,
+    tags: dict[str, str | int] = None,
+) -> None:
+    """
+    A simple timer context manager with structured logging for its output.
+
+    Args:
+        action: The noun being timed
+        model: Optional, used as a tag
+        container_type: Optional, used as a tag and to estimate GPU cost
+        tags: Any additional tags to include in the structured log
+    """
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        # FIXME: this block doesnt seem to execute when an async function
+        # is called from within the context manager. Look into making an
+        # async variant.
+
+        elapsed = time.perf_counter() - start
+
+        extra = (tags or {}) | {"duration": elapsed}
+        if model:
+            extra["model"] = model
+        if container_type:
+            extra["container_type"] = container_type.value
+            extra["gpu_cost"] = elapsed * container_type.gpu_cost_per_second
+
+        logging.info(f"{action} execution profiled", extra=extra)
 
 
 # skip natural LogRecord attributes

@@ -1,9 +1,10 @@
+import time
 from typing import Optional
 
 from modal import method
 from pydantic import BaseModel
 
-from shared.logging import get_logger
+from shared.logging import get_logger, timer
 from shared.protocol import (
     CompletionPayload,
     create_error_text,
@@ -44,15 +45,17 @@ class VllmParams(BaseModel):
 
 class VllmEngine(BaseEngine):
     def __init__(self, params: VllmParams):
-        from vllm.engine.arg_utils import AsyncEngineArgs
-        from vllm.engine.async_llm_engine import AsyncLLMEngine
+        with timer("imports", model=params.model):
+            from vllm.engine.arg_utils import AsyncEngineArgs
+            from vllm.engine.async_llm_engine import AsyncLLMEngine
 
         self.engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,
         )
 
-        self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
+        with timer("engine init", model=self.engine_args.model):
+            self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
 
     # @method()
     # async def tokenize_prompt(self, payload: Payload) -> List[int]:
@@ -65,14 +68,17 @@ class VllmEngine(BaseEngine):
 
     @method()
     async def generate(self, payload: CompletionPayload, params):
-        try:
-            import time
+        assert self.engine is not None, "Engine not initialized"
 
+        t_start_inference = time.perf_counter()
+
+        try:
             results_generator = self.engine.generate(
                 payload.prompt, params, payload.id
             )
 
-            t0 = time.time()
+            final_output = None
+            finish_reason = None
             if payload.stream:
                 index = 0
 
@@ -83,28 +89,39 @@ class VllmEngine(BaseEngine):
                         and request_output.outputs[0].text[-1] == "\ufffd"
                     ):
                         continue
-                    token = request_output.outputs[0].text[index:]
-                    index = len(request_output.outputs[0].text)
-                    yield create_sse_data(token)
+
+                    final_output = request_output
+                    token = final_output.outputs[0].text[index:]
+                    index = len(final_output.outputs[0].text)
+                    finish_reason = final_output.outputs[0].finish_reason
+                    yield create_sse_data(
+                        token,
+                        prompt_tokens=len(final_output.prompt_token_ids),
+                        completion_tokens=len(
+                            final_output.outputs[0].token_ids
+                        ),
+                        done=False,
+                        finish_reason=finish_reason,
+                    )
 
                 output = ""
             else:
-                final_output = None
                 async for request_output in results_generator:
                     final_output = request_output
                     yield " "
 
                 output = final_output.outputs[0].text
+                finish_reason = final_output.outputs[0].finish_reason
 
-            prompt_tokens = len(request_output.prompt_token_ids)
-            completion_tokens = len(request_output.outputs[0].token_ids)
-
+            prompt_tokens = len(final_output.prompt_token_ids)
+            completion_tokens = len(final_output.outputs[0].token_ids)
             if payload.stream:
                 yield create_sse_data(
                     "",
                     prompt_tokens,
                     completion_tokens,
                     done=True,
+                    finish_reason=finish_reason,
                 )
             else:
                 yield create_response_text(
@@ -112,12 +129,18 @@ class VllmEngine(BaseEngine):
                     prompt_tokens,
                     completion_tokens,
                     done=True,
+                    finish_reason=finish_reason,
                 )
 
-            throughput = completion_tokens / (time.time() - t0)
+            elapsed = time.perf_counter() - t_start_inference
             logger.info(
-                f"Completed generation. Tokens count: {completion_tokens} tokens | Token rate {throughput:.4f} tokens/s",
-                extra={"model": self.engine_args.model},
+                "Completed generation",
+                extra={
+                    "model": self.engine_args.model,
+                    "tokens": completion_tokens,
+                    "tps": completion_tokens / elapsed,
+                    "duration": elapsed,
+                },
             )
         except Exception as err:
             e = create_error_text(err)
