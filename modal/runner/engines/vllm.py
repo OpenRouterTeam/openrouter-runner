@@ -52,6 +52,8 @@ class VllmEngine(BaseEngine):
         params: VllmParams,
     ):
         self.gpu_type = gpu_type
+        self.is_first_request = True
+        self.t_cold_start = time.time()
 
         with timer("imports", model=params.model):
             from vllm.engine.arg_utils import AsyncEngineArgs
@@ -82,9 +84,14 @@ class VllmEngine(BaseEngine):
     async def generate(self, payload: CompletionPayload, params):
         assert self.engine is not None, "Engine not initialized"
 
-        # Track usage as a running total
-        # NOTE: This does NOT yet include cold-start GPU time
-        t_start_inference = time.perf_counter()
+        # Track usage as a running total. For the first request to the
+        # container, cold-start time is included in the usage duration.
+        t_start_inference = time.time()
+        t_start_usage_duration = t_start_inference
+        if self.is_first_request:
+            self.is_first_request = False
+            t_start_usage_duration = self.t_cold_start
+
         resp = ResponseBody(
             text="",
             usage=Usage(
@@ -109,7 +116,7 @@ class VllmEngine(BaseEngine):
                 finish_reason = current.outputs[0].finish_reason
                 resp.usage.prompt_tokens = len(current.prompt_token_ids)
                 resp.usage.completion_tokens = len(current.outputs[0].token_ids)
-                resp.usage.duration = time.perf_counter() - t_start_inference
+                resp.usage.duration = time.time() - t_start_usage_duration
 
                 # Non-streaming requests continue generating w/o yielding intermediate results
                 if not payload.stream:
@@ -138,7 +145,7 @@ class VllmEngine(BaseEngine):
                 extra={
                     "model": self.engine_args.model,
                     "tokens": resp.usage.completion_tokens,
-                    "tps": resp.usage.completion_tokens / resp.usage.duration,
+                    "tps": resp.usage.completion_tokens / t_start_inference,
                     "duration": resp.usage.duration,
                 },
             )
