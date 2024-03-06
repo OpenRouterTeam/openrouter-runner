@@ -12,10 +12,14 @@ from datadog_api_client.v2.model.content_encoding import ContentEncoding
 from datadog_api_client.v2.model.http_log import HTTPLog
 from datadog_api_client.v2.model.http_log_item import HTTPLogItem
 from modal import Image, Secret
+from sentry_sdk.scrubber import DEFAULT_DENYLIST, EventScrubber
 
+_sentry_denylist = DEFAULT_DENYLIST + ["prompt"]
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
     environment=os.environ.get("SENTRY_ENVIRONMENT") or "development",
+    send_default_pii=False,
+    event_scrubber=EventScrubber(denylist=_sentry_denylist),
 )
 
 
@@ -34,14 +38,34 @@ def add_observability(image: Image):
 
 
 @contextmanager
-def timer(action: str, tags: dict[str, str | int] = None) -> None:
-    """A simple timer context manager with structured logging for its output."""
-    start = time.perf_counter()
-    yield
-    elapsed = time.perf_counter() - start
+def timer(
+    action: str,
+    model: str = None,
+    tags: dict[str, str | int] = None,
+) -> None:
+    """
+    A simple timer context manager with structured logging for its output.
 
-    extra = (tags or {}) | {"duration": elapsed}
-    logging.info(f"{action} execution profiled", extra=extra)
+    Args:
+        action: The noun being timed
+        model: Optional, used as a tag
+        tags: Any additional tags to include in the structured log
+    """
+    start = time.perf_counter()
+    try:
+        yield
+    finally:
+        # FIXME: this block doesnt seem to execute when an async function
+        # is called from within the context manager. Look into making an
+        # async variant.
+
+        elapsed = time.perf_counter() - start
+
+        extra = (tags or {}) | {"duration": elapsed}
+        if model:
+            extra["model"] = model
+
+        logging.info(f"{action} execution profiled", extra=extra)
 
 
 # skip natural LogRecord attributes

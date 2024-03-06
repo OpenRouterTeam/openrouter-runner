@@ -1,20 +1,24 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import Final, List, Optional, Union
 
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
+_COST_PER_SECOND_A100_40G: Final[float] = 0.001036
+_COST_PER_SECOND_A100_80G: Final[float] = 0.001553
 
-class ContainerType(Enum):
-    VllmContainer_7B = "VllmContainer_7B"
 
-    VllmContainerA100_40G = "VllmContainerA100_40G"
+class GPUType(Enum):
+    A100_40G = "A100_40G"
+    A100_80G = "A100_80G"
 
-    VllmContainerA100_80G = "VllmContainerA100_80G"
-    VllmContainerA100_80G_32K = "VllmContainerA100_80G_32K"
-
-    VllmContainerA100_160G = "VllmContainerA100_160G"
-    VllmContainerA100_160G_Isolated = "VllmContainerA100_160G_Isolated"
+    @property
+    def cost_per_second(self) -> float:
+        match self:
+            case GPUType.A100_40G:
+                return _COST_PER_SECOND_A100_40G
+            case GPUType.A100_80G:
+                return _COST_PER_SECOND_A100_80G
 
 
 # https://github.com/vllm-project/vllm/blob/320a622ec4d098f2da5d097930f4031517e7327b/vllm/sampling_params.py#L7-L52
@@ -42,47 +46,39 @@ class Params(BaseModel):
     skip_special_tokens: bool = True
 
 
-class RunnerConfiguration(BaseModel):
-    container: ContainerType
-
-
 class CompletionPayload(BaseModel):
     id: str
     prompt: str
     stream: bool = False
     params: Params
     model: str
-    runner: RunnerConfiguration | None = None
+
+
+class Usage(BaseModel):
+    """
+    An OpenAI-style usage struct, containing the expected
+    token counts as well as additional data about the GPU
+    usage of the request.
+    """
+
+    prompt_tokens: int
+    completion_tokens: int
+
+    duration: float
+    gpu_type: GPUType
+    gpu_count: int
 
 
 class ResponseBody(BaseModel):
     text: str
-    prompt_tokens: int
-    completion_tokens: int
-    done: bool
+    usage: Usage
+    finish_reason: str | None = None
+    done: bool = False
 
 
-def create_response_text(
-    text: str,
-    prompt_tokens: int = 0,
-    completion_tokens: int = 0,
-    done: bool = False,
-) -> str:
-    return ResponseBody(
-        text=text,
-        prompt_tokens=prompt_tokens,
-        completion_tokens=completion_tokens,
-        done=done,
-    ).json(ensure_ascii=False)
-
-
-def create_sse_data(
-    text: str,
-    prompt_tokens: int = 0,
-    completion_tokens: int = 0,
-    done: bool = False,
-) -> str:
-    return f"data: {create_response_text(text, prompt_tokens, completion_tokens, done)}\n\n"
+def sse(response: str) -> str:
+    """Wrap a given response string as an SSE message."""
+    return f"data: {response}\n\n"
 
 
 class ErrorPayload(BaseModel):

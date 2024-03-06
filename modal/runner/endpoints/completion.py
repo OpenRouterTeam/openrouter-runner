@@ -1,10 +1,10 @@
-from fastapi import status
+from fastapi import Request, status
 from fastapi.responses import StreamingResponse
 
-from runner.containers import DEFAULT_CONTAINER_TYPES, get_container
+from runner.containers import DEFAULT_CONTAINERS
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
-from shared.logging import get_logger, timer
+from shared.logging import get_logger
 from shared.protocol import (
     CompletionPayload,
     create_error_response,
@@ -15,11 +15,20 @@ logger = get_logger(__name__)
 
 
 def completion(
+    request: Request,
     payload: CompletionPayload,
 ):
     model_path = get_model_path(payload.model)
     logger.info(
-        "Received completion request", extra={"model": str(model_path)}
+        "Received completion request",
+        extra={
+            "model": str(model_path),
+            "user-agent": request.headers.get("user-agent"),
+            "referer": request.headers.get("referer"),
+            "ip": request.headers.get("x-real-ip")
+            or request.headers.get("x-forwarded-for")
+            or request.client.host,
+        },
     )  # use path to match runner
     if not does_model_exist(model_path):
         message = f"Unable to locate model {payload.model}"
@@ -29,13 +38,8 @@ def completion(
             f"Unable to locate model {payload.model}",
         )
 
-    container_type = (
-        payload.runner.container
-        if payload.runner
-        else DEFAULT_CONTAINER_TYPES.get(payload.model)
-    )
-
-    if container_type is None:
+    container = DEFAULT_CONTAINERS.get(payload.model)
+    if container is None:
         message = f"Unable to locate container type for model {payload.model}"
         logger.error(message)
         return create_error_response(
@@ -43,8 +47,7 @@ def completion(
             f"Unable to locate container type for model {payload.model}",
         )
 
-    runner = get_container(model_path, container_type)
-    tags = {"model": str(model_path), "container_type": container_type.value}
+    runner = container(model_path)
 
     stats = runner.generate.get_current_stats()
     logger.info(stats)
@@ -88,11 +91,10 @@ def completion(
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     async def generate():
-        with timer("runner.generate", tags=tags):
-            async for text in runner.generate.remote_gen.aio(
-                payload, sampling_params
-            ):
-                yield text
+        async for text in runner.generate.remote_gen.aio(
+            payload, sampling_params
+        ):
+            yield text
 
     return StreamingResponse(
         generate(),

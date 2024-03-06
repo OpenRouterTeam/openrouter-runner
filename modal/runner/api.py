@@ -29,9 +29,10 @@ async def log_errors(request: Request, call_next):
 @api_app.post("/completion")
 async def post_completion(
     payload: CompletionPayload,
+    request: Request,
     _token: HTTPAuthorizationCredentials = Depends(config.auth),
 ):
-    return completion_endpoint(payload)
+    return completion_endpoint(request, payload)
 
 
 class AddModelPayload(BaseModel):

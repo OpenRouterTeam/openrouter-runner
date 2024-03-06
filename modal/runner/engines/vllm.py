@@ -1,3 +1,4 @@
+import time
 from typing import Optional
 
 from modal import Image, method
@@ -10,9 +11,11 @@ from shared.logging import (
 )
 from shared.protocol import (
     CompletionPayload,
+    GPUType,
+    ResponseBody,
+    Usage,
     create_error_text,
-    create_response_text,
-    create_sse_data,
+    sse,
 )
 
 from .base import BaseEngine
@@ -59,14 +62,29 @@ class VllmParams(BaseModel):
 
 
 class VllmEngine(BaseEngine):
-    def __init__(self, params: VllmParams):
+    def __init__(
+        self,
+        gpu_type: GPUType,
+        params: VllmParams,
+    ):
+        self.gpu_type = gpu_type
+        self.is_first_request = True
+        self.t_cold_start = time.time()
         self.engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,
         )
 
-        with timer("engine init", tags={"model": self.engine_args.model}):
+        with timer("engine init", model=self.engine_args.model):
             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
+
+    @property
+    def gpu_count(self) -> int:
+        return self.engine_args.tensor_parallel_size
+
+    @property
+    def cost_per_second(self) -> float:
+        return self.gpu_count * self.gpu_type.cost_per_second
 
     # @method()
     # async def tokenize_prompt(self, payload: Payload) -> List[int]:
@@ -81,64 +99,70 @@ class VllmEngine(BaseEngine):
     async def generate(self, payload: CompletionPayload, params):
         assert self.engine is not None, "Engine not initialized"
 
-        try:
-            import time
+        # Track usage as a running total. For the first request to the
+        # container, cold-start time is included in the usage duration.
+        t_start_inference = time.time()
+        t_start_usage_duration = t_start_inference
+        if self.is_first_request:
+            self.is_first_request = False
+            t_start_usage_duration = self.t_cold_start
 
+        resp = ResponseBody(
+            text="",
+            usage=Usage(
+                prompt_tokens=0,
+                completion_tokens=0,
+                duration=0.0,
+                gpu_type=self.gpu_type,
+                gpu_count=self.gpu_count,
+            ),
+        )
+
+        try:
             results_generator = self.engine.generate(
                 payload.prompt, params, payload.id
             )
 
-            t0 = time.perf_counter()
-            if payload.stream:
-                index = 0
+            output = ""
+            index = 0
+            finish_reason = None
+            async for current in results_generator:
+                output = current.outputs[0].text
+                finish_reason = current.outputs[0].finish_reason
+                resp.usage.prompt_tokens = len(current.prompt_token_ids)
+                resp.usage.completion_tokens = len(current.outputs[0].token_ids)
+                resp.usage.duration = time.time() - t_start_usage_duration
 
-                async for request_output in results_generator:
-                    # Skipping invalid UTF8 tokens:
-                    if (
-                        request_output.outputs[0].text
-                        and request_output.outputs[0].text[-1] == "\ufffd"
-                    ):
-                        continue
-                    token = request_output.outputs[0].text[index:]
-                    index = len(request_output.outputs[0].text)
-                    yield create_sse_data(token)
+                # Non-streaming requests continue generating w/o yielding intermediate results
+                if not payload.stream:
+                    yield " "  # HACK: Keep the connection alive while generating
+                    continue
 
-                output = ""
-            else:
-                final_output = None
-                async for request_output in results_generator:
-                    final_output = request_output
-                    yield " "
+                # Skipping invalid UTF8 tokens:
+                if output and output[-1] == "\ufffd":
+                    continue
 
-                output = final_output.outputs[0].text
+                # Streaming requests send SSE messages with each new generated part
+                token = output[index:]
+                index = len(output)
+                resp.text = token
+                resp.finish_reason = finish_reason
+                yield sse(resp.json(ensure_ascii=False))
 
-            prompt_tokens = len(request_output.prompt_token_ids)
-            completion_tokens = len(request_output.outputs[0].token_ids)
+            resp.text = "" if payload.stream else output
+            resp.done = True
+            resp.finish_reason = finish_reason
+            data = resp.json(ensure_ascii=False)
+            yield sse(data) if payload.stream else data
 
-            if payload.stream:
-                yield create_sse_data(
-                    "",
-                    prompt_tokens,
-                    completion_tokens,
-                    done=True,
-                )
-            else:
-                yield create_response_text(
-                    output,
-                    prompt_tokens,
-                    completion_tokens,
-                    done=True,
-                )
-
-            elapsed = time.perf_counter() - t0
-            throughput = completion_tokens / elapsed
             logger.info(
                 "Completed generation",
                 extra={
                     "model": self.engine_args.model,
-                    "tokens": completion_tokens,
-                    "tps": throughput,
-                    "duration": elapsed,
+                    "tokens": resp.usage.completion_tokens,
+                    "tps": resp.usage.completion_tokens / t_start_inference,
+                    "duration": resp.usage.duration,
+                    "cost": resp.usage.duration * self.cost_per_second,
                 },
             )
         except Exception as err:
@@ -146,7 +170,4 @@ class VllmEngine(BaseEngine):
             logger.exception(
                 "Failed generation", extra={"model": self.engine_args.model}
             )
-            if payload.stream:
-                yield create_sse_data(e)
-            else:
-                yield e
+            yield sse(e) if payload.stream else e

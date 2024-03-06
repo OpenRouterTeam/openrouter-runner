@@ -1,6 +1,5 @@
 import {
   completion,
-  defaultContainer,
   defaultModel,
   enqueueAddModel,
   pollForJobCompletion,
@@ -8,8 +7,7 @@ import {
 } from 'scripts/shared';
 
 async function main(
-  modelName = defaultModel,
-  containerType = defaultContainer
+  modelName = defaultModel
 ) {
   console.log(`Test adding model ${modelName}`);
   const body = await enqueueAddModel(modelName);
@@ -28,8 +26,7 @@ async function main(
     model: modelName,
     max_tokens: 1024,
     stop: ['</s>'],
-    stream: false,
-    container: containerType
+    stream: false
   });
 }
 

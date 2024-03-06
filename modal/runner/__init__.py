@@ -1,11 +1,9 @@
 from modal import Secret, asgi_app
 
-from runner.containers import (
-    DEFAULT_CONTAINER_TYPES,
-)
+from runner.containers import DEFAULT_CONTAINERS
 from runner.shared.clean import clean_models_volume
 from runner.shared.common import stub
-from runner.shared.download import download_model
+from runner.shared.download import download_model, downloader_image
 from shared.images import BASE_IMAGE
 from shared.logging import get_logger, get_observability_secrets
 from shared.volumes import models_path, models_volume
@@ -31,18 +29,20 @@ def completion():  # named for backwards compatibility with the Modal URL
 
 
 @stub.function(
-    image=BASE_IMAGE,
+    image=downloader_image,
     timeout=3600,  # 1 hour
+    volumes={models_path: models_volume},
     secrets=[
+        Secret.from_name("huggingface"),
         *get_observability_secrets(),
     ],
 )
-def download():
+def download(force: bool = False):
     logger = get_logger("download")
     logger.info("Downloading all models...")
-    results = list(download_model.map(DEFAULT_CONTAINER_TYPES.keys()))
-    if not results:
-        raise Exception("Failed to perform remote calls")
+    for model in DEFAULT_CONTAINERS:
+        # Can't be parallelized because of a modal volume corruption issue
+        download_model.local(model, force=force)
     logger.info("ALL DONE!")
 
 
@@ -56,7 +56,5 @@ def download():
 def clean(all: bool = False, dry: bool = False):
     logger = get_logger("clean")
     logger.info(f"Cleaning models volume. ALL: {all}. DRY: {dry}")
-    remaining_models = (
-        [] if all else [m.lower() for m in DEFAULT_CONTAINER_TYPES]
-    )
+    remaining_models = [] if all else [m.lower() for m in DEFAULT_CONTAINERS]
     clean_models_volume(remaining_models, dry)

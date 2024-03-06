@@ -11,15 +11,18 @@ from shared.logging import (
     get_logger,
     get_observability_secrets,
 )
+from shared.protocol import GPUType
 from shared.volumes import does_model_exist, models_path, models_volume
 
 
 def _make_container(
     name: str, num_gpus: int = 1, memory: int = 0, concurrent_inputs: int = 8
 ):
-    "Helper function to create a container with the given GPU configuration."
+    """Helper function to create a container with the given GPU configuration."""
 
+    assert memory in {0, 40, 80}, "Modal only supports 40 & 80 GB"
     gpu = modal.gpu.A100(count=num_gpus, memory=memory)
+    gpu_type = GPUType.A100_80G if memory == 80 else GPUType.A100_40G
 
     class _VllmContainer(VllmEngine):
         def __init__(
@@ -44,11 +47,12 @@ def _make_container(
                     ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
 
                 super().__init__(
-                    VllmParams(
+                    gpu_type=gpu_type,
+                    params=VllmParams(
                         model=str(model_path),
                         tensor_parallel_size=num_gpus,
                         max_model_len=max_model_len,
-                    )
+                    ),
                 )
 
                 # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
@@ -83,22 +87,34 @@ def _make_container(
     return wrap(_VllmContainer)
 
 
-VllmContainer_7B = _make_container(
-    "VllmContainer_7B", num_gpus=1, concurrent_inputs=100
+VllmContainer_MicrosoftPhi2 = _make_container(
+    name="VllmContainer_MicrosoftPhi2",
+    num_gpus=1,
+    concurrent_inputs=120,
 )
-VllmContainerA100_40G = _make_container(
-    "VllmContainerA100_40G", num_gpus=1, concurrent_inputs=32
+VllmContainer_IntelNeuralChat7B = _make_container(
+    name="VllmContainer_IntelNeuralChat7B",
+    num_gpus=1,
+    concurrent_inputs=100,
 )
-VllmContainerA100_80G = _make_container(
-    "VllmContainerA100_80G", num_gpus=1, memory=80
+VllmContainer_JebCarterPsyfighter13B = _make_container(
+    "VllmContainer_JebCarterPsyfighter13B",
+    num_gpus=1,
+    concurrent_inputs=32,
 )
-VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
+VllmContainer_KoboldAIPsyfighter2 = _make_container(
+    name="VllmContainer_KoboldAIPsyfighter2",
+    num_gpus=1,
+    concurrent_inputs=32,
 )
-
-# Allow new models to be tested on the isolated container
-VllmContainerA100_160G_Isolated = _make_container(
-    "VllmContainerA100_160G_Isolated",
+VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
+    name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
+    num_gpus=2,
+    memory=80,
+    concurrent_inputs=4,
+)
+VllmContainer_JohnDurbinBagel34B = _make_container(
+    name="VllmContainer_JohnDurbinBagel34B",
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,
