@@ -1,7 +1,7 @@
 from fastapi import Request, status
 from fastapi.responses import StreamingResponse
 
-from runner.containers import DEFAULT_CONTAINER_TYPES, get_container
+from runner.containers import DEFAULT_CONTAINERS
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
 from shared.logging import get_logger, timer
@@ -38,13 +38,8 @@ def completion(
             f"Unable to locate model {payload.model}",
         )
 
-    container_type = (
-        payload.runner.container
-        if payload.runner
-        else DEFAULT_CONTAINER_TYPES.get(payload.model)
-    )
-
-    if container_type is None:
+    container = DEFAULT_CONTAINERS.get(payload.model)
+    if container is None:
         message = f"Unable to locate container type for model {payload.model}"
         logger.error(message)
         return create_error_response(
@@ -52,7 +47,7 @@ def completion(
             f"Unable to locate container type for model {payload.model}",
         )
 
-    runner = get_container(model_path, container_type)
+    runner = container(model_path)
 
     stats = runner.generate.get_current_stats()
     logger.info(stats)
@@ -96,7 +91,7 @@ def completion(
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     async def generate():
-        with timer("runner.generate", str(model_path), container_type):
+        with timer("runner.generate", payload.model, runner.cost_per_second):
             async for text in runner.generate.remote_gen.aio(
                 payload, sampling_params
             ):

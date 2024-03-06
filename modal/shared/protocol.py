@@ -12,44 +12,13 @@ class GPUType(Enum):
     A100_40G = "A100_40G"
     A100_80G = "A100_80G"
 
-
-class ContainerType(Enum):
-    VllmContainer_3B = "VllmContainer_3B"
-    VllmContainer_7B = "VllmContainer_7B"
-
-    VllmContainerA100_40G = "VllmContainerA100_40G"
-
-    VllmContainerA100_80G = "VllmContainerA100_80G"
-    VllmContainerA100_80G_32K = "VllmContainerA100_80G_32K"
-
-    VllmContainerA100_160G = "VllmContainerA100_160G"
-    VllmContainerA100_160G_Isolated = "VllmContainerA100_160G_Isolated"
-
     @property
-    def gpu_cost_per_second(self) -> float:
-        """
-        Returns:
-            The quoted GPU compute cost per second for the container,
-            as found on https://modal.com/pricing
-        """
-
-        # TODO: might be better to put this on the container class itself,
-        #       but this is good enough(tm) for now
+    def cost_per_second(self) -> float:
         match self:
-            case ContainerType.VllmContainer_3B:
-                return _COST_PER_SECOND_A100_40G * 1
-            case ContainerType.VllmContainer_7B:
-                return _COST_PER_SECOND_A100_40G * 1
-            case ContainerType.VllmContainerA100_40G:
-                return _COST_PER_SECOND_A100_40G * 1
-            case ContainerType.VllmContainerA100_80G:
-                return _COST_PER_SECOND_A100_80G * 1
-            case ContainerType.VllmContainerA100_80G_32K:
-                return _COST_PER_SECOND_A100_80G * 1
-            case ContainerType.VllmContainerA100_160G:
-                return _COST_PER_SECOND_A100_80G * 2
-            case ContainerType.VllmContainerA100_160G_Isolated:
-                return _COST_PER_SECOND_A100_80G * 2
+            case GPUType.A100_40G:
+                return _COST_PER_SECOND_A100_40G
+            case GPUType.A100_80G:
+                return _COST_PER_SECOND_A100_80G
 
 
 # https://github.com/vllm-project/vllm/blob/320a622ec4d098f2da5d097930f4031517e7327b/vllm/sampling_params.py#L7-L52
@@ -77,17 +46,12 @@ class Params(BaseModel):
     skip_special_tokens: bool = True
 
 
-class RunnerConfiguration(BaseModel):
-    container: ContainerType
-
-
 class CompletionPayload(BaseModel):
     id: str
     prompt: str
     stream: bool = False
     params: Params
     model: str
-    runner: RunnerConfiguration | None = None
 
 
 class Usage(BaseModel):

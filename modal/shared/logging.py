@@ -14,8 +14,6 @@ from datadog_api_client.v2.model.http_log_item import HTTPLogItem
 from modal import Image, Secret
 from sentry_sdk.scrubber import DEFAULT_DENYLIST, EventScrubber
 
-from shared.protocol import ContainerType
-
 _sentry_denylist = DEFAULT_DENYLIST + ["prompt"]
 sentry_sdk.init(
     dsn=os.environ.get("SENTRY_DSN"),
@@ -43,7 +41,7 @@ def add_observability(image: Image):
 def timer(
     action: str,
     model: str = None,
-    container_type: ContainerType = None,
+    cost_per_second: float = None,
     tags: dict[str, str | int] = None,
 ) -> None:
     """
@@ -52,7 +50,7 @@ def timer(
     Args:
         action: The noun being timed
         model: Optional, used as a tag
-        container_type: Optional, used as a tag and to estimate GPU cost
+        cost_per_second: Optional, used to estimate the cost of the action
         tags: Any additional tags to include in the structured log
     """
     start = time.perf_counter()
@@ -68,9 +66,8 @@ def timer(
         extra = (tags or {}) | {"duration": elapsed}
         if model:
             extra["model"] = model
-        if container_type:
-            extra["container_type"] = container_type.value
-            extra["gpu_cost"] = elapsed * container_type.gpu_cost_per_second
+        if cost_per_second:
+            extra["cost"] = elapsed * cost_per_second
 
         logging.info(f"{action} execution profiled", extra=extra)
 

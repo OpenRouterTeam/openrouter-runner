@@ -1,8 +1,6 @@
 from modal import Secret, asgi_app
 
-from runner.containers import (
-    DEFAULT_CONTAINER_TYPES,
-)
+from runner.containers import DEFAULT_CONTAINERS
 from runner.shared.clean import clean_models_volume
 from runner.shared.common import stub
 from runner.shared.download import download_model, downloader_image
@@ -42,7 +40,7 @@ def completion():  # named for backwards compatibility with the Modal URL
 def download(force: bool = False):
     logger = get_logger("download")
     logger.info("Downloading all models...")
-    for model in DEFAULT_CONTAINER_TYPES:
+    for model in DEFAULT_CONTAINERS:
         # Can't be parallelized because of a modal volume corruption issue
         download_model.local(model, force=force)
     logger.info("ALL DONE!")
@@ -58,7 +56,5 @@ def download(force: bool = False):
 def clean(all: bool = False, dry: bool = False):
     logger = get_logger("clean")
     logger.info(f"Cleaning models volume. ALL: {all}. DRY: {dry}")
-    remaining_models = (
-        [] if all else [m.lower() for m in DEFAULT_CONTAINER_TYPES]
-    )
+    remaining_models = [] if all else [m.lower() for m in DEFAULT_CONTAINERS]
     clean_models_volume(remaining_models, dry)
