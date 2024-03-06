@@ -41,7 +41,6 @@ def add_observability(image: Image):
 def timer(
     action: str,
     model: str = None,
-    cost_per_second: float = None,
     tags: dict[str, str | int] = None,
 ) -> None:
     """
@@ -50,7 +49,6 @@ def timer(
     Args:
         action: The noun being timed
         model: Optional, used as a tag
-        cost_per_second: Optional, used to estimate the cost of the action
         tags: Any additional tags to include in the structured log
     """
     start = time.perf_counter()
@@ -66,8 +64,6 @@ def timer(
         extra = (tags or {}) | {"duration": elapsed}
         if model:
             extra["model"] = model
-        if cost_per_second:
-            extra["cost"] = elapsed * cost_per_second
 
         logging.info(f"{action} execution profiled", extra=extra)
 
