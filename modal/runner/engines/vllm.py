@@ -71,6 +71,10 @@ class VllmEngine(BaseEngine):
     def gpu_count(self) -> int:
         return self.engine_args.tensor_parallel_size
 
+    @property
+    def cost_per_second(self) -> float:
+        return self.gpu_count * self.gpu_type.cost_per_second
+
     # @method()
     # async def tokenize_prompt(self, payload: Payload) -> List[int]:
     #     return self.tokenizer(payload.prompt).input_ids
@@ -147,6 +151,7 @@ class VllmEngine(BaseEngine):
                     "tokens": resp.usage.completion_tokens,
                     "tps": resp.usage.completion_tokens / t_start_inference,
                     "duration": resp.usage.duration,
+                    "cost": resp.usage.duration * self.cost_per_second,
                 },
             )
         except Exception as err:

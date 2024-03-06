@@ -96,26 +96,34 @@ def _make_container(
     return wrap(_VllmContainer)
 
 
-VllmContainer_3B = _make_container(
-    "VllmContainer_3B", num_gpus=1, concurrent_inputs=120
+VllmContainer_MicrosoftPhi2 = _make_container(
+    name="VllmContainer_MicrosoftPhi2",
+    num_gpus=1,
+    concurrent_inputs=120,
 )
-
-VllmContainer_7B = _make_container(
-    "VllmContainer_7B", num_gpus=1, concurrent_inputs=100
+VllmContainer_IntelNeuralChat7B = _make_container(
+    name="VllmContainer_IntelNeuralChat7B",
+    num_gpus=1,
+    concurrent_inputs=100,
 )
-VllmContainerA100_40G = _make_container(
-    "VllmContainerA100_40G", num_gpus=1, concurrent_inputs=32
+VllmContainer_JebCarterPsyfighter13B = _make_container(
+    "VllmContainer_JebCarterPsyfighter13B",
+    num_gpus=1,
+    concurrent_inputs=32,
 )
-VllmContainerA100_80G = _make_container(
-    "VllmContainerA100_80G", num_gpus=1, memory=80
+VllmContainer_KoboldAIPsyfighter2 = _make_container(
+    name="VllmContainer_KoboldAIPsyfighter2",
+    num_gpus=1,
+    concurrent_inputs=32,
 )
-VllmContainerA100_160G = _make_container(
-    "VllmContainerA100_160G", num_gpus=2, memory=80, concurrent_inputs=4
+VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
+    name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
+    num_gpus=2,
+    memory=80,
+    concurrent_inputs=4,
 )
-
-# Allow new models to be tested on the isolated container
-VllmContainerA100_160G_Isolated = _make_container(
-    "VllmContainerA100_160G_Isolated",
+VllmContainer_JohnDurbinBagel34B = _make_container(
+    name="VllmContainer_JohnDurbinBagel34B",
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,
