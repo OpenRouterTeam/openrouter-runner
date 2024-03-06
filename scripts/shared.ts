@@ -7,7 +7,6 @@ const envFile = `.env.dev`;
 config({ path: envFile });
 
 export const defaultModel = process.env.MODEL || 'microsoft/phi-2';
-export const defaultContainer = process.env.CONTAINER_TYPE;
 
 export function getApiUrl(path: string) {
   const url = process.env.API_URL;
@@ -37,8 +36,7 @@ export async function completion(
     stream = false,
     stop = ['</s>'],
     apiKey = undefined as string | undefined,
-    quiet = false,
-    container = defaultContainer
+    quiet = false
   } = {}
 ) {
   const apiUrl = getApiUrl('');
@@ -53,10 +51,6 @@ export async function completion(
     params: { max_tokens, stop },
     stream
   };
-
-  if (container) {
-    bodyPayload['runner'] = { container };
-  }
 
   const p = await fetch(apiUrl, {
     method: 'POST',

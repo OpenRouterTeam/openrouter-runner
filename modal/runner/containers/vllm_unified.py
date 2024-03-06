@@ -96,34 +96,34 @@ def _make_container(
     return wrap(_VllmContainer)
 
 
-MicrosoftPhi2 = _make_container(
-    name="MicrosoftPhi2",
+VllmContainer_MicrosoftPhi2 = _make_container(
+    name="VllmContainer_MicrosoftPhi2",
     num_gpus=1,
     concurrent_inputs=120,
 )
-IntelNeuralChat7B = _make_container(
-    name="IntelNeuralChat7B",
+VllmContainer_IntelNeuralChat7B = _make_container(
+    name="VllmContainer_IntelNeuralChat7B",
     num_gpus=1,
     concurrent_inputs=100,
 )
-JebCarterPsyfighter13B = _make_container(
-    "JebCarterPsyfighter13B",
+VllmContainer_JebCarterPsyfighter13B = _make_container(
+    "VllmContainer_JebCarterPsyfighter13B",
     num_gpus=1,
     concurrent_inputs=32,
 )
-KoboldAIPsyfighter2 = _make_container(
-    name="KoboldAIPsyfighter2",
+VllmContainer_KoboldAIPsyfighter2 = _make_container(
+    name="VllmContainer_KoboldAIPsyfighter2",
     num_gpus=1,
     concurrent_inputs=32,
 )
-NeverSleepNoromaidMixtral8x7B = _make_container(
-    name="NeverSleepNoromaidMixtral8x7B",
+VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
+    name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,
 )
-JohnDurbinBagel34B = _make_container(
-    name="JohnDurbinBagel34B",
+VllmContainer_JohnDurbinBagel34B = _make_container(
+    name="VllmContainer_JohnDurbinBagel34B",
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,

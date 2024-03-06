@@ -4,7 +4,7 @@ from fastapi.responses import StreamingResponse
 from runner.containers import DEFAULT_CONTAINERS
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
-from shared.logging import get_logger, timer
+from shared.logging import get_logger
 from shared.protocol import (
     CompletionPayload,
     create_error_response,
@@ -91,11 +91,10 @@ def completion(
         return create_error_response(status.HTTP_400_BAD_REQUEST, str(e))
 
     async def generate():
-        with timer("runner.generate", payload.model, runner.cost_per_second):
-            async for text in runner.generate.remote_gen.aio(
-                payload, sampling_params
-            ):
-                yield text
+        async for text in runner.generate.remote_gen.aio(
+            payload, sampling_params
+        ):
+            yield text
 
     return StreamingResponse(
         generate(),
