@@ -16,7 +16,11 @@ from shared.volumes import does_model_exist, models_path, models_volume
 
 
 def _make_container(
-    name: str, num_gpus: int = 1, memory: int = 0, concurrent_inputs: int = 8
+    name: str,
+    num_gpus: int = 1,
+    memory: int = 0,
+    concurrent_inputs: int = 8,
+    max_containers: int = None,
 ):
     """Helper function to create a container with the given GPU configuration."""
 
@@ -83,6 +87,7 @@ def _make_container(
         container_idle_timeout=20 * 60,
         timeout=10 * 60,
         secrets=[*get_observability_secrets()],
+        concurrency_limit=max_containers,
     )
     return wrap(_VllmContainer)
 
@@ -112,10 +117,12 @@ VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,
+    max_containers=2,
 )
 VllmContainer_JohnDurbinBagel34B = _make_container(
     name="VllmContainer_JohnDurbinBagel34B",
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,
+    max_containers=1,
 )
