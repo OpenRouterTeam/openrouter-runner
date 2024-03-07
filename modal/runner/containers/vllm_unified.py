@@ -117,7 +117,7 @@ VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     num_gpus=2,
     memory=80,
     concurrent_inputs=4,
-    max_containers=2,
+    max_containers=3,
 )
 VllmContainer_JohnDurbinBagel34B = _make_container(
     name="VllmContainer_JohnDurbinBagel34B",
