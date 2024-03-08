@@ -8,6 +8,11 @@ from pydantic import BaseModel
 _auth = HTTPBearer()
 
 
+def is_env_dev() -> bool:
+    """Returns whether this is running in a development environment."""
+    return os.getenv("DD_ENV", "development") == "development"
+
+
 class Config(BaseModel):
     name: str
     api_key_id: str
