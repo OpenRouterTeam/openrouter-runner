@@ -17,16 +17,19 @@ from shared.volumes import does_model_exist, models_path, models_volume
 
 def _make_container(
     name: str,
-    num_gpus: int = 1,
-    memory: int = 0,
+    gpu: modal.gpu = modal.gpu.A100(count=1, memory=40),
     concurrent_inputs: int = 8,
     max_containers: int = None,
 ):
     """Helper function to create a container with the given GPU configuration."""
 
-    assert memory in {0, 40, 80}, "Modal only supports 40 & 80 GB"
-    gpu = modal.gpu.A100(count=num_gpus, memory=memory)
-    gpu_type = GPUType.A100_80G if memory == 80 else GPUType.A100_40G
+    num_gpus = gpu.count
+    if isinstance(gpu, modal.gpu.A100):
+        gpu_type = GPUType.A100_80G if gpu.memory == 80 else GPUType.A100_40G
+    elif isinstance(gpu, modal.gpu.H100):
+        gpu_type = GPUType.H100_80G
+    else:
+        raise ValueError(f"Unknown GPU type: {gpu}")
 
     class _VllmContainer(VllmEngine):
         def __init__(
@@ -94,35 +97,33 @@ def _make_container(
 
 VllmContainer_MicrosoftPhi2 = _make_container(
     name="VllmContainer_MicrosoftPhi2",
-    num_gpus=1,
+    gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=120,
 )
 VllmContainer_IntelNeuralChat7B = _make_container(
     name="VllmContainer_IntelNeuralChat7B",
-    num_gpus=1,
+    gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=100,
 )
 VllmContainer_JebCarterPsyfighter13B = _make_container(
     "VllmContainer_JebCarterPsyfighter13B",
-    num_gpus=1,
+    gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=32,
 )
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
-    num_gpus=1,
+    gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=32,
 )
 VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
-    num_gpus=2,
-    memory=80,
+    gpu=modal.gpu.A100(count=2, memory=80),
     concurrent_inputs=4,
     max_containers=3,
 )
 VllmContainer_JohnDurbinBagel34B = _make_container(
     name="VllmContainer_JohnDurbinBagel34B",
-    num_gpus=2,
-    memory=80,
+    gpu=modal.gpu.A100(count=2, memory=80),
     concurrent_inputs=4,
     max_containers=1,
 )
