@@ -160,7 +160,8 @@ class VllmEngine(BaseEngine):
                 extra={
                     "model": self.engine_args.model,
                     "tokens": resp.usage.completion_tokens,
-                    "tps": resp.usage.completion_tokens / t_start_inference,
+                    "tps": resp.usage.completion_tokens
+                    / (time.time() - t_start_inference),
                     "duration": resp.usage.duration,
                     "cost": resp.usage.duration * self.cost_per_second,
                 },
