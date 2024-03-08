@@ -1,6 +1,4 @@
 import os
-from pathlib import Path
-from typing import Optional
 
 import modal.gpu
 import sentry_sdk
@@ -12,11 +10,17 @@ from shared.logging import (
     get_observability_secrets,
 )
 from shared.protocol import GPUType
-from shared.volumes import does_model_exist, models_path, models_volume
+from shared.volumes import (
+    does_model_exist,
+    get_model_path,
+    models_path,
+    models_volume,
+)
 
 
 def _make_container(
     name: str,
+    model_name: str,
     gpu: modal.gpu = modal.gpu.A100(count=1, memory=40),
     concurrent_inputs: int = 8,
     max_containers: int = None,
@@ -32,13 +36,10 @@ def _make_container(
         raise ValueError(f"Unknown GPU type: {gpu}")
 
     class _VllmContainer(VllmEngine):
-        def __init__(
-            self,
-            model_path: Path,
-            max_model_len: Optional[int] = None,
-        ):
+        def __init__(self):
             logger = get_logger(name)
             try:
+                model_path = get_model_path(model_name=model_name)
                 if not does_model_exist(model_path):
                     raise Exception("Unable to locate model {}", model_path)
 
@@ -58,7 +59,6 @@ def _make_container(
                     params=VllmParams(
                         model=str(model_path),
                         tensor_parallel_size=num_gpus,
-                        max_model_len=max_model_len,
                     ),
                 )
 
@@ -92,37 +92,48 @@ def _make_container(
         secrets=[*get_observability_secrets()],
         concurrency_limit=max_containers,
     )
-    return wrap(_VllmContainer)
+    _cls = wrap(_VllmContainer)
+    REGISTERED_CONTAINERS[model_name] = _cls
+    return _cls
 
+
+# A mapping of model names to their respective container classes.
+REGISTERED_CONTAINERS = {}
 
 VllmContainer_MicrosoftPhi2 = _make_container(
     name="VllmContainer_MicrosoftPhi2",
+    model_name="microsoft/phi-2",
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=120,
 )
 VllmContainer_IntelNeuralChat7B = _make_container(
     name="VllmContainer_IntelNeuralChat7B",
+    model_name="Intel/neural-chat-7b-v3-1",
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=100,
 )
 VllmContainer_JebCarterPsyfighter13B = _make_container(
     "VllmContainer_JebCarterPsyfighter13B",
+    model_name="jebcarter/Psyfighter-13B",
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=32,
 )
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
+    model_name="KoboldAI/LLaMA2-13B-Psyfighter2",
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=32,
 )
 VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
+    model_name="NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3",
     gpu=modal.gpu.A100(count=2, memory=80),
     concurrent_inputs=4,
     max_containers=3,
 )
 VllmContainer_JohnDurbinBagel34B = _make_container(
     name="VllmContainer_JohnDurbinBagel34B",
+    model_name="jondurbin/bagel-34b-v0.2",
     gpu=modal.gpu.A100(count=2, memory=80),
     concurrent_inputs=4,
     max_containers=1,

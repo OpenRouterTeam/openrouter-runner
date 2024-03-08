@@ -1,7 +1,7 @@
 from fastapi import Request, status
 from fastapi.responses import StreamingResponse
 
-from runner.containers import DEFAULT_CONTAINERS
+from runner.containers.vllm_unified import REGISTERED_CONTAINERS
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
 from shared.logging import get_logger
@@ -38,7 +38,7 @@ def completion(
             f"Unable to locate model {payload.model}",
         )
 
-    container = DEFAULT_CONTAINERS.get(payload.model)
+    container = REGISTERED_CONTAINERS.get(payload.model)
     if container is None:
         message = f"Unable to locate container type for model {payload.model}"
         logger.error(message)
@@ -47,7 +47,7 @@ def completion(
             f"Unable to locate container type for model {payload.model}",
         )
 
-    runner = container(model_path)
+    runner = container()
 
     stats = runner.generate.get_current_stats()
     logger.info(stats)
