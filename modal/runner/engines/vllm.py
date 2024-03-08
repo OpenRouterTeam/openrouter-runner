@@ -1,7 +1,7 @@
 import time
 from typing import Optional
 
-from modal import Image, method
+from modal import Image, enter, method
 from pydantic import BaseModel
 
 from shared.logging import (
@@ -70,11 +70,14 @@ class VllmEngine(BaseEngine):
         self.gpu_type = gpu_type
         self.is_first_request = True
         self.t_cold_start = time.time()
+        self.engine = None
         self.engine_args = AsyncEngineArgs(
             **params.dict(),
             disable_log_requests=True,
         )
 
+    @enter()
+    def startup(self):
         with timer("engine init", model=self.engine_args.model):
             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
 
