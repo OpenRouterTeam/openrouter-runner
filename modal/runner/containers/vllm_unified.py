@@ -39,6 +39,7 @@ def _make_container(
 
     # Avoid wasting resources & money in dev
     if keep_warm and is_env_dev():
+        print("Dev environment detected, disabling keep_warm for", name)
         keep_warm = None
 
     class _VllmContainer(VllmEngine):
