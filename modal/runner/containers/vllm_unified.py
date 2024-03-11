@@ -146,15 +146,14 @@ VllmContainer_KoboldAIPsyfighter2 = _make_container(
 # A re-mapping of model names to their respective quantized models.
 # From the outside, the model name is the original, but internally,
 # we use the quantized model name.
-QUANTIZED_MODELS = {}
+QUANTIZED_MODELS = {
+    "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": "TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ",
+    "jondurbin/bagel-34b-v0.2": "TheBloke/bagel-34b-v0.2-GPTQ",
+}
 
-_noromaidMixtral = "TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ"
-QUANTIZED_MODELS[
-    "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3"
-] = _noromaidMixtral
 VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
-    model_name=_noromaidMixtral,
+    model_name="TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ",
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=4,
     max_containers=3,
@@ -162,12 +161,9 @@ VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     quantization="GPTQ",
     dtype="float16",  # vLLM errors when using dtype="auto" with this model
 )
-
-_bagel = "TheBloke/bagel-34b-v0.2-GPTQ"
-QUANTIZED_MODELS["jondurbin/bagel-34b-v0.2"] = _bagel
 VllmContainer_JohnDurbinBagel34B = _make_container(
     name="VllmContainer_JohnDurbinBagel34B",
-    model_name=_bagel,
+    model_name="TheBloke/bagel-34b-v0.2-GPTQ",
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=4,
     max_containers=1,
