@@ -27,7 +27,7 @@ vllm_image = add_observability(
     Image.from_registry(
         "nvidia/cuda:12.1.0-base-ubuntu22.04",
         add_python="3.10",
-    ).pip_install("vllm==0.2.6", "sentry-sdk==1.39.1")
+    ).pip_install("vllm==0.3.3", "sentry-sdk==1.39.1")
 )
 
 with vllm_image.imports():
