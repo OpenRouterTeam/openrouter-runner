@@ -26,6 +26,7 @@ def _make_container(
     concurrent_inputs: int = 8,
     max_containers: int = None,
     keep_warm: int = None,
+    **vllm_opts,
 ):
     """Helper function to create a container with the given GPU configuration."""
 
@@ -66,6 +67,7 @@ def _make_container(
                     params=VllmParams(
                         model=str(model_path),
                         tensor_parallel_size=num_gpus,
+                        **vllm_opts,
                     ),
                 )
 
@@ -113,6 +115,7 @@ def _make_container(
 
 
 # A mapping of model names to their respective container classes.
+# Automatically populated by _make_container.
 REGISTERED_CONTAINERS = {}
 
 VllmContainer_MicrosoftPhi2 = _make_container(
@@ -139,19 +142,37 @@ VllmContainer_KoboldAIPsyfighter2 = _make_container(
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=32,
 )
+
+# A re-mapping of model names to their respective quantized models.
+# From the outside, the model name is the original, but internally,
+# we use the quantized model name.
+QUANTIZED_MODELS = {}
+
+_noromaidMixtral = "TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ"
+QUANTIZED_MODELS[
+    "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3"
+] = _noromaidMixtral
 VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
-    model_name="NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3",
-    gpu=modal.gpu.A100(count=2, memory=80),
+    model_name=_noromaidMixtral,
+    gpu=modal.gpu.A100(count=1, memory=80),
     concurrent_inputs=4,
     max_containers=3,
     keep_warm=1,
+    quantization="GPTQ",
+    dtype="float16",  # vLLM errors when using dtype="auto" with this model
 )
+
+_bagel = "TheBloke/bagel-34b-v0.2-GPTQ"
+QUANTIZED_MODELS["jondurbin/bagel-34b-v0.2"] = _bagel
 VllmContainer_JohnDurbinBagel34B = _make_container(
     name="VllmContainer_JohnDurbinBagel34B",
-    model_name="jondurbin/bagel-34b-v0.2",
-    gpu=modal.gpu.A100(count=2, memory=80),
+    model_name=_bagel,
+    gpu=modal.gpu.A100(count=1, memory=80),
     concurrent_inputs=4,
     max_containers=1,
     keep_warm=1,
+    max_model_len=8_000,  # Reduced from original 200k
+    quantization="GPTQ",
+    dtype="float16",  # vLLM errors when using dtype="auto" with this model
 )

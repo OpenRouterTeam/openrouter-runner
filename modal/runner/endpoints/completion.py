@@ -1,7 +1,10 @@
 from fastapi import Request, status
 from fastapi.responses import StreamingResponse
 
-from runner.containers.vllm_unified import REGISTERED_CONTAINERS
+from runner.containers.vllm_unified import (
+    QUANTIZED_MODELS,
+    REGISTERED_CONTAINERS,
+)
 from runner.shared.common import BACKLOG_THRESHOLD
 from runner.shared.sampling_params import SamplingParams
 from shared.logging import get_logger
@@ -18,7 +21,12 @@ def completion(
     request: Request,
     payload: CompletionPayload,
 ):
-    model_path = get_model_path(payload.model)
+    # Some models are served quantized, so we try re-mapping them first
+    model_name = payload.model
+    if model_name in QUANTIZED_MODELS:
+        model_name = QUANTIZED_MODELS[model_name]
+
+    model_path = get_model_path(model_name)
     logger.info(
         "Received completion request",
         extra={
@@ -31,20 +39,20 @@ def completion(
         },
     )  # use path to match runner
     if not does_model_exist(model_path):
-        message = f"Unable to locate model {payload.model}"
+        message = f"Unable to locate model {model_name}"
         logger.error(message)
         return create_error_response(
             status.HTTP_400_BAD_REQUEST,
-            f"Unable to locate model {payload.model}",
+            f"Unable to locate model {model_name}",
         )
 
-    container = REGISTERED_CONTAINERS.get(payload.model)
+    container = REGISTERED_CONTAINERS.get(model_name)
     if container is None:
-        message = f"Unable to locate container type for model {payload.model}"
+        message = f"Unable to locate container type for model {model_name}"
         logger.error(message)
         return create_error_response(
             status.HTTP_400_BAD_REQUEST,
-            f"Unable to locate container type for model {payload.model}",
+            f"Unable to locate container type for model {model_name}",
         )
 
     runner = container()
