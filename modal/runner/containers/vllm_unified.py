@@ -155,7 +155,7 @@ QUANTIZED_MODELS[
 VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
     model_name=_noromaidMixtral,
-    gpu=modal.gpu.A100(count=1, memory=80),
+    gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=4,
     max_containers=3,
     keep_warm=1,
@@ -168,7 +168,7 @@ QUANTIZED_MODELS["jondurbin/bagel-34b-v0.2"] = _bagel
 VllmContainer_JohnDurbinBagel34B = _make_container(
     name="VllmContainer_JohnDurbinBagel34B",
     model_name=_bagel,
-    gpu=modal.gpu.A100(count=1, memory=80),
+    gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=4,
     max_containers=1,
     keep_warm=1,
