@@ -102,6 +102,7 @@ def load_open_instruct(tokenizer, n_samples=128):
 
     # TODO: maybe randomize the sampling
     train_split = load_dataset("VMWare/open-instruct")["train"]
+    model_max_length = tokenizer.model_max_length
 
     def dummy_gen():
         for i, x in enumerate(train_split):
@@ -118,20 +119,12 @@ def load_open_instruct(tokenizer, n_samples=128):
             examples["alpaca_prompt"], examples["response"]
         ):
             text = prompt + response
-            if (
-                len(tokenizer(prompt)["input_ids"])
-                >= tokenizer.model_max_length
-            ):
+            if len(tokenizer(prompt)["input_ids"]) >= model_max_length:
                 continue
 
-            tokenized_data = tokenizer(text)
-
-            input_ids.append(
-                tokenized_data["input_ids"][: tokenizer.model_max_length]
-            )
-            attention_mask.append(
-                tokenized_data["attention_mask"][: tokenizer.model_max_length]
-            )
+            data = tokenizer(text)
+            input_ids.append(data["input_ids"][:model_max_length])
+            attention_mask.append(data["attention_mask"][:model_max_length])
             prompts.append(prompt)
             texts.append(text)
 
