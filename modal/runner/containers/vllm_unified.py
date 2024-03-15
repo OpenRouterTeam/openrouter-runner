@@ -168,10 +168,22 @@ VllmContainer_JohnDurbinBagel34B = _make_container(
     dtype="float16",  # vLLM errors when using dtype="auto" with this model
 )
 
+_midnight_rose = "sambarnes/Midnight-Rose-70B-v2.0.3-GPTQ-naive"
+VllmContainer_MidnightRose70B = _make_container(
+    name="VllmContainer_MidnightRose70B",
+    model_name=_midnight_rose,
+    gpu=modal.gpu.A100(count=1, memory=40),
+    concurrent_inputs=4,
+    max_containers=1,
+    quantization="GPTQ",
+    dtype="float16",  # vLLM errors when using dtype="auto" with this model
+)
+
 # A re-mapping of model names to their respective quantized models.
 # From the outside, the model name is the original, but internally,
 # we use the quantized model name.
 QUANTIZED_MODELS = {
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": _noromaid,
     "jondurbin/bagel-34b-v0.2": _bagel,
+    "sophosympatheia/Midnight-Rose-70B-v2.0.3": _midnight_rose,
 }
