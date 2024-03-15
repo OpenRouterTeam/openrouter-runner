@@ -5,6 +5,7 @@ from runner.shared.common import stub
 from shared.images import BASE_IMAGE
 from shared.logging import get_logger, get_observability_secrets
 from shared.volumes import (
+    does_model_exist,
     get_model_path,
     models_path,
     models_volume,
@@ -49,6 +50,14 @@ def quantize_model():
     quantized_model_path = get_model_path(
         "sambarnes/Midnight-Rose-70B-v2.0.3-GPTQ-naive"
     )
+    if not does_model_exist(pretrained_model_path):
+        logger.error(
+            "Pretrained model does not exist at", pretrained_model_path
+        )
+        return
+    elif does_model_exist(quantized_model_path):
+        logger.info("Quantized model already exists at", pretrained_model_path)
+        return
 
     tokenizer = AutoTokenizer.from_pretrained(
         pretrained_model_path, use_fast=True
