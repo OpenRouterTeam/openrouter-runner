@@ -13,8 +13,6 @@ from shared.volumes import (
 
 logger = get_logger(__name__)
 
-cache_path = get_model_path("__cache__")
-
 
 quantizer_image = (
     BASE_IMAGE.apt_install("git")
