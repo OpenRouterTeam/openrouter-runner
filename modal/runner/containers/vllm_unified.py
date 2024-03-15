@@ -168,7 +168,18 @@ VllmContainer_JohnDurbinBagel34B = _make_container(
     dtype="float16",  # vLLM errors when using dtype="auto" with this model
 )
 
-_midnight_rose = "sambarnes/Midnight-Rose-70B-v2.0.3-GPTQ-naive"
+_midnight_rose_naive = "sambarnes/Midnight-Rose-70B-v2.0.3-GPTQ-naive"
+VllmContainer_MidnightRose70BNaive = _make_container(
+    name="VllmContainer_MidnightRose70BNaive",
+    model_name=_midnight_rose_naive,
+    gpu=modal.gpu.H100(count=1),
+    concurrent_inputs=4,
+    max_containers=1,
+    quantization="GPTQ",
+    dtype="float16",  # vLLM errors when using dtype="auto" with this model
+)
+
+_midnight_rose = "sambarnes/Midnight-Rose-70B-v2.0.3-GPTQ"
 VllmContainer_MidnightRose70B = _make_container(
     name="VllmContainer_MidnightRose70B",
     model_name=_midnight_rose,
