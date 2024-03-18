@@ -4,12 +4,14 @@ from typing import Final, List, Optional, Union
 from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
 
+_COST_PER_SECOND_A10G: Final[float] = 0.000306
 _COST_PER_SECOND_A100_40G: Final[float] = 0.001036
 _COST_PER_SECOND_A100_80G: Final[float] = 0.001553
 _COST_PER_SECOND_H100_80G: Final[float] = 0.002125
 
 
 class GPUType(Enum):
+    A10G = "A10G"
     A100_40G = "A100_40G"
     A100_80G = "A100_80G"
     H100_80G = "H100_80G"
@@ -17,6 +19,8 @@ class GPUType(Enum):
     @property
     def cost_per_second(self) -> float:
         match self:
+            case GPUType.A10G:
+                return _COST_PER_SECOND_A10G
             case GPUType.A100_40G:
                 return _COST_PER_SECOND_A100_40G
             case GPUType.A100_80G:

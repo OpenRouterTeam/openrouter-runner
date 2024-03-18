@@ -31,7 +31,9 @@ def _make_container(
     """Helper function to create a container with the given GPU configuration."""
 
     num_gpus = gpu.count
-    if isinstance(gpu, modal.gpu.A100):
+    if isinstance(gpu, modal.gpu.A10G):
+        gpu_type = GPUType.A10G
+    elif isinstance(gpu, modal.gpu.A100):
         gpu_type = GPUType.A100_80G if gpu.memory == 80 else GPUType.A100_40G
     elif isinstance(gpu, modal.gpu.H100):
         gpu_type = GPUType.H100_80G
@@ -118,28 +120,35 @@ def _make_container(
 # Automatically populated by _make_container.
 REGISTERED_CONTAINERS = {}
 
+_phi2 = "TheBloke/phi-2-GPTQ"
 VllmContainer_MicrosoftPhi2 = _make_container(
     name="VllmContainer_MicrosoftPhi2",
-    model_name="microsoft/phi-2",
-    gpu=modal.gpu.A100(count=1, memory=40),
+    model_name=_phi2,
+    gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=120,
 )
+
+_neural_chat = "TheBloke/neural-chat-7b-v3-1-GPTQ"
 VllmContainer_IntelNeuralChat7B = _make_container(
     name="VllmContainer_IntelNeuralChat7B",
-    model_name="Intel/neural-chat-7b-v3-1",
-    gpu=modal.gpu.A100(count=1, memory=40),
+    model_name=_neural_chat,
+    gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=100,
 )
+
+_psyfighter = "TheBloke/Psyfighter-13B-GPTQ"
 VllmContainer_JebCarterPsyfighter13B = _make_container(
     "VllmContainer_JebCarterPsyfighter13B",
-    model_name="jebcarter/Psyfighter-13B",
-    gpu=modal.gpu.A100(count=1, memory=40),
+    model_name=_psyfighter,
+    gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=32,
 )
+
+_psyfighter2 = "TheBloke/LLaMA2-13B-Psyfighter2-GPTQ"
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
-    model_name="KoboldAI/LLaMA2-13B-Psyfighter2",
-    gpu=modal.gpu.A100(count=1, memory=40),
+    model_name=_psyfighter2,
+    gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=32,
 )
 
@@ -172,6 +181,10 @@ VllmContainer_JohnDurbinBagel34B = _make_container(
 # From the outside, the model name is the original, but internally,
 # we use the quantized model name.
 QUANTIZED_MODELS = {
+    "microsoft/phi-2": _phi2,
+    "Intel/neural-chat-7b-v3-1": _neural_chat,
+    "jebcarter/Psyfighter-13B": _psyfighter,
+    "KoboldAI/LLaMA2-13B-Psyfighter2": _psyfighter2,
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": _noromaid,
     "jondurbin/bagel-34b-v0.2": _bagel,
 }
