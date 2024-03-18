@@ -72,10 +72,6 @@ class Usage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
 
-    duration: float
-    gpu_type: GPUType
-    gpu_count: int
-
 
 class ResponseBody(BaseModel):
     text: str

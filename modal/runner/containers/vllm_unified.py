@@ -10,7 +10,6 @@ from shared.logging import (
     get_logger,
     get_observability_secrets,
 )
-from shared.protocol import GPUType
 from shared.volumes import (
     does_model_exist,
     get_model_path,
@@ -31,14 +30,6 @@ def _make_container(
     """Helper function to create a container with the given GPU configuration."""
 
     num_gpus = gpu.count
-    if isinstance(gpu, modal.gpu.A10G):
-        gpu_type = GPUType.A10G
-    elif isinstance(gpu, modal.gpu.A100):
-        gpu_type = GPUType.A100_80G if gpu.memory == 80 else GPUType.A100_40G
-    elif isinstance(gpu, modal.gpu.H100):
-        gpu_type = GPUType.H100_80G
-    else:
-        raise ValueError(f"Unknown GPU type: {gpu}")
 
     # Avoid wasting resources & money in dev
     if keep_warm and is_env_dev():
@@ -65,20 +56,12 @@ def _make_container(
                     ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
 
                 super().__init__(
-                    gpu_type=gpu_type,
                     params=VllmParams(
                         model=str(model_path),
                         tensor_parallel_size=num_gpus,
                         **vllm_opts,
                     ),
                 )
-
-                # For any containers with keep_warm, we need to skip cold-start usage
-                # billing. This is because the first request might be minutes after
-                # the container is started, and we don't want to record that time as
-                # usage.
-                if keep_warm:
-                    self.is_first_request = False
 
                 # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
                 if num_gpus > 1:
