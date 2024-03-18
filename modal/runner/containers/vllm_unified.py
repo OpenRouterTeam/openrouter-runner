@@ -144,11 +144,11 @@ VllmContainer_JebCarterPsyfighter13B = _make_container(
     concurrent_inputs=32,
 )
 
-_psyfighter2 = "TheBloke/LLaMA2-13B-Psyfighter2-GPTQ"
+# TODO: quantize this one too? avoided for now since it's higher throughput
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
-    model_name=_psyfighter2,
-    gpu=modal.gpu.A10G(count=1),
+    model_name="KoboldAI/LLaMA2-13B-Psyfighter2",
+    gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=32,
 )
 
@@ -184,7 +184,6 @@ QUANTIZED_MODELS = {
     "microsoft/phi-2": _phi2,
     "Intel/neural-chat-7b-v3-1": _neural_chat,
     "jebcarter/Psyfighter-13B": _psyfighter,
-    "KoboldAI/LLaMA2-13B-Psyfighter2": _psyfighter2,
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": _noromaid,
     "jondurbin/bagel-34b-v0.2": _bagel,
 }
