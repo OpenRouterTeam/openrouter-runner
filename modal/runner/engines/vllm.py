@@ -11,7 +11,6 @@ from shared.logging import (
 )
 from shared.protocol import (
     CompletionPayload,
-    GPUType,
     ResponseBody,
     Usage,
     create_error_text,
@@ -62,14 +61,7 @@ class VllmParams(BaseModel):
 
 
 class VllmEngine(BaseEngine):
-    def __init__(
-        self,
-        gpu_type: GPUType,
-        params: VllmParams,
-    ):
-        self.gpu_type = gpu_type
-        self.is_first_request = True
-        self.t_cold_start = time.time()
+    def __init__(self, params: VllmParams):
         self.engine = None
         self.engine_args = AsyncEngineArgs(
             **params.dict(),
@@ -81,44 +73,14 @@ class VllmEngine(BaseEngine):
         with timer("engine init", model=self.engine_args.model):
             self.engine = AsyncLLMEngine.from_engine_args(self.engine_args)
 
-    @property
-    def gpu_count(self) -> int:
-        return self.engine_args.tensor_parallel_size
-
-    @property
-    def cost_per_second(self) -> float:
-        return self.gpu_count * self.gpu_type.cost_per_second
-
-    # @method()
-    # async def tokenize_prompt(self, payload: Payload) -> List[int]:
-    #     return self.tokenizer(payload.prompt).input_ids
-
-    # @method()
-    # async def max_model_len(self) -> int:
-    #     engine_model_config = await self.engine.get_model_config()
-    #     return engine_model_config.max_model_len
-
     @method()
     async def generate(self, payload: CompletionPayload, params):
         assert self.engine is not None, "Engine not initialized"
 
-        # Track usage as a running total. For the first request to the
-        # container, cold-start time is included in the usage duration.
         t_start_inference = time.time()
-        t_start_usage_duration = t_start_inference
-        if self.is_first_request:
-            self.is_first_request = False
-            t_start_usage_duration = self.t_cold_start
-
         resp = ResponseBody(
             text="",
-            usage=Usage(
-                prompt_tokens=0,
-                completion_tokens=0,
-                duration=0.0,
-                gpu_type=self.gpu_type,
-                gpu_count=self.gpu_count,
-            ),
+            usage=Usage(prompt_tokens=0, completion_tokens=0),
         )
 
         try:
@@ -134,7 +96,6 @@ class VllmEngine(BaseEngine):
                 finish_reason = current.outputs[0].finish_reason
                 resp.usage.prompt_tokens = len(current.prompt_token_ids)
                 resp.usage.completion_tokens = len(current.outputs[0].token_ids)
-                resp.usage.duration = time.time() - t_start_usage_duration
 
                 # Non-streaming requests continue generating w/o yielding intermediate results
                 if not payload.stream:
@@ -158,15 +119,14 @@ class VllmEngine(BaseEngine):
             data = resp.json(ensure_ascii=False)
             yield sse(data) if payload.stream else data
 
+            duration = time.time() - t_start_inference
             logger.info(
                 "Completed generation",
                 extra={
                     "model": self.engine_args.model,
                     "tokens": resp.usage.completion_tokens,
-                    "tps": resp.usage.completion_tokens
-                    / (time.time() - t_start_inference),
-                    "duration": resp.usage.duration,
-                    "cost": resp.usage.duration * self.cost_per_second,
+                    "tps": resp.usage.completion_tokens / duration,
+                    "duration": duration,
                 },
             )
         except Exception as err:

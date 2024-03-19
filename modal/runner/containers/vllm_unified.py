@@ -10,7 +10,6 @@ from shared.logging import (
     get_logger,
     get_observability_secrets,
 )
-from shared.protocol import GPUType
 from shared.volumes import (
     does_model_exist,
     get_model_path,
@@ -31,12 +30,6 @@ def _make_container(
     """Helper function to create a container with the given GPU configuration."""
 
     num_gpus = gpu.count
-    if isinstance(gpu, modal.gpu.A100):
-        gpu_type = GPUType.A100_80G if gpu.memory == 80 else GPUType.A100_40G
-    elif isinstance(gpu, modal.gpu.H100):
-        gpu_type = GPUType.H100_80G
-    else:
-        raise ValueError(f"Unknown GPU type: {gpu}")
 
     # Avoid wasting resources & money in dev
     if keep_warm and is_env_dev():
@@ -63,20 +56,12 @@ def _make_container(
                     ray.init(num_gpus=num_gpus, ignore_reinit_error=True)
 
                 super().__init__(
-                    gpu_type=gpu_type,
                     params=VllmParams(
                         model=str(model_path),
                         tensor_parallel_size=num_gpus,
                         **vllm_opts,
                     ),
                 )
-
-                # For any containers with keep_warm, we need to skip cold-start usage
-                # billing. This is because the first request might be minutes after
-                # the container is started, and we don't want to record that time as
-                # usage.
-                if keep_warm:
-                    self.is_first_request = False
 
                 # Performance improvement from https://github.com/vllm-project/vllm/issues/2073#issuecomment-1853422529
                 if num_gpus > 1:
@@ -118,29 +103,44 @@ def _make_container(
 # Automatically populated by _make_container.
 REGISTERED_CONTAINERS = {}
 
+_phi2 = "TheBloke/phi-2-GPTQ"
 VllmContainer_MicrosoftPhi2 = _make_container(
     name="VllmContainer_MicrosoftPhi2",
-    model_name="microsoft/phi-2",
-    gpu=modal.gpu.A100(count=1, memory=40),
-    concurrent_inputs=120,
+    model_name=_phi2,
+    gpu=modal.gpu.A10G(count=1),
+    concurrent_inputs=4,
+    max_containers=5,
+    quantization="GPTQ",
 )
+
+_neural_chat = "TheBloke/neural-chat-7b-v3-1-GPTQ"
 VllmContainer_IntelNeuralChat7B = _make_container(
     name="VllmContainer_IntelNeuralChat7B",
-    model_name="Intel/neural-chat-7b-v3-1",
-    gpu=modal.gpu.A100(count=1, memory=40),
-    concurrent_inputs=100,
+    model_name=_neural_chat,
+    gpu=modal.gpu.A10G(count=1),
+    concurrent_inputs=4,
+    max_containers=5,
+    quantization="GPTQ",
 )
+
+_psyfighter = "TheBloke/Psyfighter-13B-GPTQ"
 VllmContainer_JebCarterPsyfighter13B = _make_container(
     "VllmContainer_JebCarterPsyfighter13B",
-    model_name="jebcarter/Psyfighter-13B",
-    gpu=modal.gpu.A100(count=1, memory=40),
-    concurrent_inputs=32,
+    model_name=_psyfighter,
+    gpu=modal.gpu.A10G(count=1),
+    concurrent_inputs=4,
+    max_containers=5,
+    quantization="GPTQ",
 )
+
+_psyfighter2 = "TheBloke/LLaMA2-13B-Psyfighter2-GPTQ"
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
-    model_name="KoboldAI/LLaMA2-13B-Psyfighter2",
-    gpu=modal.gpu.A100(count=1, memory=40),
-    concurrent_inputs=32,
+    model_name=_psyfighter2,
+    gpu=modal.gpu.A10G(count=1),
+    concurrent_inputs=4,
+    max_containers=5,
+    quantization="GPTQ",
 )
 
 _noromaid = "TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ"
@@ -193,7 +193,15 @@ VllmContainer_MidnightRose70B = _make_container(
 # A re-mapping of model names to their respective quantized models.
 # From the outside, the model name is the original, but internally,
 # we use the quantized model name.
+#
+# NOTE: When serving quantized models, the throughput can suffer a ton
+#       at high batch sizes. Read this thread to learn why:
+#       https://github.com/vllm-project/vllm/issues/1002#issuecomment-1712824199
 QUANTIZED_MODELS = {
+    "microsoft/phi-2": _phi2,
+    "Intel/neural-chat-7b-v3-1": _neural_chat,
+    "jebcarter/Psyfighter-13B": _psyfighter,
+    "KoboldAI/LLaMA2-13B-Psyfighter2": _psyfighter2,
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": _noromaid,
     "jondurbin/bagel-34b-v0.2": _bagel,
     "sophosympatheia/Midnight-Rose-70B-v2.0.3": _midnight_rose,
