@@ -108,7 +108,8 @@ VllmContainer_MicrosoftPhi2 = _make_container(
     name="VllmContainer_MicrosoftPhi2",
     model_name=_phi2,
     gpu=modal.gpu.A10G(count=1),
-    concurrent_inputs=120,
+    concurrent_inputs=4,
+    max_containers=5,
 )
 
 _neural_chat = "TheBloke/neural-chat-7b-v3-1-GPTQ"
@@ -116,7 +117,8 @@ VllmContainer_IntelNeuralChat7B = _make_container(
     name="VllmContainer_IntelNeuralChat7B",
     model_name=_neural_chat,
     gpu=modal.gpu.A10G(count=1),
-    concurrent_inputs=100,
+    concurrent_inputs=4,
+    max_containers=5,
 )
 
 _psyfighter = "TheBloke/Psyfighter-13B-GPTQ"
@@ -124,10 +126,11 @@ VllmContainer_JebCarterPsyfighter13B = _make_container(
     "VllmContainer_JebCarterPsyfighter13B",
     model_name=_psyfighter,
     gpu=modal.gpu.A10G(count=1),
-    concurrent_inputs=32,
+    concurrent_inputs=4,
+    max_containers=5,
 )
 
-# TODO: quantize this one too? avoided for now since it's higher throughput
+# TODO: quantize this one too. shipping the others first to limit blast radius
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
     model_name="KoboldAI/LLaMA2-13B-Psyfighter2",
@@ -163,6 +166,10 @@ VllmContainer_JohnDurbinBagel34B = _make_container(
 # A re-mapping of model names to their respective quantized models.
 # From the outside, the model name is the original, but internally,
 # we use the quantized model name.
+#
+# NOTE: When serving quantized models, the throughput can suffer a ton
+#       at high batch sizes. Read this thread to learn why:
+#       https://github.com/vllm-project/vllm/issues/1002#issuecomment-1712824199
 QUANTIZED_MODELS = {
     "microsoft/phi-2": _phi2,
     "Intel/neural-chat-7b-v3-1": _neural_chat,
