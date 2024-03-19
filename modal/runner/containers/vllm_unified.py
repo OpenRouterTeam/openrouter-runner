@@ -110,6 +110,7 @@ VllmContainer_MicrosoftPhi2 = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    quantization="GPTQ",
 )
 
 _neural_chat = "TheBloke/neural-chat-7b-v3-1-GPTQ"
@@ -119,6 +120,7 @@ VllmContainer_IntelNeuralChat7B = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    quantization="GPTQ",
 )
 
 _psyfighter = "TheBloke/Psyfighter-13B-GPTQ"
@@ -128,14 +130,17 @@ VllmContainer_JebCarterPsyfighter13B = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    quantization="GPTQ",
 )
 
-# TODO: quantize this one too. shipping the others first to limit blast radius
+_psyfighter2 = "TheBloke/LLaMA2-13B-Psyfighter2-GPTQ"
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
-    model_name="KoboldAI/LLaMA2-13B-Psyfighter2",
-    gpu=modal.gpu.A100(count=1, memory=40),
-    concurrent_inputs=32,
+    model_name=_psyfighter2,
+    gpu=modal.gpu.A10G(count=1),
+    concurrent_inputs=4,
+    max_containers=5,
+    quantization="GPTQ",
 )
 
 _noromaid = "TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ"
@@ -174,6 +179,7 @@ QUANTIZED_MODELS = {
     "microsoft/phi-2": _phi2,
     "Intel/neural-chat-7b-v3-1": _neural_chat,
     "jebcarter/Psyfighter-13B": _psyfighter,
+    "KoboldAI/LLaMA2-13B-Psyfighter2": _psyfighter2,
     "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": _noromaid,
     "jondurbin/bagel-34b-v0.2": _bagel,
 }
