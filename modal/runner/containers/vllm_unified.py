@@ -110,6 +110,7 @@ VllmContainer_MicrosoftPhi2 = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    quantization="GPTQ",
 )
 
 _neural_chat = "TheBloke/neural-chat-7b-v3-1-GPTQ"
@@ -119,6 +120,7 @@ VllmContainer_IntelNeuralChat7B = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    quantization="GPTQ",
 )
 
 _psyfighter = "TheBloke/Psyfighter-13B-GPTQ"
@@ -128,6 +130,7 @@ VllmContainer_JebCarterPsyfighter13B = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    quantization="GPTQ",
 )
 
 _psyfighter2 = "TheBloke/LLaMA2-13B-Psyfighter2-GPTQ"
@@ -137,6 +140,7 @@ VllmContainer_KoboldAIPsyfighter2 = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    quantization="GPTQ",
 )
 
 _noromaid = "TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ"
