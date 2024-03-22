@@ -20,7 +20,7 @@ quantizer_image = (
     # Use the barebones hf-transfer package for maximum download speeds. No progress bar, but expect 700MB/s.
     .pip_install("huggingface_hub==0.20.2")
     .pip_install("hf-transfer==0.1.4")
-    .pip_install("transformers==4.31.0")
+    .pip_install("transformers==4.39.1")
     .env(
         {
             "HF_HUB_ENABLE_HF_TRANSFER": "1",
