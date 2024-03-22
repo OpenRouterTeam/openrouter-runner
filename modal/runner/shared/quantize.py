@@ -91,6 +91,8 @@ def quantize_model(
     model.quantize(examples_for_quant)
     model.save_quantized(quantized_model_path, use_safetensors=True)
 
+    # TODO: copy the tokenizer files as well? I just did it manually for now
+
     logger.info("Committing to volume...")
     models_volume.commit()
     logger.info(f"Volume now contains {quantized_model_path}")
