@@ -174,8 +174,7 @@ VllmContainer_MidnightRose70B = _make_container(
     model_name=_midnight_rose,
     gpu=modal.gpu.H100(count=1),
     concurrent_inputs=4,
-    # TODO: Keep it warm once launched
-    # keep_warm=1,
+    keep_warm=1,
     max_containers=1,
     quantization="GPTQ",
 )
