@@ -24,6 +24,7 @@ def _make_container(
     gpu: modal.gpu = modal.gpu.A100(count=1, memory=40),
     concurrent_inputs: int = 8,
     max_containers: int = None,
+    container_idle_timeout: int = 20 * 60,  # 20 minutes
     keep_warm: int = None,
     **vllm_opts,
 ):
@@ -88,7 +89,7 @@ def _make_container(
         memory=1024,
         gpu=gpu,
         allow_concurrent_inputs=concurrent_inputs,
-        container_idle_timeout=20 * 60,
+        container_idle_timeout=container_idle_timeout,
         timeout=10 * 60,
         secrets=[*get_observability_secrets()],
         concurrency_limit=max_containers,
@@ -120,6 +121,7 @@ VllmContainer_IntelNeuralChat7B = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    container_idle_timeout=2 * 60,
     quantization="GPTQ",
 )
 
@@ -130,6 +132,7 @@ VllmContainer_JebCarterPsyfighter13B = _make_container(
     gpu=modal.gpu.A10G(count=1),
     concurrent_inputs=4,
     max_containers=5,
+    container_idle_timeout=2 * 60,
     quantization="GPTQ",
 )
 
