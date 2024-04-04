@@ -165,7 +165,6 @@ VllmContainer_JohnDurbinBagel34B = _make_container(
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=4,
     max_containers=1,
-    keep_warm=1,
     max_model_len=8_000,  # Reduced from original 200k
     quantization="GPTQ",
     dtype="float16",  # vLLM errors when using dtype="auto" with this model
