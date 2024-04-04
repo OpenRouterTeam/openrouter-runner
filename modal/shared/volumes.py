@@ -2,7 +2,7 @@ from pathlib import Path
 
 from modal import Volume
 
-models_volume = Volume.persisted("models-volume")
+models_volume = Volume.from_name("models-volume", create_if_missing=True)
 models_path = Path("/models")
 
 
