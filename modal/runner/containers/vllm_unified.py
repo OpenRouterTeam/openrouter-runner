@@ -152,7 +152,7 @@ VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
     model_name=_noromaid,
     gpu=modal.gpu.A100(count=1, memory=40),
     concurrent_inputs=4,
-    max_containers=3,
+    max_containers=1,
     quantization="GPTQ",
     dtype="float16",  # vLLM errors when using dtype="auto" with this model
 )
