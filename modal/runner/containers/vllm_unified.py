@@ -125,17 +125,6 @@ VllmContainer_IntelNeuralChat7B = _make_container(
     quantization="GPTQ",
 )
 
-_psyfighter = "TheBloke/Psyfighter-13B-GPTQ"
-VllmContainer_JebCarterPsyfighter13B = _make_container(
-    "VllmContainer_JebCarterPsyfighter13B",
-    model_name=_psyfighter,
-    gpu=modal.gpu.A10G(count=1),
-    concurrent_inputs=4,
-    max_containers=5,
-    container_idle_timeout=2 * 60,
-    quantization="GPTQ",
-)
-
 _psyfighter2 = "TheBloke/LLaMA2-13B-Psyfighter2-GPTQ"
 VllmContainer_KoboldAIPsyfighter2 = _make_container(
     name="VllmContainer_KoboldAIPsyfighter2",
@@ -146,38 +135,6 @@ VllmContainer_KoboldAIPsyfighter2 = _make_container(
     quantization="GPTQ",
 )
 
-_noromaid = "TheBloke/Noromaid-v0.1-mixtral-8x7b-Instruct-v3-GPTQ"
-VllmContainer_NeverSleepNoromaidMixtral8x7B = _make_container(
-    name="VllmContainer_NeverSleepNoromaidMixtral8x7B",
-    model_name=_noromaid,
-    gpu=modal.gpu.A100(count=1, memory=40),
-    concurrent_inputs=4,
-    max_containers=1,
-    quantization="GPTQ",
-    dtype="float16",  # vLLM errors when using dtype="auto" with this model
-)
-
-_bagel = "TheBloke/bagel-34b-v0.2-GPTQ"
-VllmContainer_JohnDurbinBagel34B = _make_container(
-    name="VllmContainer_JohnDurbinBagel34B",
-    model_name=_bagel,
-    gpu=modal.gpu.A100(count=1, memory=40),
-    concurrent_inputs=4,
-    max_containers=1,
-    max_model_len=8_000,  # Reduced from original 200k
-    quantization="GPTQ",
-    dtype="float16",  # vLLM errors when using dtype="auto" with this model
-)
-
-_midnight_rose = "sambarnes/Midnight-Rose-70B-v2.0.3-GPTQ"
-VllmContainer_MidnightRose70B = _make_container(
-    name="VllmContainer_MidnightRose70B",
-    model_name=_midnight_rose,
-    gpu=modal.gpu.H100(count=1),
-    concurrent_inputs=4,
-    max_containers=1,
-    quantization="GPTQ",
-)
 
 # A re-mapping of model names to their respective quantized models.
 # From the outside, the model name is the original, but internally,
@@ -189,9 +146,5 @@ VllmContainer_MidnightRose70B = _make_container(
 QUANTIZED_MODELS = {
     "microsoft/phi-2": _phi2,
     "Intel/neural-chat-7b-v3-1": _neural_chat,
-    "jebcarter/Psyfighter-13B": _psyfighter,
     "KoboldAI/LLaMA2-13B-Psyfighter2": _psyfighter2,
-    "NeverSleep/Noromaid-v0.1-mixtral-8x7b-Instruct-v3": _noromaid,
-    "jondurbin/bagel-34b-v0.2": _bagel,
-    "sophosympatheia/Midnight-Rose-70B-v2.0.3": _midnight_rose,
 }
