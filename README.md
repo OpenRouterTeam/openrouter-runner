@@ -30,7 +30,7 @@ Before you begin, ensure you have the necessary accounts and tools:
 
 # Quickstart
 
-For those familiar with the OpenRouter Runner and wanting to deploy it quickly. This means you have already set up the [prerequisties](#prerequisites) and can start deploying.
+For those familiar with the OpenRouter Runner and wanting to deploy it quickly. This means you have already set up the [prerequisites](#prerequisites) and can start deploying.
 
 1. **Navigate to modal directory.**
 
